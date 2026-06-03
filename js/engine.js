@@ -16,7 +16,16 @@ let cardsMap = new Map(); // 性能优化：O(1) 查找
 let activeDragId = null;
 let dragOffsetX = 0; 
 let dragOffsetY = 0;
-let zIndexCounter = 100;
+
+// 卡牌类型固定层级（数值越大越上层）
+const Z_INDEX = {
+    scene: 100,    // 场景卡最底层
+    char: 200,     // 人物卡
+    item: 300,     // 道具卡
+    equipment: 350, // 装备卡
+    clue: 400,     // 线索卡最上层
+    logic: 500,   // 逻辑归因卡
+};
 
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
 initExplorationModule(directSpawnCard, () => cardsData);
@@ -127,7 +136,7 @@ export function recycleCard(cardToRecycle, recycleCard, spawnFn, destroyFn) {
 
 export function resetVerbCard(verb, originalX, originalY) {
     if (verb.parent) { const p = findCardData(verb.parent); if (p) p.next = null; verb.parent = null; }
-    verb.x = originalX; verb.y = originalY; zIndexCounter += 5; verb.zIndex = zIndexCounter;
+    verb.x = originalX; verb.y = originalY;
     renderAllCards();
 }
 
@@ -143,11 +152,15 @@ export function renderAllCards() {
     cardsData.forEach(card => {
         let finalX = card.x; 
         let finalY = card.y;
-        let baseZIndex = card.zIndex || 100;
+        
+        // 获取卡牌类型对应的固定层级
+        const cardType = CARD_TEMPLATES[card.templateId].type;
+        let baseZIndex = Z_INDEX[cardType] || 100;
         
         // 如果有父级，计算堆叠偏移
         if (card.parent) {
-            let p = cardsMap.get(card.parent); 
+            const parentCard = cardsMap.get(card.parent);
+            let p = parentCard;
             let depth = 0;
             while(p) { 
                 depth++; 
@@ -155,14 +168,14 @@ export function renderAllCards() {
                 finalY = p.y + (depth * 24); 
                 p = p.parent ? cardsMap.get(p.parent) : null; 
             }
-            // 堆叠卡牌的层级基于父级
-            baseZIndex = (cardsMap.get(card.parent)?.zIndex || 100) + depth;
+            // 堆叠卡牌的层级基于父级类型 + 深度偏移
+            const parentType = CARD_TEMPLATES[parentCard?.templateId]?.type;
+            baseZIndex = (Z_INDEX[parentType] || 100) + depth;
         }
         
         // 如果是正在拖动的卡牌，赋予绝对最高层级
         if (card.instanceId === activeDragId) {
-            zIndexCounter += 100;
-            baseZIndex = zIndexCounter;
+            baseZIndex = 9999;
         }
         
         renderQueue.push({ card, finalX, finalY, zIndex: baseZIndex });
@@ -241,21 +254,8 @@ function startDrag(e, card) {
     if (gameState.isGameOver) return;
     
     activeDragId = card.instanceId;
+    // 拖拽开始时只需设置 activeDragId，renderAllCards 会自动设置 z-index 为 9999
     
-    // 拖拽开始时，将该卡牌及其所有子卡牌的 zIndex 设为全局最高，确保从上方经过
-    let current = card;
-    const dragStack = [];
-    while(current) { 
-        dragStack.push(current);
-        current = current.next ? cardsMap.get(current.next) : null; 
-    }
-    
-    // 赋予绝对最高层级
-    dragStack.forEach(c => {
-        zIndexCounter += 10;
-        c.zIndex = zIndexCounter;
-    });
-
     if (card.parent) { const p = cardsMap.get(card.parent); if (p) p.next = null; card.parent = null; }
     const rect = document.getElementById(card.instanceId).getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top;
