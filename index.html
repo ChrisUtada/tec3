@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>T.E.C-OS // 纯卡牌因果规约终端 (多结局自由多周目版)</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <header>
+        <div><h1>T.E.C-OS // 纯物理规约终端 (多结局无缝连玩版)</h1></div>
+        <div class="system-status" id="system-status-indicator">● 运行状态：归因推演系统就绪 // 至少1条线索即可推演</div>
+    </header>
+
+    <div id="board-canvas">
+        <!-- 旧的结局触发按钮已移除，现在使用逻辑归因卡牌进行推演 -->
+        
+        <!-- 堆叠组合进度条（浮动显示） -->
+        <div id="stack-progress-container" style="display: none;">
+            <div class="stack-progress-bar">
+                <div class="stack-progress-fill" id="stack-progress-fill"></div>
+            </div>
+            <div class="stack-progress-text" id="stack-progress-text">合成中...</div>
+        </div>
+        
+        <div id="scene-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title-text">【解离空间波动锚定】</div>
+                <div class="modal-close" onclick="closeSceneModal()">[ X ]</div>
+            </div>
+            <div class="modal-body" id="modal-body-text">正在扫描局部物理守恒...</div>
+            <div class="modal-footer">
+                <button class="sync-btn" id="modal-action-btn" onclick="syncModalAssets()">同步当前坐标实体到桌面上</button>
+            </div>
+        </div>
+
+        <div id="ending-report-panel">
+            <div class="ending-header" id="ending-panel-header" onclick="toggleEndingPanel()">
+                <span id="ending-title-text">🏆 终局因果宣告书</span>
+                <span id="ending-toggle-icon">[-] 最小化</span>
+            </div>
+            <div class="ending-body" id="ending-body-text">因果宏观闭环已达成。</div>
+            <div class="ending-footer">
+                <button class="ending-btn" onclick="resumeExploration()" style="border-color: var(--color-vision); color: var(--color-vision); font-weight: bold;">🔄 收起报告，继续探索其余结局</button>
+                <button class="ending-btn" onclick="window.location.reload()">[ 重置全盘世界线 ]</button>
+            </div>
+        </div>
+
+        <div id="query-inspector">
+            <h4>🔍 Datanodes 实时数据审计</h4>
+            <div id="query-content">点击桌面卡牌查看详细信息。<br><span style="color:var(--color-vision)">提示：将卡牌堆叠触发组合，双击【场景】卡牌进行探索，或双击【逻辑归因】卡牌进行推演！</span></div>
+        </div>
+
+        <!-- 人物对话窗口 -->
+        <div id="dialogue-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="dialogue-title">人物对话</div>
+                <div class="modal-close" onclick="closeDialogueModal()">[ X ]</div>
+            </div>
+            <div class="dialogue-content">
+                <div class="dialogue-slot" id="dialogue-slot">
+                    <div class="dialogue-slot-placeholder">将卡牌拖入此处</div>
+                </div>
+                <div class="dialogue-text" id="dialogue-text">
+                    双击人物卡牌开启对话。将物品、场景或线索拖入上方槽位，查看对应对话内容。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="dialogue-btn" id="dialogue-next-btn" onclick="nextDialogue()" style="display:none;">继续</button>
+                <button class="dialogue-btn" id="dialogue-end-btn" onclick="closeDialogueModal()" style="display:none;">结束对话</button>
+            </div>
+        </div>
+
+        <!-- 场景探索窗口 -->
+        <div id="exploration-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="exploration-title">场景探索</div>
+                <div class="modal-close" onclick="closeExplorationModal()">[ X ]</div>
+            </div>
+            <div class="exploration-content">
+                <div class="exploration-slots" id="exploration-slots">
+                    <!-- 动态生成3个槽位 -->
+                </div>
+                <div class="exploration-progress" id="exploration-progress" style="display:none;">
+                    <div class="exploration-progress-bar">
+                        <div class="exploration-progress-fill" id="exploration-progress-fill"></div>
+                    </div>
+                    <div class="exploration-progress-text" id="exploration-progress-text">探索中...</div>
+                </div>
+                <div class="exploration-info" id="exploration-info">
+                    将人物、物品或线索拖入上方槽位，然后点击“探索”按钮。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="exploration-btn" id="exploration-start-btn" onclick="startExploration()">开始探索</button>
+                <button class="exploration-btn" id="exploration-close-btn" onclick="closeExplorationModal()" style="display:none;">关闭</button>
+            </div>
+        </div>
+
+        <!-- 归因推演窗口 -->
+        <div id="reasoning-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="reasoning-title">逻辑归因 // 归因推演仪</div>
+                <div class="modal-close" onclick="closeReasoningModal()">[ X ]</div>
+            </div>
+            <div class="reasoning-content">
+                <div class="reasoning-slots" id="reasoning-slots">
+                    <div class="reasoning-slot" id="slot-0">
+                        <div class="slot-placeholder">线索槽位 1</div>
+                    </div>
+                    <div class="reasoning-slot" id="slot-1">
+                        <div class="slot-placeholder">线索槽位 2</div>
+                    </div>
+                    <div class="reasoning-slot" id="slot-2">
+                        <div class="slot-placeholder">线索槽位 3</div>
+                    </div>
+                    <div class="reasoning-slot" id="slot-3">
+                        <div class="slot-placeholder">线索槽位 4</div>
+                    </div>
+                    <div class="reasoning-slot" id="slot-4">
+                        <div class="slot-placeholder">线索槽位 5</div>
+                    </div>
+                </div>
+                
+                <!-- 归因推演进度条 -->
+                <div class="reasoning-progress-container" id="reasoning-progress-container" style="display: none;">
+                    <div class="reasoning-progress-label">正在进行因果链推演...</div>
+                    <div class="reasoning-progress-bar">
+                        <div class="reasoning-progress-fill" id="reasoning-progress-fill"></div>
+                    </div>
+                    <div class="reasoning-progress-text" id="reasoning-progress-text">0%</div>
+                </div>
+                
+                <div class="reasoning-hint" id="reasoning-hint">
+                    将线索卡牌拖入上方槽位（至少 1 条），然后点击【归因推演】按钮推导真相。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="reasoning-btn" id="reasoning-execute-btn" onclick="executeReasoning()" disabled>归因推演</button>
+                <button class="reasoning-btn" id="reasoning-close-btn" onclick="closeReasoningModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js?v=2"></script>
+</body>
+</html>
