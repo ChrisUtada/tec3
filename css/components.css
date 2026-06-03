@@ -1,0 +1,651 @@
+/* 探测窗口 */
+#scene-modal {
+    display: none; 
+    position: absolute; 
+    top: 12%; left: 15%; width: 70%; height: 65%;
+    background: #080d14; 
+    border: 2px solid var(--color-vision); 
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9); 
+    z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
+    flex-direction: column; 
+    padding: 20px;
+}
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2736; padding-bottom: 8px; }
+.modal-title { font-size: 12px; font-weight: bold; color: var(--color-vision); }
+.modal-close { color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 6px; background: rgba(255,255,255,0.05); }
+.modal-body { font-size: 12px; line-height: 1.6; flex: 1; overflow-y: auto; white-space: pre-wrap; background: rgba(0,0,0,0.3); padding: 12px; margin: 12px 0; border-radius: 4px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+
+.sync-btn { background: var(--color-vision); border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; color: #000; }
+.sync-btn:disabled { background: #1c2a3a; color: var(--text-muted); cursor: not-allowed; }
+
+/* 状态监视器 */
+#query-inspector {
+    position: absolute; bottom: 10px; right: 10px; width: 400px; background: rgba(8, 12, 18, 0.95);
+    border: 1px solid #1c2a3a; border-radius: 4px; padding: 15px; pointer-events: auto; z-index: 100;
+}
+#query-inspector h4 { font-size: 13px; color: var(--color-vision); margin-bottom: 8px; border-bottom: 1px solid #1c2a3a; padding-bottom: 4px; }
+#query-content { font-size: 12px; color: #8793a8; line-height: 1.6; }
+
+/* 卡牌基础样式 */
+.card {
+    width: 115px; height: 150px; border-radius: 4px; padding: 8px; box-sizing: border-box;
+    position: absolute; cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
+}
+.card:active { cursor: grabbing; }
+
+.card.item-card { background: var(--color-item); border-color: #3e4451; }
+.card.scene-card { background: var(--color-scene); border-color: #4b3b6e; }
+.card.char-card { background: var(--color-char); border-color: #7e2222; }
+.card.clue-vision { background: #081d17; border-color: var(--color-vision); }
+.card.clue-taste { background: #1d0814; border-color: var(--color-taste); }
+.card.clue-hearing { background: #0a0a1f; border-color: #6c5ce7; }
+.card.lock-card { border-color: #ffb86c; box-shadow: 0 0 6px rgba(255,184,108,0.2); }
+
+/* 已移除旧的结局触发按钮样式，现在使用逻辑归因卡牌 */
+
+/*  堆叠组合进度条（简化版） */
+#stack-progress-container {
+    position: absolute;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.stack-progress-bar {
+    width: 120px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--color-vision);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stack-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-vision);
+    transition: width linear;
+}
+
+.stack-progress-text {
+    font-size: 10px;
+    color: var(--color-vision);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+/* 🌟 通用掉落进度条（在堆叠进度条下方） */
+#drop-progress-container {
+    position: absolute;
+    z-index: 9998;  /* 比堆叠进度条低一层 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.drop-progress-bar {
+    width: 160px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ffcc00;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 
+        0 0 15px rgba(255, 204, 0, 0.5),
+        inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.drop-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ffcc00, #ffdd44);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+    transition: width linear;
+}
+
+.drop-progress-text {
+    font-size: 12px;
+    color: #ffddaa;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+}
+
+/*  逻辑归因卡牌 */
+.card.logic-card {
+    background: linear-gradient(135deg, #1a0a2e, #2d1b4e);
+    border: 2px solid #9b59b6;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.4);
+}
+.card.logic-card:hover {
+    box-shadow: 0 0 25px rgba(155, 89, 182, 0.7);
+    transform: scale(1.05);
+}
+
+.verb-card { box-shadow: 0 0 10px rgba(255,255,255,0.1); font-style: italic; }
+.card.verb-card.v-investigate { background: #0a2920; border: 2px solid var(--color-vision); }
+.card.verb-card.v-talk { background: #0f243a; border: 2px solid var(--color-hearing); }
+
+/* 提示手动点选捕获的虚线高亮 */
+.card.unbound {
+    border: 1px dashed var(--color-taste) !important;
+    box-shadow: 0 0 10px var(--color-taste) !important;
+    animation: pulse-border 1s infinite alternate;
+}
+@keyframes pulse-border { from { opacity: 0.4; } to { opacity: 1; } }
+
+/* 🌟 探索掉落卡牌的高亮效果 */
+.card.dropped-highlight {
+    border: 3px solid #ffcc00 !important;
+    box-shadow: 
+        0 0 20px rgba(255, 204, 0, 0.8),
+        0 0 40px rgba(255, 204, 0, 0.4) !important;
+    animation: dropped-pulse 0.5s infinite alternate;
+    z-index: 1000 !important;
+}
+@keyframes dropped-pulse { 
+    from { 
+        box-shadow: 0 0 20px rgba(255, 204, 0, 0.8), 0 0 40px rgba(255, 204, 0, 0.4);
+        transform: scale(1);
+    } 
+    to { 
+        box-shadow: 0 0 30px rgba(255, 204, 0, 1), 0 0 60px rgba(255, 204, 0, 0.6);
+        transform: scale(1.05);
+    } 
+}
+
+.card-name { 
+    font-weight: bold; 
+    color: #fff; 
+    font-size: 12px; 
+    text-align: center; 
+    border-bottom: 1px solid rgba(255,255,255,0.06); 
+    padding-bottom: 4px;
+    margin-bottom: auto;
+}
+.card-desc { 
+    font-size: 10px; 
+    color: #919baa; 
+    flex: 1; 
+    margin-top: 4px; 
+    line-height: 1.2; 
+    overflow: hidden; 
+}
+.card-status-tag { 
+    font-size: 8px; 
+    text-align: center; 
+    background: rgba(255, 121, 198, 0.15); 
+    border: 1px solid var(--color-taste); 
+    border-radius: 2px; 
+    color: var(--color-taste); 
+    padding: 1px 0; 
+    margin-bottom: 2px; 
+}
+.card-type-tag { 
+    font-size: 9px; 
+    text-align: center; 
+    opacity: 0.6; 
+    text-transform: uppercase;
+    padding: 2px 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    margin-top: auto;
+}
+
+/* 🏆 右下角悬浮结局面板 */
+#ending-report-panel {
+    display: none; position: absolute; bottom: 20px; right: 320px; width: 440px; max-height: 80%;
+    background: rgba(4, 7, 12, 0.98); border-radius: 6px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+    z-index: 10000; flex-direction: column; overflow: hidden; border: 1px solid var(--panel-border); /* 确保弹窗始终在卡牌之上 */
+}
+#ending-report-panel.minimized {
+    width: 240px; height: 36px; overflow: hidden; bottom: 20px;
+}
+.ending-header {
+    padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer;
+}
+.ending-body {
+    padding: 15px; font-size: 11px; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; max-height: 260px; overflow-y: auto; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);
+}
+.ending-footer {
+    padding: 10px 15px; display: flex; justify-content: space-between; gap: 10px; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.05);
+}
+.ending-btn {
+    background: none; border: 1px solid var(--text-muted); color: var(--text-main); padding: 5px 12px; cursor: pointer; font-family: inherit; font-size: 10px; border-radius: 3px; flex: 1; text-align: center;
+}
+.ending-btn:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.02); }
+
+/*  人物对话窗口 */
+#dialogue-modal {
+    display: none;
+    position: absolute;
+    top: 15%; left: 20%; width: 500px;
+    background: #080d14;
+    border: 2px solid var(--color-char);
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
+    flex-direction: column;
+    padding: 20px;
+    cursor: move; /* 整个弹窗可拖动 */
+}
+
+.dialogue-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.dialogue-slot {
+    width: 110px;
+    height: 140px;
+    border: 2px dashed #3e4451;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s;
+    margin: 0 auto;
+}
+
+.dialogue-slot.drag-over {
+    border-color: var(--color-char);
+    background: rgba(126, 34, 34, 0.1);
+    box-shadow: 0 0 15px rgba(126, 34, 34, 0.3);
+}
+
+.dialogue-slot-placeholder {
+    font-size: 11px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.dialogue-slot .card {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 106px;
+    height: 136px;
+    cursor: grab;
+    transition: all 0.3s ease;
+}
+
+/* 卡牌嵌入效果 */
+.dialogue-slot .card.embedded {
+    transform: scale(0.98);
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.4),
+        0 1px 3px rgba(255, 255, 255, 0.05);
+    border-width: 2px;
+}
+
+.dialogue-text {
+    min-height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    padding: 15px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-main);
+    white-space: pre-wrap;
+}
+
+.dialogue-btn {
+    background: var(--color-char);
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 8px 20px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.dialogue-btn:hover {
+    background: #9e2a2a;
+    transform: scale(1.05);
+}
+.dialogue-btn:active {
+    transform: scale(0.98);
+}
+
+/*  场景探索窗口样式 */
+#exploration-modal {
+    display: none;
+    position: absolute;  /* 改回 absolute，与对话/归因窗口一致 */
+    top: 15%; left: 20%; width: 600px;
+    background: #080d14;
+    border: 2px solid var(--color-scene);
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    z-index: 100000;
+    flex-direction: column;
+    padding: 20px;
+    cursor: move;
+}
+
+.exploration-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.exploration-slots {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.exploration-slot {
+    width: 120px;
+    height: 155px;
+    border: 2px dashed #2a3f52;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);  /* 添加背景色，与对话/归因一致 */
+    position: relative;
+    transition: all 0.2s;
+}
+
+.exploration-slot.drag-over {
+    border-color: var(--color-scene);
+    background: rgba(255, 136, 0, 0.15);  /* 拖拽时显示轻微高亮 */
+}
+
+.exploration-slot-placeholder {
+    color: #4a5d72;
+    font-size: 11px;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* 探索窗口中的卡牌样式 */
+.exploration-slot .card.embedded {
+    transform: scale(0.98);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    border-width: 2px;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10 !important;
+    position: relative !important;
+    margin: 0 !important;
+    left: auto !important;  /* 强制覆盖 */
+    top: auto !important;   /* 强制覆盖 */
+}
+
+.exploration-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.exploration-progress-bar {
+    width: 100%;
+    height: 16px;  /* 增加高度 */
+    background: rgba(0, 0, 0, 0.7);  /* 更深的背景 */
+    border: 2px solid var(--color-scene);  /* 更粗的边框 */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);  /* 内阴影增强层次感 */
+}
+
+.exploration-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff8800, #ffaa33);  /* 渐变效果 */
+    box-shadow: 0 0 10px rgba(255, 136, 0, 0.6);  /* 发光效果 */
+    transition: width linear;
+}
+
+.exploration-progress-text {
+    font-size: 13px;  /* 增大字体 */
+    color: #ffcc88;  /* 更亮的橙色 */
+    font-weight: bold;  /* 加粗 */
+    text-align: center;
+    text-shadow: 0 0 8px rgba(255, 136, 0, 0.5);  /* 文字发光 */
+}
+
+.exploration-info {
+    font-size: 13px;  /* 增大字体 */
+    color: #a8b8c8;  /* 更亮的文字 */
+    text-align: center;
+    line-height: 1.6;
+    padding: 12px;
+    background: rgba(42, 63, 82, 0.2);  /* 稍微加深背景 */
+    border-radius: 6px;
+    border: 1px solid rgba(42, 63, 82, 0.3);  /* 添加边框 */
+}
+
+.exploration-btn {
+    padding: 12px 28px;  /* 增大按钮 */
+    background: linear-gradient(135deg, rgba(255, 136, 0, 0.2), rgba(255, 136, 0, 0.1));  /* 渐变背景 */
+    border: 2px solid #ff8800;  /* 更亮的边框 */
+    color: #ffcc88;  /* 更亮的文字 */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;  /* 增大字体 */
+    font-weight: bold;  /* 加粗 */
+    transition: all 0.2s;
+    box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);  /* 按钮发光 */
+    text-shadow: 0 0 4px rgba(255, 136, 0, 0.4);  /* 文字发光 */
+}
+
+.exploration-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 136, 0, 0.3), rgba(255, 136, 0, 0.2));
+    border-color: #ffaa33;
+    color: #ffddaa;
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.5);
+    transform: translateY(-2px);  /* 悬停时略微上升 */
+}
+
+.exploration-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 0 5px rgba(255, 136, 0, 0.3);
+}
+
+.exploration-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/*  归因推演窗口 */
+#reasoning-modal {
+    display: none;
+    position: absolute;
+    top: 10%; left: 15%; width: 600px;
+    background: #080d14;
+    border: 2px solid var(--color-vision);
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
+    flex-direction: column;
+    padding: 20px;
+    cursor: move;
+}
+
+.reasoning-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.reasoning-slots {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.reasoning-slot {
+    width: 110px;
+    height: 140px;
+    border: 2px dashed #3e4451;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.reasoning-slot.drag-over {
+    border-color: var(--color-vision);
+    background: rgba(78, 204, 163, 0.1);
+    box-shadow: 0 0 15px rgba(78, 204, 163, 0.3);
+}
+
+.reasoning-slot .slot-placeholder {
+    font-size: 10px;
+    color: var(--text-muted);
+    pointer-events: none;
+    text-align: center;
+}
+
+.reasoning-slot .card {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 106px;
+    height: 136px;
+    cursor: grab;
+    transition: all 0.3s ease;
+}
+
+.reasoning-slot .card.embedded {
+    transform: scale(0.98);
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.4),
+        0 1px 3px rgba(255, 255, 255, 0.05);
+    border-width: 2px;
+}
+
+.reasoning-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+/* 归因推演进度条 */
+.reasoning-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-vision);
+    border-radius: 6px;
+    animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { box-shadow: 0 0 5px rgba(78, 204, 163, 0.3); }
+    to { box-shadow: 0 0 20px rgba(78, 204, 163, 0.6); }
+}
+
+.reasoning-progress-label {
+    font-size: 12px;
+    color: var(--color-vision);
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.reasoning-progress-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #3e4451;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.reasoning-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, 
+        var(--color-vision) 0%, 
+        #2ecc71 50%, 
+        var(--color-vision) 100%);
+    background-size: 200% 100%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(78, 204, 163, 0.5);
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.reasoning-progress-text {
+    font-size: 14px;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.reasoning-btn {
+    background: var(--color-vision);
+    border: 1px solid #fff;
+    color: #000;
+    padding: 8px 20px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    transition: all 0.2s;
+    flex: 1;
+}
+.reasoning-btn:hover:not(:disabled) {
+    background: #5eddb4;
+    transform: scale(1.05);
+}
+.reasoning-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+.reasoning-btn:disabled {
+    background: #1c2a3a;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border-color: var(--text-muted);
+}

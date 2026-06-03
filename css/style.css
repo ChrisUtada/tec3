@@ -1,0 +1,59 @@
+:root {
+    --bg-color: #05070a;
+    --grid-line: #0b1017;
+    --panel-bg: rgba(9, 14, 20, 0.95);
+    --panel-border: #162233;
+    --text-muted: #52607a;
+    --text-main: #a9b2c3;
+    
+    --color-vision: #4ecca3;    /* 前往/空间/展现 体系 */
+    --color-hearing: #61afef;   /* 出示/对话 体系 */
+    --color-taste: #ff79c6;     /* 捕获/具现/品尝 体系 */
+    
+    --color-item: #1e222a;
+    --color-scene: #161220;
+    --color-char: #2c1f14;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+body {
+    background-color: var(--bg-color);
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: var(--text-main);
+    font-family: 'Courier New', Courier, monospace, "Microsoft YaHei";
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 50px 1fr; /* 移除日志区，桌面占满剩余空间 */
+    padding: 10px;
+    gap: 10px;
+}
+
+header {
+    background: var(--panel-bg); 
+    border: 1px solid var(--panel-border); 
+    border-radius: 4px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 15px; 
+    z-index: 10;
+}
+
+header h1 { font-size: 14px; color: #fff; letter-spacing: 1px; }
+header .system-status { font-size: 11px; color: var(--color-vision); }
+
+#board-canvas { 
+    background: rgba(6, 9, 13, 0.4); 
+    border: 1px solid var(--panel-border); 
+    border-radius: 4px; 
+    position: relative; 
+    height: 100%; 
+    overflow: hidden;
+}
+
+/* 日志面板样式已移除，桌面空间最大化 */
