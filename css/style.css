@@ -13,6 +13,13 @@
     --color-item: #1e222a;
     --color-scene: #161220;
     --color-char: #2c1f14;
+    
+    /* 卡牌尺寸变量 - 与 consts.js 同步 */
+    --card-width: 115px;
+    --card-height: 150px;
+    --card-embed-width: 106px;
+    --card-embed-height: 136px;
+    --card-stack-offset: 24px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }

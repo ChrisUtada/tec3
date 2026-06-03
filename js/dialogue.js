@@ -1,7 +1,7 @@
 //  人物对话系统
 import { DIALOGUE_DATA } from './config.js';
 import { log } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, initModalDrag } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, initModalDrag, setupCardDragOut } from './shared.js';
 
 let currentDialogue = null;  // 当前人物 templateId
 let currentCardType = null;  // 当前槽位中的卡牌类型
@@ -115,8 +115,25 @@ export function placeCardInSlot(cardData) {
         // 使用共享工具函数嵌入卡牌
         embedCardInSlot(cardEl, cardData, dialogueSlot);
         
-        // 添加拖出功能
-        setupCardDragOut(cardEl, cardData);
+        // 使用共享工具函数添加拖出功能
+        setupCardDragOut(cardEl, cardData, {
+            slotIndex: 0,
+            slotsArray: null,  // dialogue 只有一个槽位，不需要数组
+            slotElement: dialogueSlot,
+            placeholderText: '将卡牌拖入此处',
+            onRemove: () => {
+                // 清除对话状态
+                draggedCardData = null;
+                currentCardType = null;
+                currentDialogueList = [];
+                dialogueIndex = 0;
+                // 重置对话文字和按钮
+                dialogueText.innerText = '将物品、场景或线索拖入上方槽位，查看对应对话内容。';
+                nextBtn.style.display = 'none';
+                endBtn.style.display = 'none';
+            },
+            logMessage: '对话系统：卡牌已取出'
+        });
     }
 
     dialogueSlot.classList.add('drag-over');
@@ -161,72 +178,4 @@ export function nextDialogue() {
 // 初始化弹窗拖动功能
 function initDialogueDrag() {
     initModalDrag(dialogueModal);
-}
-
-// 供 HTML onclick 调用的全局函数
-window.closeDialogueModal = closeDialogueModal;
-window.nextDialogue = nextDialogue;
-
-// 设置卡牌拖出功能
-function setupCardDragOut(cardEl, cardData) {
-    let isDragging = false;
-    let startX, startY;
-    
-    cardEl.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        cardEl.classList.remove('embedded');
-        cardEl.style.cursor = 'grabbing';
-        
-        e.preventDefault();
-        e.stopPropagation();
-    });
-    
-    const moveHandler = (e) => {
-        if (!isDragging) return;
-        
-        const diffX = e.clientX - startX;
-        const diffY = e.clientY - startY;
-        
-        if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
-            // 使用共享工具函数恢复卡牌到桌面
-            restoreCardToBoard(cardData);
-            
-            // 清除对话状态
-            draggedCardData = null;
-            currentCardType = null;
-            currentDialogueList = [];
-            dialogueIndex = 0;
-            
-            // 重置槽位
-            dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
-            dialogueSlot.classList.remove('drag-over');
-            
-            // 重置对话文字
-            dialogueText.innerText = '将物品、场景或线索拖入上方槽位，查看对应对话内容。';
-            nextBtn.style.display = 'none';
-            endBtn.style.display = 'none';
-            
-            log(`🔄 [对话系统] 卡牌已取出`, "normal");
-            
-            // 移除事件监听
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', upHandler);
-        }
-    };
-    
-    const upHandler = () => {
-        if (isDragging) {
-            isDragging = false;
-            cardEl.classList.add('embedded');
-            cardEl.style.cursor = 'grab';
-        }
-    };
-    
-    document.addEventListener('mousemove', moveHandler);
-    document.addEventListener('mouseup', upHandler);
 }

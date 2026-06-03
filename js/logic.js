@@ -2,40 +2,11 @@
 import { CARD_TEMPLATES, CARD_COMBINATIONS } from './config.js';
 import { gameState, updateState } from './state.js';
 import { log, showEndingReport, setSystemStatus, updateModalContent, toggleSceneModal } from './ui.js';
+import { showStackProgressBar, hideStackProgressBar, showSpeechBubble, hideSpeechBubble } from './renderer.js';
+import { CARD } from './consts.js';
 
-// 显示堆叠进度条
-export function showStackProgressBar(x, y, delay) {
-    const container = document.getElementById('stack-progress-container');
-    const fill = document.getElementById('stack-progress-fill');
-    const text = document.getElementById('stack-progress-text');
-    
-    if (!container || !fill || !text) return;
-    
-    // 设置位置（x,y已经是计算好的正下方位置）
-    container.style.left = (x - 60) + 'px'; // 居中（减去一半宽度120/2）
-    container.style.top = y + 'px';  // 直接使用计算好的位置
-    container.style.display = 'flex';
-    
-    // 设置文字内容
-    text.textContent = '因果具现中...';
-    
-    // 重置进度
-    fill.style.width = '0%';
-    fill.style.transition = `width ${delay}ms linear`;
-    
-    // 启动动画
-    setTimeout(() => {
-        fill.style.width = '100%';
-    }, 50);
-}
-
-// 隐藏堆叠进度条
-export function hideStackProgressBar() {
-    const container = document.getElementById('stack-progress-container');
-    if (container) {
-        container.style.display = 'none';
-    }
-}
+// 重新导出 renderer 中的 DOM 操作，保持向后兼容
+export { showStackProgressBar, hideStackProgressBar };
 
 export function tryCapture(card, cardEl) {
     if (card.isCaptured) return false;
@@ -109,12 +80,22 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
         // 没有匹配的组合，使用默认堆叠逻辑
         return false;
     }
-    
+
     // 找到匹配的组合，显示进度条
-    // 进度条显示在堆叠位置的正下方（使用目标卡牌的下方位置）
-    const positionX = (moved.x + target.x) / 2;
-    const positionY = target.y + 160; // 目标卡牌正下方（卡牌高度150 + 间距10）
-    
+    // 进度条显示在堆叠位置的正下方（使用两张卡牌的中心点中点）
+    const positionX = (moved.x + target.x + CARD.WIDTH) / 2;
+    const positionY = target.y + CARD.DROP_OFFSET_Y;
+
+    // 特效类组合（speech）：显示气泡，不产出卡牌
+    if (rule.type === 'speech') {
+        showSpeechBubble(positionX, target.y, rule.speechText, rule.speechDuration || 2500);
+        log(`✨ [${rule.type}] ${rule.message}`, "success");
+        setTimeout(() => {
+            hideSpeechBubble();
+        }, rule.speechDuration || 2500);
+        return true;
+    }
+
     showStackProgressBar(positionX, positionY, rule.delay);
     log(`✨ [${rule.type}] ${rule.message}`, "success");
     
@@ -122,6 +103,18 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
     setTimeout(() => {
         // 隐藏进度条
         hideStackProgressBar();
+        
+        // 概率检查：如果规则有 chance 属性，需要先判断概率
+        const hasChance = rule.chance !== undefined && rule.chance < 1;
+        const rollSuccess = !hasChance || Math.random() <= rule.chance;
+        
+        if (hasChance && !rollSuccess) {
+            // 概率失败
+            if (rule.failMessage) {
+                log(`❌ [概率失败] ${rule.failMessage}`, "normal");
+            }
+            return; // 不生成卡牌，直接返回
+        }
         
         // 生成结果卡牌
         rule.result.forEach((resultTemplateId, index) => {
@@ -164,39 +157,13 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
             }
         }
         
-        log(`✅ [组合完成] 已生成 ${rule.result.length} 张新卡牌`, "success");
+        // 显示成功消息（如果有）
+        if (rule.successMessage && hasChance) {
+            log(`✅ [概率成功] ${rule.successMessage}`, "success");
+        } else {
+            log(`✅ [组合完成] 已生成 ${rule.result.length} 张新卡牌`, "success");
+        }
     }, rule.delay);
     
     return true; // 阻止默认堆叠
-}
-
-export function evaluateInstruction(verbCard, stackCards, spawnUnboundCard, resetVerbCard, breakStackChain) {
-    if (gameState.isGameOver) {
-        resetVerbCard(verbCard, verbCard.templateId === 'VERB_investigate' ? 40 : 175, 50);
-        return;
-    }
-    const ids = stackCards.map(c => c.templateId);
-    
-    if (verbCard.templateId === 'VERB_investigate') {
-        if (ids.includes('SCENE_wz') && ids.includes('ITEM_sdt')) {
-            log("🛠️ [主动规约] 强光穿透异常迷雾，空间隧道搭建就绪！", "success");
-            
-            if (gameState.hasSanityPollution) {
-                updateModalContent("⚠️ 空间突变判定 // [荒宅院落 - 扭曲世界线]", 
-                    `你的 Datanodes 已收录了 [铁锈的味道]！点击下方同步实体。`, "同步当前坐标实体到桌面上", false);
-            } else {
-                updateModalContent("📡 空间正常链接 // [荒宅院落 - 常态世界线]", 
-                    `环境纯净，未受任何异味浸染。点击下方同步，降临常规调查层级的投影实体。`, "同步当前坐标实体到桌面上", false);
-            }
-            
-            updateState('sceneSynced', false);
-            toggleSceneModal(true);
-            resetVerbCard(verbCard, 40, 50); 
-            breakStackChain(stackCards); 
-            return;
-        }
-    }
-
-    log("💨 反应驳回：指令卡未在堆栈顶端形成宏观事件闭合，安全弹回。", "normal");
-    resetVerbCard(verbCard, verbCard.templateId === 'VERB_investigate' ? 40 : 175, 50);
 }

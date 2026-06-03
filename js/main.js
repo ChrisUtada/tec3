@@ -1,16 +1,15 @@
 // 🚀 游戏入口文件
-import { initBaseTable, syncModalAssets, resumeExploration } from './engine.js';
-import { toggleEndingPanel } from './ui.js';
-import { initModalDrag, toggleModal } from './shared.js';
-
-// 挂载全局函数供 HTML 调用
-window.syncModalAssets = syncModalAssets;
-window.resumeExploration = resumeExploration;
-window.toggleEndingPanel = toggleEndingPanel;
-window.closeSceneModal = () => { document.getElementById('scene-modal').style.display = 'none'; };
+import { initBaseTable } from './engine.js';
+import { initModalDrag } from './shared.js';
+import { initUIEvents } from './events.js';
 
 // 初始化游戏
 document.addEventListener('DOMContentLoaded', () => {
     console.log("T.E.C-OS // 纯卡牌因果规约终端已启动");
+    
+    // 初始化卡牌桌面
     initBaseTable();
+    
+    // 初始化所有 UI 事件绑定（替代 onclick）
+    initUIEvents();
 });

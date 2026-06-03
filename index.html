@@ -23,27 +23,33 @@
             </div>
             <div class="stack-progress-text" id="stack-progress-text">合成中...</div>
         </div>
+
+        <!-- 文案气泡（浮动显示） -->
+        <div id="speech-bubble" style="display: none;">
+            <div class="speech-bubble-text" id="speech-bubble-text"></div>
+            <div class="speech-bubble-arrow"></div>
+        </div>
         
         <div id="scene-modal">
             <div class="modal-header">
                 <div class="modal-title" id="modal-title-text">【解离空间波动锚定】</div>
-                <div class="modal-close" onclick="closeSceneModal()">[ X ]</div>
+                <div class="modal-close" id="scene-modal-close">[ X ]</div>
             </div>
             <div class="modal-body" id="modal-body-text">正在扫描局部物理守恒...</div>
             <div class="modal-footer">
-                <button class="sync-btn" id="modal-action-btn" onclick="syncModalAssets()">同步当前坐标实体到桌面上</button>
+                <button class="sync-btn" id="modal-action-btn">同步当前坐标实体到桌面上</button>
             </div>
         </div>
 
         <div id="ending-report-panel">
-            <div class="ending-header" id="ending-panel-header" onclick="toggleEndingPanel()">
+            <div class="ending-header" id="ending-panel-header">
                 <span id="ending-title-text">🏆 终局因果宣告书</span>
                 <span id="ending-toggle-icon">[-] 最小化</span>
             </div>
             <div class="ending-body" id="ending-body-text">因果宏观闭环已达成。</div>
             <div class="ending-footer">
-                <button class="ending-btn" onclick="resumeExploration()" style="border-color: var(--color-vision); color: var(--color-vision); font-weight: bold;">🔄 收起报告，继续探索其余结局</button>
-                <button class="ending-btn" onclick="window.location.reload()">[ 重置全盘世界线 ]</button>
+                <button class="ending-btn" id="ending-resume-btn" style="border-color: var(--color-vision); color: var(--color-vision); font-weight: bold;">🔄 收起报告，继续探索其余结局</button>
+                <button class="ending-btn" id="ending-reset-btn">[ 重置全盘世界线 ]</button>
             </div>
         </div>
 
@@ -56,7 +62,7 @@
         <div id="dialogue-modal">
             <div class="modal-header">
                 <div class="modal-title" id="dialogue-title">人物对话</div>
-                <div class="modal-close" onclick="closeDialogueModal()">[ X ]</div>
+                <div class="modal-close" id="dialogue-modal-close">[ X ]</div>
             </div>
             <div class="dialogue-content">
                 <div class="dialogue-slot" id="dialogue-slot">
@@ -67,8 +73,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="dialogue-btn" id="dialogue-next-btn" onclick="nextDialogue()" style="display:none;">继续</button>
-                <button class="dialogue-btn" id="dialogue-end-btn" onclick="closeDialogueModal()" style="display:none;">结束对话</button>
+                <button class="dialogue-btn" id="dialogue-next-btn" style="display:none;">继续</button>
+                <button class="dialogue-btn" id="dialogue-end-btn" style="display:none;">结束对话</button>
             </div>
         </div>
 
@@ -76,7 +82,7 @@
         <div id="exploration-modal">
             <div class="modal-header">
                 <div class="modal-title" id="exploration-title">场景探索</div>
-                <div class="modal-close" onclick="closeExplorationModal()">[ X ]</div>
+                <div class="modal-close" id="exploration-modal-close">[ X ]</div>
             </div>
             <div class="exploration-content">
                 <div class="exploration-slots" id="exploration-slots">
@@ -89,12 +95,12 @@
                     <div class="exploration-progress-text" id="exploration-progress-text">探索中...</div>
                 </div>
                 <div class="exploration-info" id="exploration-info">
-                    将人物、物品或线索拖入上方槽位，然后点击“探索”按钮。
+                    将人物、物品或线索拖入上方槽位，然后点击"探索"按钮。
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="exploration-btn" id="exploration-start-btn" onclick="startExploration()">开始探索</button>
-                <button class="exploration-btn" id="exploration-close-btn" onclick="closeExplorationModal()" style="display:none;">关闭</button>
+                <button class="exploration-btn" id="exploration-start-btn">开始探索</button>
+                <button class="exploration-btn" id="exploration-close-btn" style="display:none;">关闭</button>
             </div>
         </div>
 
@@ -102,7 +108,7 @@
         <div id="reasoning-modal">
             <div class="modal-header">
                 <div class="modal-title" id="reasoning-title">逻辑归因 // 归因推演仪</div>
-                <div class="modal-close" onclick="closeReasoningModal()">[ X ]</div>
+                <div class="modal-close" id="reasoning-modal-close">[ X ]</div>
             </div>
             <div class="reasoning-content">
                 <div class="reasoning-slots" id="reasoning-slots">
@@ -137,12 +143,12 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="reasoning-btn" id="reasoning-execute-btn" onclick="executeReasoning()" disabled>归因推演</button>
-                <button class="reasoning-btn" id="reasoning-close-btn" onclick="closeReasoningModal()">关闭</button>
+                <button class="reasoning-btn" id="reasoning-execute-btn" disabled>归因推演</button>
+                <button class="reasoning-btn" id="reasoning-close-btn">关闭</button>
             </div>
         </div>
     </div>
 
-    <script type="module" src="js/main.js?v=2"></script>
+    <script type="module" src="js/main.js?v=3"></script>
 </body>
 </html>

@@ -2,7 +2,8 @@
 import { SCENE_EXPLORATION, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar } from './logic.js';
-import { embedCardInSlot, restoreCardToBoard, initModalDrag } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, initModalDrag, setupCardDragOut } from './shared.js';
+import { CARD } from './consts.js';
 
 // 从 engine.js 获取 spawnUnboundCard 函数
 let spawnCard = null;
@@ -112,65 +113,6 @@ export function closeExplorationModal() {
     log(` [探索系统] 关闭了探索窗口`, "normal");
 }
 
-// 设置卡牌拖出功能
-function setupCardDragOut(cardEl, cardData, slotIndex) {
-    let isDragging = false;
-    let startX, startY;
-    
-    cardEl.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        if (isExploring) return;
-        
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        cardEl.classList.remove('embedded');
-        cardEl.style.cursor = 'grabbing';
-        
-        e.preventDefault();
-        e.stopPropagation();
-    });
-    
-    const moveHandler = (e) => {
-        if (!isDragging) return;
-        
-        const diffX = e.clientX - startX;
-        const diffY = e.clientY - startY;
-        
-        if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
-            // 使用共享工具函数恢复卡牌
-            restoreCardToBoard(cardData);
-            
-            // 清除槽位数据
-            explorationSlots[slotIndex] = null;
-            draggedCardData = null;
-            
-            // 重置槽位
-            const slotElement = explorationSlotsContainer.children[slotIndex];
-            slotElement.innerHTML = `<div class="exploration-slot-placeholder">槽位 ${slotIndex + 1}</div>`;
-            slotElement.classList.remove('drag-over');
-            
-            log(`🔄 [探索系统] 卡牌已从槽位取出`, "normal");
-            
-            // 移除事件监听
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', upHandler);
-        }
-    };
-    
-    const upHandler = () => {
-        if (isDragging) {
-            isDragging = false;
-            cardEl.classList.add('embedded');
-            cardEl.style.cursor = 'grab';
-        }
-    };
-    
-    document.addEventListener('mousemove', moveHandler);
-    document.addEventListener('mouseup', upHandler);
-}
-
 // 设置槽位鼠标事件
 function setupSlotDrop(slotElement, slotIndex) {
     // 监听鼠标悬停
@@ -221,17 +163,22 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
         // 使用共享工具函数嵌入卡牌
         embedCardInSlot(cardEl, cardData, slotElement);
         
-        // 添加拖出功能
-        setupCardDragOut(cardEl, cardData, slotIndex);
+        // 使用共享工具函数添加拖出功能
+        setupCardDragOut(cardEl, cardData, {
+            slotIndex,
+            slotsArray: explorationSlots,
+            slotElement,
+            placeholderText: `槽位 ${slotIndex + 1}`,
+            shouldBlock: () => isExploring,  // 探索中阻止拖出
+            onRemove: () => {
+                draggedCardData = null;
+            },
+            logMessage: '探索系统：卡牌已从槽位取出'
+        });
     }
 
     log(` [探索系统] 将【${template.name}】放入槽位 ${slotIndex + 1}`, "success");
 }
-
-// 供 HTML 调用的全局函数 - 接收从桌面拖入的卡牌
-window.receiveCardForExploration = function(cardData) {
-    placeCardInExplorationSlot(cardData);
-};
 
 // 开始探索
 export function startExploration() {
@@ -298,8 +245,8 @@ function completeExploration(sceneData) {
                     const boardCanvas = document.getElementById('board-canvas');
                     boardCanvas.appendChild(cardEl);
                     cardEl.style.position = 'absolute';
-                    cardEl.style.width = '115px';
-                    cardEl.style.height = '150px';
+                    cardEl.style.width = CARD.WIDTH + 'px';
+                    cardEl.style.height = CARD.HEIGHT + 'px';
                     cardEl.classList.remove('embedded');
                 }
             }
@@ -383,10 +330,6 @@ function initExplorationDrag() {
     // 探索中不允许拖动
     initModalDrag(explorationModal, () => isExploring);
 }
-
-// 供 HTML onclick 调用的全局函数
-window.closeExplorationModal = closeExplorationModal;
-window.startExploration = startExploration;
 
 // 🌟 高亮掉落卡牌
 export function highlightDroppedCard(cardInstanceId) {

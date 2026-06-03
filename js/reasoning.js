@@ -2,7 +2,7 @@
 import { REASONING_ENDINGS, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showEndingReport } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, initModalDrag, isCardType } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, initModalDrag, isCardType, setupCardDragOut } from './shared.js';
 
 let reasoningModal = null;
 let reasoningSlots = [];
@@ -99,8 +99,15 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
         // 使用共享工具函数嵌入卡牌
         embedCardInSlot(cardEl, cardData, reasoningSlots[slotIndex]);
         
-        // 添加拖出功能
-        setupCardDragOut(cardEl, cardData, slotIndex);
+        // 使用共享工具函数添加拖出功能
+        setupCardDragOut(cardEl, cardData, {
+            slotIndex,
+            slotsArray: slotContents,
+            slotElement: reasoningSlots[slotIndex],
+            placeholderText: `线索槽位 ${slotIndex + 1}`,
+            onRemove: updateExecuteButton,
+            logMessage: `归因推演：线索已从槽位 ${slotIndex + 1} 取出`
+        });
     }
     
     // 更新推演按钮状态
@@ -108,60 +115,6 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
     
     const template = CARD_TEMPLATES[cardData.templateId];
     log(` [归因推演] 线索【${template.name}】已放入槽位 ${slotIndex + 1}`, "success");
-}
-
-// 设置卡牌拖出功能
-function setupCardDragOut(cardEl, cardData, slotIndex) {
-    let isDragging = false;
-    let startX, startY;
-    
-    cardEl.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        cardEl.classList.remove('embedded');
-        cardEl.style.cursor = 'grabbing';
-        
-        e.preventDefault();
-        e.stopPropagation();
-    });
-    
-    const moveHandler = (e) => {
-        if (!isDragging) return;
-        
-        const diffX = e.clientX - startX;
-        const diffY = e.clientY - startY;
-        
-        if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
-            // 使用共享工具函数恢复卡牌
-            restoreCardToBoard(cardData);
-            
-            // 清除槽位
-            slotContents[slotIndex] = null;
-            reasoningSlots[slotIndex].innerHTML = `<div class="slot-placeholder">线索槽位 ${slotIndex + 1}</div>`;
-            reasoningSlots[slotIndex].classList.remove('drag-over');
-            
-            updateExecuteButton();
-            log(`🔄 [归因推演] 线索已从槽位 ${slotIndex + 1} 取出`, "normal");
-            
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', upHandler);
-        }
-    };
-    
-    const upHandler = () => {
-        if (isDragging) {
-            isDragging = false;
-            cardEl.classList.add('embedded');
-            cardEl.style.cursor = 'grab';
-        }
-    };
-    
-    document.addEventListener('mousemove', moveHandler);
-    document.addEventListener('mouseup', upHandler);
 }
 
 // 更新推演按钮状态
@@ -278,7 +231,3 @@ function hideProgressBar() {
 function initReasoningDrag() {
     initModalDrag(reasoningModal);
 }
-
-// 供 HTML onclick 调用的全局函数
-window.closeReasoningModal = closeReasoningModal;
-window.executeReasoning = executeReasoning;

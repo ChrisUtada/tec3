@@ -1,6 +1,35 @@
 // 🔧 共享工具函数 - 消除重复代码
 import { CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
+import { CARD } from './consts.js';
+
+/**
+ * 创建惰性初始化的 DOM 元素获取函数
+ * @param {Object} elementDefs - 元素定义，key 为变量名，value 为元素 ID
+ * @returns {Function} 初始化函数，调用时获取所有元素
+ * 
+ * @example
+ * const { modal, title, closeBtn } = createLazyElements({
+ *     modal: 'dialogue-modal',
+ *     title: 'dialogue-title',
+ *     closeBtn: 'dialogue-close-btn'
+ * });
+ * // 之后调用 init() 来获取元素
+ */
+export function createLazyInitializer(elementDefs) {
+    let initialized = false;
+    const elements = {};
+    
+    return function init() {
+        if (initialized) return elements;
+        
+        for (const [key, id] of Object.entries(elementDefs)) {
+            elements[key] = document.getElementById(id);
+        }
+        initialized = true;
+        return elements;
+    };
+}
 
 /**
  * 将卡牌元素嵌入到槽位中
@@ -21,8 +50,8 @@ export function embedCardInSlot(cardEl, cardData, slotElement, embeddedClass = '
     cardEl.style.left = 'auto';
     cardEl.style.top = 'auto';
     cardEl.style.display = 'flex';
-    cardEl.style.width = '106px';
-    cardEl.style.height = '136px';
+    cardEl.style.width = CARD.EMBED_WIDTH + 'px';
+    cardEl.style.height = CARD.EMBED_HEIGHT + 'px';
     cardEl.style.zIndex = '10';
     
     // 添加嵌入效果
@@ -50,27 +79,42 @@ export function restoreCardToBoard(cardData, containerId = 'board-canvas') {
     cardEl.style.left = cardData.x + 'px';
     cardEl.style.top = cardData.y + 'px';
     cardEl.style.display = 'flex';
-    cardEl.style.width = '115px';
-    cardEl.style.height = '150px';
+    cardEl.style.width = CARD.WIDTH + 'px';
+    cardEl.style.height = CARD.HEIGHT + 'px';
     cardEl.classList.remove('embedded');
 }
 
 /**
- * 设置卡牌拖出功能
+ * 设置卡牌拖出功能（通用版）
  * @param {HTMLElement} cardEl - 卡牌元素
  * @param {Object} cardData - 卡牌数据
- * @param {number} slotIndex - 槽位索引
- * @param {Array} slotsArray - 槽位数据数组（用于清空槽位）
- * @param {HTMLElement} slotElement - 槽位元素（用于重置显示）
- * @param {Function} onUpdate - 更新回调函数（可选）
- * @param {string} logMessage - 日志消息
+ * @param {Object} options - 配置选项
+ * @param {number} options.slotIndex - 槽位索引
+ * @param {Array} options.slotsArray - 槽位数据数组（用于清空槽位）
+ * @param {HTMLElement} options.slotElement - 槽位元素（用于重置显示）
+ * @param {string} options.placeholderText - 槽位占位符文本（默认：'槽位 N'）
+ * @param {Function} options.onRemove - 移除后的回调函数
+ * @param {Function} options.shouldBlock - 是否阻止拖出的条件函数（返回 true 则阻止）
+ * @param {string} options.logMessage - 日志消息
  */
-export function setupCardDragOut(cardEl, cardData, slotIndex, slotsArray, slotElement, onUpdate = null, logMessage = '卡牌已从槽位取出') {
+export function setupCardDragOut(cardEl, cardData, options = {}) {
+    const {
+        slotIndex = 0,
+        slotsArray = null,
+        slotElement = null,
+        placeholderText = null,
+        onRemove = null,
+        shouldBlock = null,
+        logMessage = '卡牌已从槽位取出'
+    } = options;
+    
     let isDragging = false;
     let startX, startY;
     
     cardEl.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
+        // 检查是否阻止拖出
+        if (shouldBlock && shouldBlock()) return;
         
         isDragging = true;
         startX = e.clientX;
@@ -100,12 +144,13 @@ export function setupCardDragOut(cardEl, cardData, slotIndex, slotsArray, slotEl
             
             // 重置槽位显示
             if (slotElement) {
-                slotElement.innerHTML = `<div class="slot-placeholder">槽位 ${slotIndex + 1}</div>`;
+                const defaultPlaceholder = `槽位 ${slotIndex + 1}`;
+                slotElement.innerHTML = `<div class="slot-placeholder">${placeholderText || defaultPlaceholder}</div>`;
                 slotElement.classList.remove('drag-over');
             }
             
-            // 执行更新回调
-            if (onUpdate) onUpdate();
+            // 执行移除回调
+            if (onRemove) onRemove();
             
             log(`🔄 [系统] ${logMessage}`, "normal");
             

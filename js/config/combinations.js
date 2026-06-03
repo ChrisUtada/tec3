@@ -1,0 +1,59 @@
+// 🎯 卡牌堆叠组合配置（核心玩法）
+export const CARD_COMBINATIONS = {
+    // 场景探索类：手电筒 + 未知地点 → 荒宅院落
+    'ITEM_sdt+SCENE_wz': {
+        type: 'explore',
+        result: ['SCENES_hzyl'],
+        message: '强光穿透迷雾，空间坐标锚定...新场景已解锁！',
+        delay: 3000,
+        consumeAll: false
+    },
+    
+    // 人物互动类：手电筒 + 朱穗 → 木桶
+    'CHAR_zs+ITEM_sdt': {
+        type: 'interaction',
+        result: ['ITEM_mt'],
+        message: '朱穗接过手电筒，递给你一个旧木桶："这个可能用得上。"',
+        delay: 2000,
+        consumeAll: false
+    },
+    
+    // 道具制作类：五行贴纸 + 木桶 → 密码盒
+    'ITEM_mt+ITEM_tz': {
+        type: 'crafting',
+        result: ['ITEM_mmh'],
+        message: '五行贴纸融入木桶，形成机械锁结构...',
+        delay: 2000,
+        consumeAll: true
+    },
+    
+    // 特效类：嘴型贴纸 + 惨白月亮 → 滋滋滋（无产出，仅视觉效果）
+    'ITEM_cdyg+ITEM_zxtz': {
+        type: 'speech',
+        speechText: '滋滋滋...',
+        speechDuration: 2500,
+        message: '贴纸贴在月亮上，它开始发出诡异的声响...',
+        consumeAll: false
+    },
+
+    // 概率掉落：手电筒 + 惨白月亮 → 信号屏蔽装置（10%几率）
+    'ITEM_cdyg+ITEM_sdt': {
+        type: 'crafting',
+        result: ['CLUE_xhpb'],
+        chance: 0.1,
+        successMessage: '手电筒照在月亮上，一个信号屏蔽装置掉了出来！',
+        failMessage: '手电筒照在月亮上，没有任何反应...',
+        message: '手电筒照在月亮上，似乎在寻找什么...',
+        delay: 2000,
+        consumeAll: false
+    },
+
+    // 线索合成类：信号屏蔽 + 朱穗 → 铁锈的味道
+    'CHAR_zs+CLUES_xhpb': {
+        type: 'synthesis',
+        result: ['CLUE_tx'],
+        message: '朱穗瞳孔放大："那是个死人的名字。空气里的铁锈味越来越浓了……"',
+        delay: 2500,
+        consumeAll: false
+    }
+};

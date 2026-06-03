@@ -2,14 +2,17 @@
 import { CARD_TEMPLATES } from './config.js';
 import { gameState, updateState } from './state.js';
 import { log, updateQueryDisplay, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus } from './ui.js';
-import { tryCapture, tryOpenComboLock, checkReaction, evaluateInstruction, triggerEnding, showStackProgressBar, hideStackProgressBar } from './logic.js';
+import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding } from './logic.js';
+import { showStackProgressBar, hideStackProgressBar } from './renderer.js';
 import { openDialogue, placeCardInSlot } from './dialogue.js';
 import { openReasoningModal, placeCardInReasoningSlot } from './reasoning.js';
-import { openExploration, initExplorationModule } from './exploration.js';
+import { openExploration, initExplorationModule, placeCardInExplorationSlot } from './exploration.js';
 import { restoreCardToBoard } from './shared.js';
+import { CARD } from './consts.js';
 
 const boardCanvas = document.getElementById('board-canvas');
 let cardsData = [];
+let cardsMap = new Map(); // 性能优化：O(1) 查找
 let activeDragId = null;
 let dragOffsetX = 0; 
 let dragOffsetY = 0;
@@ -18,29 +21,41 @@ let zIndexCounter = 100;
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
 initExplorationModule(directSpawnCard, () => cardsData);
 
-export function findCardData(id) { return cardsData.find(c => c.instanceId === id); }
+export function findCardData(id) { 
+    return cardsMap.get(id); // O(1) 查找替代 O(n) find
+}
 export function isChildOf(parentId, childId) {
-    let c = findCardData(parentId); while(c) { if (c.instanceId === childId) return true; c = c.next ? findCardData(c.next) : null; } return false;
+    let c = findCardData(parentId); 
+    while(c) { 
+        if (c.instanceId === childId) return true; 
+        c = c.next ? cardsMap.get(c.next) : null; 
+    } 
+    return false;
 }
 
 export function destroyCard(id) {
     cardsData = cardsData.filter(c => c.instanceId !== id);
-    const el = document.getElementById(id); if (el) el.remove();
+    cardsMap.delete(id); // 同步删除 Map
+    const el = document.getElementById(id); 
+    if (el) el.remove();
 }
 
 export function spawnUnboundCard(templateId, x, y, allowDuplicate = false) {
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
-        const existing = cardsData.find(c => c.templateId === templateId);
-        if (existing) {
-            log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
-            return null;
+        // 使用 Map 检查更快
+        for (const card of cardsMap.values()) {
+            if (card.templateId === templateId) {
+                log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
+                return null;
+            }
         }
     }
     
     const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);
     const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
     cardsData.push(newCard);
+    cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`📡 发现线索：【${CARD_TEMPLATES[templateId].name}】已刷出。`, "capture");
     renderAllCards();
     
@@ -50,15 +65,18 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicate = false) {
 export function directSpawnCard(templateId, x, y, allowDuplicate = false) {
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
-        const existing = cardsData.find(c => c.templateId === templateId);
-        if (existing) {
-            log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
-            return;
+        for (const card of cardsMap.values()) {
+            if (card.templateId === templateId) {
+                log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
+                return;
+            }
         }
     }
     
     const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);
-    cardsData.push({ instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true });
+    const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
+    cardsData.push(newCard);
+    cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`✨ 因果固化：实体资产【${CARD_TEMPLATES[templateId].name}】已成功存盘。`, "success");
     renderAllCards();
 }
@@ -83,8 +101,8 @@ export function recycleCard(cardToRecycle, recycleCard, spawnFn, destroyFn) {
     renderAllCards();
     
     // 2. 在回收卡位置显示进度条（使用堆叠进度条，与手电筒放人物效果一致）
-    const positionX = recycleCard.x + 60; // 卡牌中心位置（卡牌宽度120）
-    const positionY = recycleCard.y + 160; // 卡牌正下方
+    const positionX = recycleCard.x + CARD.HALF_WIDTH; // 卡牌中心位置
+    const positionY = recycleCard.y + CARD.DROP_OFFSET_Y; // 卡牌正下方
     
     // 显示堆叠进度条
     showStackProgressBar(positionX, positionY, 3000);
@@ -129,16 +147,16 @@ export function renderAllCards() {
         
         // 如果有父级，计算堆叠偏移
         if (card.parent) {
-            let p = findCardData(card.parent); 
+            let p = cardsMap.get(card.parent); 
             let depth = 0;
             while(p) { 
                 depth++; 
                 finalX = p.x; 
                 finalY = p.y + (depth * 24); 
-                p = p.parent ? findCardData(p.parent) : null; 
+                p = p.parent ? cardsMap.get(p.parent) : null; 
             }
             // 堆叠卡牌的层级基于父级
-            baseZIndex = (findCardData(card.parent)?.zIndex || 100) + depth;
+            baseZIndex = (cardsMap.get(card.parent)?.zIndex || 100) + depth;
         }
         
         // 如果是正在拖动的卡牌，赋予绝对最高层级
@@ -229,7 +247,7 @@ function startDrag(e, card) {
     const dragStack = [];
     while(current) { 
         dragStack.push(current);
-        current = current.next ? findCardData(current.next) : null; 
+        current = current.next ? cardsMap.get(current.next) : null; 
     }
     
     // 赋予绝对最高层级
@@ -238,7 +256,7 @@ function startDrag(e, card) {
         c.zIndex = zIndexCounter;
     });
 
-    if (card.parent) { const p = findCardData(card.parent); if (p) p.next = null; card.parent = null; }
+    if (card.parent) { const p = cardsMap.get(card.parent); if (p) p.next = null; card.parent = null; }
     const rect = document.getElementById(card.instanceId).getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top;
     document.addEventListener('mousemove', processDrag);
@@ -249,11 +267,21 @@ function startDrag(e, card) {
 function processDrag(e) {
     if (!activeDragId) return;
     const mainCard = findCardData(activeDragId);
+    if (!mainCard) {
+        activeDragId = null;
+        return;
+    }
     const canvasRect = boardCanvas.getBoundingClientRect();
-    let newX = e.clientX - canvasRect.left - dragOffsetX; let newY = e.clientY - canvasRect.top - dragOffsetY;
-    let diffX = newX - mainCard.x; let diffY = newY - mainCard.y;
+    let newX = e.clientX - canvasRect.left - dragOffsetX; 
+    let newY = e.clientY - canvasRect.top - dragOffsetY;
+    let diffX = newX - mainCard.x; 
+    let diffY = newY - mainCard.y;
     let current = mainCard;
-    while(current) { current.x += diffX; current.y += diffY; current = current.next ? findCardData(current.next) : null; }
+    while(current) { 
+        current.x += diffX; 
+        current.y += diffY; 
+        current = current.next ? cardsMap.get(current.next) : null; 
+    }
     renderAllCards();
 }
 
@@ -323,8 +351,8 @@ function endDrag(e) {
                 if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
                     mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
                     console.log(`[拖拽检测] 鼠标在槽位 ${i} 上！`);
-                    // 调用 exploration.js 中的全局函数
-                    window.receiveCardForExploration(mainCard);
+                    // 调用 exploration.js 中的函数
+                    placeCardInExplorationSlot(mainCard);
                     activeDragId = null;
                     renderAllCards();
                     return;
@@ -369,13 +397,6 @@ function endDrag(e) {
             }
 
             if (gameState.isGameOver) break;
-
-            // 普通指令卡逻辑
-            if (CARD_TEMPLATES[mainCard.templateId].type === 'action') {
-                let stackCards = []; let current = findCardData(mainCard.parent);
-                while(current) { if(CARD_TEMPLATES[current.templateId].type !== 'action') stackCards.push(current); current = current.parent ? findCardData(current.parent) : null; }
-                setTimeout(() => { evaluateInstruction(mainCard, stackCards, spawnUnboundCard, resetVerbCard, breakStackChain); }, 100);
-            }
             break;
         }
     }
@@ -425,6 +446,7 @@ export function initBaseTable() {
         { instanceId: 'i_sdt', templateId: 'ITEM_sdt', x: 40, y: 240, next: null, parent: null, isCaptured: true },
         { instanceId: 's_wz', templateId: 'SCENE_wz', x: 175, y: 240, next: null, parent: null, isCaptured: true },
         { instanceId: 'c_zs', templateId: 'CHAR_zs', x: 310, y: 240, next: null, parent: null, isCaptured: true },
+        { instanceId: 'c_investigator', templateId: 'CHAR_investigator', x: 40, y: 50, next: null, parent: null, isCaptured: true },
         { instanceId: 'l_reason', templateId: 'LOGIC_reason', x: 445, y: 50, next: null, parent: null, isCaptured: true },
         // 测试线索卡牌
         { instanceId: 'cl_shadow', templateId: 'CLUE_shadow', x: 445, y: 240, next: null, parent: null, isCaptured: true },
@@ -433,5 +455,12 @@ export function initBaseTable() {
         // 回收卡牌
         { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 240, next: null, parent: null, isCaptured: true }
     ];
+    
+    // 同步初始化 cardsMap
+    cardsMap.clear();
+    cardsData.forEach(card => {
+        cardsMap.set(card.instanceId, card);
+    });
+    
     renderAllCards();
 }
