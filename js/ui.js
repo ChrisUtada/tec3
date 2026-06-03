@@ -42,34 +42,6 @@ export function setSystemStatus(text, color) {
     systemStatus.style.color = color || 'var(--color-vision)';
 }
 
-// 🌟 显示掉落进度条
-export function showDropProgress(callback, duration = 3000) {
-    const container = document.getElementById('drop-progress-container');
-    const fill = document.getElementById('drop-progress-fill');
-    const text = document.getElementById('drop-progress-text');
-    
-    if (!container || !fill || !text) return;
-    
-    // 显示进度条容器
-    container.style.display = 'flex';
-    fill.style.width = '0%';
-    text.textContent = '因果具现中...';
-    
-    // 设置过渡属性（同步设置，不延迟）
-    fill.style.transition = `width ${duration}ms linear`;
-    
-    // 启动动画（50ms延迟让DOM先渲染）
-    setTimeout(() => {
-        fill.style.width = '100%';
-    }, 50);
-    
-    // 完成后执行回调（等待动画完全结束：50ms启动延迟 + duration动画时间）
-    setTimeout(() => {
-        container.style.display = 'none';
-        if (callback) callback();
-    }, duration + 50);  // 加上50ms，确保动画完全结束后再执行回调
-}
-
 export function toggleEndingPanel(minimize) {
     if (minimize) {
         endingPanel.classList.add('minimized');

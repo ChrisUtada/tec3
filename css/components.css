@@ -83,48 +83,6 @@
     border-radius: 3px;
 }
 
-/* 🌟 通用掉落进度条（在堆叠进度条下方） */
-#drop-progress-container {
-    position: absolute;
-    z-index: 9998;  /* 比堆叠进度条低一层 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-}
-
-.drop-progress-bar {
-    width: 160px;
-    height: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid #ffcc00;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 
-        0 0 15px rgba(255, 204, 0, 0.5),
-        inset 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.drop-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #ffcc00, #ffdd44);
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
-    transition: width linear;
-}
-
-.drop-progress-text {
-    font-size: 12px;
-    color: #ffddaa;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
-}
-
 /*  逻辑归因卡牌 */
 .card.logic-card {
     background: linear-gradient(135deg, #1a0a2e, #2d1b4e);

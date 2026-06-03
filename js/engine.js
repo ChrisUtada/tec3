@@ -47,43 +47,14 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicate = false) {
     return newCard;  // 返回新生成的卡牌数据
 }
 
-// 🌟 带进度条的卡牌生成（用于掉落场景）
-export function spawnWithProgress(templateId, x, y, allowDuplicate = false, duration = 3000) {
-    // 先检查是否允许生成
+export function directSpawnCard(templateId, x, y, allowDuplicate = false) {
+    // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
         const existing = cardsData.find(c => c.templateId === templateId);
         if (existing) {
             log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
-            return null;
+            return;
         }
-    }
-    
-    // 显示堆叠进度条（与手电筒放人物效果一致）
-    showStackProgressBar(x, y, duration);
-    log(`✨ [掉落系统] 正在具现【${CARD_TEMPLATES[templateId].name}】...`, "success");
-    
-    // 延迟生成卡牌
-    setTimeout(() => {
-        // 隐藏进度条
-        hideStackProgressBar();
-        
-        // 生成卡牌
-        const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);
-        const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
-        cardsData.push(newCard);
-        log(`📡 发现线索：【${CARD_TEMPLATES[templateId].name}】已刷出。`, "capture");
-        renderAllCards();
-        
-        return newCard;
-    }, duration);
-}
-
-export function directSpawnCard(templateId, x, y) {
-    // 检查该 templateId 是否已经存在（防重复掉落）
-    const existing = cardsData.find(c => c.templateId === templateId);
-    if (existing) {
-        log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已在桌面上，无法重复生成！`, "normal");
-        return;
     }
     
     const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);

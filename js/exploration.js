@@ -312,59 +312,49 @@ function completeExploration(sceneData) {
     // 根据概率计算掉落
     const drops = calculateDrops(sceneData.drops);
     console.log('[探索掉落] 计算的掉落:', drops);
-        
-    // 🌟 设置进度条位置（在画布中央）
+    
+    // 计算生成位置（在画布中央）
     const boardCanvas = document.getElementById('board-canvas');
     const boardRect = boardCanvas.getBoundingClientRect();
     const centerX = boardRect.width / 2;
     const centerY = boardRect.height / 2;
     
-    // 显示堆叠进度条（与手电筒放人物效果一致）
-    showStackProgressBar(centerX, centerY, 3000);
-    log(`✨ [探索系统] 正在探索...`, "success");
-    
-    // 3秒后生成掉落物
-    setTimeout(() => {
-        // 隐藏进度条
-        hideStackProgressBar();
+    // 直接生成掉落物（探索窗口内部已有进度条，不需要额外的堆叠进度条）
+    let actualDrops = 0;  // 实际生成的数量
         
-        // 生成掉落物
-        let actualDrops = 0;  // 实际生成的数量
-            
-        drops.forEach((drop, index) => {
-            // 扇形分布生成位置
-            const offsetX = (index - (drops.length - 1) / 2) * 140;
-            const spawnX = centerX + offsetX;
-            const spawnY = centerY;
-                    
-            // 生成新卡牌
-            const template = CARD_TEMPLATES[drop.templateId];
-            if (template && spawnCard) {
-                // 探索掉落允许重复生成，传入 allowDuplicate = true
-                const cardData = spawnCard(drop.templateId, spawnX, spawnY, true);
-                    
-                // 添加高亮效果
-                if (cardData) {
-                    highlightDroppedCard(cardData.instanceId);
-                }
-                    
-                log(`✨ [探索掉落] ${drop.message}`, "success");
-                actualDrops++;
-            } else if (!spawnCard) {
-                log(`❌ [探索系统] spawnCard 函数未初始化`, "normal");
+    drops.forEach((drop, index) => {
+        // 扇形分布生成位置
+        const offsetX = (index - (drops.length - 1) / 2) * 140;
+        const spawnX = centerX + offsetX;
+        const spawnY = centerY;
+                
+        // 生成新卡牌
+        const template = CARD_TEMPLATES[drop.templateId];
+        if (template && spawnCard) {
+            // 探索掉落允许重复生成，传入 allowDuplicate = true
+            const cardData = spawnCard(drop.templateId, spawnX, spawnY, true);
+                
+            // 添加高亮效果
+            if (cardData) {
+                highlightDroppedCard(cardData.instanceId);
             }
-        });
-            
-        // 显示提示信息
-        explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。`;
-            
-        log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
+                
+            log(`✨ [探索掉落] ${drop.message}`, "success");
+            actualDrops++;
+        } else if (!spawnCard) {
+            log(`❌ [探索系统] spawnCard 函数未初始化`, "normal");
+        }
+    });
         
-        // 🌟 延迟1秒后自动关闭探索窗口（让用户看到掉落结果）
-        setTimeout(() => {
-            closeExplorationModal();
-        }, 1000);
-    }, 3000);  // 3秒进度条
+    // 显示提示信息
+    explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。`;
+        
+    log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
+    
+    // 延迟1秒后自动关闭探索窗口（让用户看到掉落结果）
+    setTimeout(() => {
+        closeExplorationModal();
+    }, 1000);
 }
 
 // 计算掉落
