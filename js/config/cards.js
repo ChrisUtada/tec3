@@ -51,6 +51,7 @@ export const CARD_TEMPLATES = {
     'ITEM_mmd': { name: '木门', desc: '【道具】一扇古朴的木门。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_s_eyes': { name: '眼睛', desc: '【资产】墙上窥视的眼睛。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_shoudiantong': { name: '手电筒', desc: '【道具】另一个手电筒。', type: 'item', class: 'item-card', consumable: false }
+    'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'equipment', class: 'equipment-card', consumable: false },
+    'ITEM_shoudiantong': { name: '手电筒', desc: '【道具】另一个手电筒。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false }
 };

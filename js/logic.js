@@ -74,6 +74,7 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
 
     // 生成无序组合键（确保 A+B 和 B+A 相同）
     const combinationKey = [moved.templateId, target.templateId].sort().join('+');
+    console.log('[组合检查]', { moved: moved.templateId, target: target.templateId, key: combinationKey, hasRule: !!CARD_COMBINATIONS[combinationKey] });
     const rule = CARD_COMBINATIONS[combinationKey];
     
     if (!rule) {
@@ -135,6 +136,16 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
             console.log('🗑️ 全部消耗模式');
             destroyCard(moved.instanceId);
             destroyCard(target.instanceId);
+        } else if (rule.consumeMover !== undefined || rule.consumeTarget !== undefined) {
+            // 精确消耗控制
+            if (rule.consumeMover === true) {
+                destroyCard(moved.instanceId);
+                console.log('🗑️ 精确消耗 - 移动的卡被消耗');
+            }
+            if (rule.consumeTarget === true) {
+                destroyCard(target.instanceId);
+                console.log('🗑️ 精确消耗 - 目标的卡被消耗');
+            }
         } else {
             // 根据每张卡牌自身的 consumable 属性决定是否消耗
             const movedConsumable = CARD_TEMPLATES[moved.templateId].consumable;

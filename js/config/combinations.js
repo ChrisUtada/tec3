@@ -55,5 +55,25 @@ export const CARD_COMBINATIONS = {
         message: '朱穗瞳孔放大："那是个死人的名字。空气里的铁锈味越来越浓了……"',
         delay: 2500,
         consumeAll: false
+    },
+
+    // 组合道具：眼睛 + 木门 → 带有眼睛的木门（眼睛保留，木门消耗）
+    // sort() 后 ['ITEM_mmd', 'ITEM_s_eyes']，所以木门是 target（被拖放的卡是 mover=眼睛）
+    'ITEM_mmd+ITEM_s_eyes': {
+        type: 'crafting',
+        result: ['ITEM_mmd_eyes'],
+        message: '眼睛贴在木门上，瞳孔微微转动...它在看着你。',
+        delay: 1500,
+        consumeTarget: true
+    },
+
+    // 场景解锁：手电筒 + 带有眼睛的木门 → 荒宅院落
+    // sort() 后 'ITEM_mmd_eyes' < 'ITEM_shoudiantong'（'m' < 's'）
+    'ITEM_mmd_eyes+ITEM_shoudiantong': {
+        type: 'explore',
+        result: ['SCENES_hzyl'],
+        message: '强光照亮了木门上的眼睛，它猛然睁大——空间裂开，荒宅院落显现！',
+        delay: 3000,
+        consumeAll: false
     }
 };

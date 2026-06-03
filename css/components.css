@@ -44,6 +44,19 @@
 .card.clue-taste { background: #1d0814; border-color: var(--color-taste); }
 .card.clue-hearing { background: #0a0a1f; border-color: #6c5ce7; }
 .card.lock-card { border-color: #ffb86c; box-shadow: 0 0 6px rgba(255,184,108,0.2); }
+.card.equipment-card { 
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+    border-color: #e94560; 
+    box-shadow: 0 0 8px rgba(233, 69, 96, 0.3);
+}
+.card.equipment-card::before {
+    content: '⚙';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: #e94560;
+}
 
 /* 已移除旧的结局触发按钮样式，现在使用逻辑归因卡牌 */
 #stack-progress-container {
