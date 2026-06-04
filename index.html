@@ -16,14 +16,6 @@
     <div id="board-canvas">
         <!-- 旧的结局触发按钮已移除，现在使用逻辑归因卡牌进行推演 -->
         
-        <!-- 堆叠组合进度条（浮动显示） -->
-        <div id="stack-progress-container" style="display: none;">
-            <div class="stack-progress-bar">
-                <div class="stack-progress-fill" id="stack-progress-fill"></div>
-            </div>
-            <div class="stack-progress-text" id="stack-progress-text">合成中...</div>
-        </div>
-
         <!-- 文案气泡（浮动显示） -->
         <div id="speech-bubble" style="display: none;">
             <div class="speech-bubble-text" id="speech-bubble-text"></div>
@@ -145,6 +137,18 @@
             <div class="modal-footer">
                 <button class="reasoning-btn" id="reasoning-execute-btn" disabled>归因推演</button>
                 <button class="reasoning-btn" id="reasoning-close-btn">关闭</button>
+            </div>
+        </div>
+
+        <!-- 真名揭示窗口 -->
+        <div id="true-name-modal" style="display: none;">
+            <div class="modal-header">
+                <div class="modal-title" id="true-name-title">真名揭示</div>
+                <div class="modal-close" id="true-name-modal-close">[ X ]</div>
+            </div>
+            <div class="modal-body" id="true-name-desc"></div>
+            <div class="modal-footer">
+                <button class="sync-btn" id="true-name-close-btn">关闭</button>
             </div>
         </div>
     </div>

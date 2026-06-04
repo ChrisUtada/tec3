@@ -76,3 +76,28 @@ export function updateModalContent(title, body, btnText, disabled) {
         btn.disabled = disabled !== undefined ? disabled : false;
     }
 }
+
+// 真名卡信息窗口
+const trueNameModal = document.getElementById('true-name-modal');
+
+export function openTrueNameModal(card, template) {
+    if (!trueNameModal) return;
+    
+    const titleEl = document.getElementById('true-name-title');
+    const descEl = document.getElementById('true-name-desc');
+    
+    if (titleEl) {
+        titleEl.innerText = template.realName || card.name;
+    }
+    if (descEl) {
+        descEl.innerText = template.realDesc || template.desc;
+    }
+    
+    trueNameModal.style.display = 'flex';
+}
+
+export function closeTrueNameModal() {
+    if (trueNameModal) {
+        trueNameModal.style.display = 'none';
+    }
+}

@@ -2,66 +2,156 @@
 import { CARD_TEMPLATES } from './config/cards.js';
 import { gameState } from './state.js';
 
-// 进度条相关 DOM 元素缓存
-let progressContainer = null;
-let progressFill = null;
-let progressText = null;
+// 存储当前显示的进度条
+const activeProgressBars = {};
 
 /**
- * 显示堆叠进度条
+ * 更新进度条位置（跟随卡牌移动）
+ * @param {string} cardId - 卡牌实例ID
  */
-export function showStackProgressBar(x, y, delay) {
-    // 惰性初始化 DOM 引用
-    if (!progressContainer) {
-        progressContainer = document.getElementById('stack-progress-container');
-        progressFill = document.getElementById('stack-progress-fill');
-        progressText = document.getElementById('stack-progress-text');
+export function updateProgressBarPosition(cardId) {
+    const cardEl = document.getElementById(cardId);
+    const progressContainer = activeProgressBars[cardId];
+    
+    if (!cardEl || !progressContainer) return;
+    
+    // 使用 DOM 元素的实际位置
+    const cardLeft = parseInt(cardEl.style.left) || 0;
+    const cardTop = parseInt(cardEl.style.top) || 0;
+    const cardWidth = 115;
+    const cardHeight = 150;
+    
+    // 更新进度条位置
+    progressContainer.style.left = cardLeft + 'px';
+    progressContainer.style.top = (cardTop + cardHeight + 10) + 'px';
+    progressContainer.style.width = cardWidth + 'px';
+}
+
+/**
+ * 创建并显示进度条（独立元素，显示在卡牌下方）
+ * @param {string} cardId - 卡牌实例ID
+ * @param {number} delay - 动画时长(ms)
+ * @returns {boolean} - 是否成功显示
+ */
+export function showStackProgressBar(cardId, delay) {
+    const cardEl = document.getElementById(cardId);
+    if (!cardEl) {
+        return false;
     }
+
+    // 如果已经有进度条，先移除
+    if (activeProgressBars[cardId]) {
+        hideStackProgressBar(cardId);
+    }
+
+    const boardCanvas = document.getElementById('board-canvas');
+    if (!boardCanvas) {
+        console.error('[进度条] 未找到 board-canvas');
+        return false;
+    }
+
+    //  安全起见，清除所有残留的进度条 DOM 元素
+    const existingProgressBars = boardCanvas.querySelectorAll('.card-progress-container');
+    existingProgressBars.forEach(bar => bar.remove());
+    // 清空记录
+    Object.keys(activeProgressBars).forEach(key => delete activeProgressBars[key]);
+
+    //  使用 DOM 元素的 style.left/top（由 renderAllCards 设置）
+    const cardLeft = parseInt(cardEl.style.left) || 0;
+    const cardTop = parseInt(cardEl.style.top) || 0;
+
+    // 卡牌尺寸
+    const cardWidth = 115;
+    const cardHeight = 150;
     
-    if (!progressContainer || !progressFill || !progressText) return;
+    // 创建进度条容器
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'card-progress-container';
+    progressContainer.id = `progress-${cardId}`;
+    progressContainer.innerHTML = `
+        <div class="card-progress-bar">
+            <div class="card-progress-fill"></div>
+        </div>
+        <div class="card-progress-text">因果具现中...</div>
+    `;
     
-    // 设置位置
-    progressContainer.style.left = (x - 60) + 'px';
-    progressContainer.style.top = y + 'px';
+    // 设置位置（使用 DOM 元素的实际位置）
+    progressContainer.style.position = 'absolute';
+    progressContainer.style.left = cardLeft + 'px';
+    progressContainer.style.top = (cardTop + cardHeight + 10) + 'px';
+    progressContainer.style.width = cardWidth + 'px';
     progressContainer.style.display = 'flex';
+    progressContainer.style.zIndex = '9999';
+
+    // 添加到 board-canvas
+    boardCanvas.appendChild(progressContainer);
+
+    // 获取进度条元素
+    const progressFill = progressContainer.querySelector('.card-progress-fill');
     
-    // 设置文字
-    progressText.textContent = '因果具现中...';
-    
-    // 重置进度并启动动画
+    // 启动动画
     progressFill.style.width = '0%';
     progressFill.style.transition = `width ${delay}ms linear`;
     setTimeout(() => {
         progressFill.style.width = '100%';
     }, 50);
+    
+    // 保存引用
+    activeProgressBars[cardId] = progressContainer;
+    
+    return true;
 }
 
 /**
- * 隐藏堆叠进度条
+ * 隐藏并移除进度条
+ * @param {string} cardId - 卡牌实例ID
  */
-export function hideStackProgressBar() {
-    if (!progressContainer) {
-        progressContainer = document.getElementById('stack-progress-container');
-    }
+export function hideStackProgressBar(cardId) {
+    const progressContainer = activeProgressBars[cardId];
     if (progressContainer) {
-        progressContainer.style.display = 'none';
+        progressContainer.remove();
+        delete activeProgressBars[cardId];
     }
 }
 
 /**
  * 创建卡牌 DOM 元素
  */
-export function createCardElement(card, { startDrag, updateQueryDisplay, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard }) {
+export function createCardElement(card, { startDrag, updateQueryDisplay, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard, openTrueNameModal }) {
     const cardEl = document.createElement('div');
     cardEl.id = card.instanceId;
     const t = CARD_TEMPLATES[card.templateId];
     
     cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}`;
-    cardEl.innerHTML = `
-        <div class="card-name">${t.name}</div>
-        ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-        <div class="card-type-tag">${t.type}</div>
-    `;
+    
+    // 真名卡特殊处理
+    if (t.class.includes('true-name-card')) {
+        const isRevealed = card.isRevealed || t.isRevealed || false;
+        const collectedSenses = card.collectedSenses || t.collectedSenses || [];
+        
+        if (isRevealed) {
+            cardEl.classList.add('revealed');
+        }
+        
+        const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
+            const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
+            const isCollected = collectedSenses.includes(sense);
+            return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
+        }).join('');
+        
+        cardEl.innerHTML = `
+            <div class="true-name-senses">${senseIcons}</div>
+            <div class="card-name">${isRevealed ? t.realName : t.name}</div>
+            ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+            <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
+        `;
+    } else {
+        cardEl.innerHTML = `
+            <div class="card-name">${t.name}</div>
+            ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+            <div class="card-type-tag">${t.type}</div>
+        `;
+    }
     
     cardEl.addEventListener('mousedown', (e) => {
         updateQueryDisplay(card, t);
@@ -84,6 +174,8 @@ export function createCardElement(card, { startDrag, updateQueryDisplay, openDia
             openReasoningModal();
         } else if (cardType === 'scene') {
             openExploration(card.templateId);
+        } else if (t.class.includes('true-name-card') && (card.isRevealed || t.isRevealed)) {
+            openTrueNameModal(card, t);
         } else {
             tryOpenComboLock(card, destroyCard, spawnUnboundCard);
         }

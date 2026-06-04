@@ -6,6 +6,16 @@ export const SCENE_EXPLORATION = {
         slots: 3,  // 3个槽位
         exploreTime: 5000,  // 5秒探索时间
         message: '探索未知地点，寻找隐藏的线索和资源...',
+        // 槽位条件限制（可选）
+        // requiredCards 定义必须放入的卡牌条件
+        // templateId: 指定卡牌模板ID（与 type 二选一）
+        // type: 指定卡牌类型（char/item/clue/scene/equipment/logic）
+        // min: 最少需要放入的数量
+        // max: 最多允许放入的数量
+        requiredCards: [
+            { templateId: 'ITEM_sdt', min: 1, max: 1 },           // 必须放入1个手电筒
+            { templateId: 'CHAR_investigator', min: 1, max: 1 }   // 必须放入1个初级调查员
+        ],
         // 掉落配置
         drops: [
             { templateId: 'ITEM_cdyg', chance: 1.0, message: '发现了惨白的月亮！' },
@@ -14,7 +24,7 @@ export const SCENE_EXPLORATION = {
             { templateId: 'ITEM_s_qhj', chance: 1.0, message: '发现了奇怪的痕迹！' },
             { templateId: 'ITEM_mk', chance: 1.0, message: '发现了门扣！' },
             { templateId: 'ITEM_s_eyes', chance: 1.0, message: '发现了眼睛！' },
-            { templateId: 'ITEM_shoudiantong', chance: 1.0, message: '发现了手电筒！' }
+            { templateId: 'ITEM_sdt', chance: 1.0, message: '发现了手电筒！' }
         ]
     },
     // 荒宅院落探索
@@ -23,6 +33,11 @@ export const SCENE_EXPLORATION = {
         slots: 3,  // 3个槽位
         exploreTime: 5000,  // 5秒探索时间
         message: '探索荒宅院落，寻找隐藏的线索和资源...',
+        // 槽位条件限制
+        requiredCards: [
+            { templateId: 'CHAR_zs', min: 1, max: 1 },   // 必须放入朱穗
+            { type: 'clue', min: 1, max: 2 }             // 必须放入1-2个线索卡
+        ],
         // 掉落配置
         drops: [
             { templateId: 'CLUE_blood', chance: 0.6, message: '在墙角发现了血迹图案！' },

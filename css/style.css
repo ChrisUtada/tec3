@@ -60,7 +60,7 @@ header .system-status { font-size: 11px; color: var(--color-vision); }
     border-radius: 4px; 
     position: relative; 
     height: 100%; 
-    overflow: hidden;
+    overflow: visible;  /*  允许进度条等子元素溢出显示 */
 }
 
 /* 日志面板样式已移除，桌面空间最大化 */

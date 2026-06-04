@@ -43,6 +43,8 @@
 .card.clue-vision { background: #081d17; border-color: var(--color-vision); }
 .card.clue-taste { background: #1d0814; border-color: var(--color-taste); }
 .card.clue-hearing { background: #0a0a1f; border-color: #6c5ce7; }
+.card.clue-touch { background: #1a0f0f; border-color: #e17055; }
+.card.clue-smell { background: #0f1a10; border-color: #00b894; }
 .card.lock-card { border-color: #ffb86c; box-shadow: 0 0 6px rgba(255,184,108,0.2); }
 .card.equipment-card { 
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
@@ -58,40 +60,158 @@
     color: #e94560;
 }
 
-/* 已移除旧的结局触发按钮样式，现在使用逻辑归因卡牌 */
-#stack-progress-container {
+/* 五感线索卡右上角标识 */
+.card.clue-vision::after {
+    content: '👁️';
     position: absolute;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    pointer-events: none;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
+}
+.card.clue-hearing::after {
+    content: '👂';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
+}
+.card.clue-taste::after {
+    content: '👅';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
+}
+.card.clue-touch::after {
+    content: '🤚';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
+}
+.card.clue-smell::after {
+    content: '👃';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
 }
 
-.stack-progress-bar {
-    width: 120px;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid var(--color-vision);
+/* 真名卡样式 */
+.card.true-name-card {
+    background: linear-gradient(135deg, #0d0d1a 0%, #1a0d2e 50%, #0d0d1a 100%);
+    border-color: #6c5ce7;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
+    position: relative;
+}
+
+.card.true-name-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(108, 92, 231, 0.1) 0%, transparent 70%);
+    pointer-events: none;
     border-radius: 4px;
+}
+
+.card.true-name-card.revealed {
+    border-color: #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    animation: true-name-glow 2s infinite alternate;
+}
+
+@keyframes true-name-glow {
+    from { box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); }
+    to { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+}
+
+/* 真名卡名称特殊样式 */
+.true-name-card .card-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #6c5ce7;
+    text-shadow: 0 0 10px rgba(108, 92, 231, 0.8);
+    transition: all 0.5s ease;
+}
+
+.true-name-card.revealed .card-name {
+    color: #ffd700;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+/* 真名卡感官标识容器 */
+.true-name-senses {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sense-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 12px;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+}
+
+.sense-icon.collected {
+    opacity: 1;
+    transform: scale(1.2);
+    text-shadow: 0 0 8px currentColor;
+}
+
+.sense-icon.vision { color: #4ecdc4; }
+.sense-icon.hearing { color: #6c5ce7; }
+.sense-icon.taste { color: #fd79a8; }
+.sense-icon.touch { color: #e17055; }
+.sense-icon.smell { color: #00b894; }
+
+/* 已移除旧的结局触发按钮样式，现在使用逻辑归因卡牌 */
+
+/* 卡牌进度条 - 独立显示在卡牌下方 */
+.card-progress-container {
+    /* position 由 JavaScript 动态设置为 absolute */
+    /* bottom: 4px; */
+    /* left: 4px; */
+    /* right: 4px; */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.card-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--color-vision);
+    border-radius: 3px;
     overflow: hidden;
 }
 
-.stack-progress-fill {
+.card-progress-fill {
     height: 100%;
     width: 0%;
-    background: var(--color-vision);
+    background: linear-gradient(90deg, var(--color-vision), var(--color-hearing));
     transition: width linear;
 }
 
-.stack-progress-text {
-    font-size: 10px;
+.card-progress-text {
+    font-size: 9px;
     color: var(--color-vision);
     text-align: center;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 2px 8px;
-    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
 }
 
 /* 文案气泡 - 用于"滋滋滋"等效果 */
@@ -652,4 +772,58 @@
     color: var(--text-muted);
     cursor: not-allowed;
     border-color: var(--text-muted);
+}
+
+/* 真名揭示窗口 */
+#true-name-modal {
+    display: none;
+    position: absolute;
+    top: 20%;
+    left: 25%;
+    width: 500px;
+    background: linear-gradient(135deg, #0d0d1a 0%, #1a0d2e 100%);
+    border: 2px solid #ffd700;
+    border-radius: 6px;
+    box-shadow: 
+        0 20px 60px rgba(0,0,0,0.9),
+        0 0 30px rgba(255, 215, 0, 0.3);
+    z-index: 100000;
+    flex-direction: column;
+    padding: 20px;
+    animation: true-name-modal-appear 0.5s ease-out;
+}
+
+@keyframes true-name-modal-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#true-name-modal .modal-header {
+    border-bottom-color: #ffd700;
+}
+
+#true-name-modal .modal-title {
+    color: #ffd700;
+    font-size: 14px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+#true-name-modal .modal-body {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #e0d8ff;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+#true-name-modal .sync-btn {
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: #000;
+    font-weight: bold;
 }

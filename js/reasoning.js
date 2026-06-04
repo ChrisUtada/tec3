@@ -8,6 +8,9 @@ let reasoningModal = null;
 let reasoningSlots = [];
 let slotContents = [null, null, null, null, null]; // 记录每个槽位的卡牌
 
+//  保存推演 timeoutId，以便在关闭推演窗口时取消
+let reasoningTimeoutId = null;
+
 // 初始化 DOM 元素
 function initReasoningElements() {
     if (!reasoningModal) {
@@ -51,6 +54,23 @@ export function openReasoningModal() {
 // 关闭归因推演窗口
 export function closeReasoningModal() {
     initReasoningElements();
+    
+    //  如果正在推演，取消推演任务
+    if (reasoningTimeoutId) {
+        clearTimeout(reasoningTimeoutId);
+        reasoningTimeoutId = null;
+        
+        // 隐藏进度条
+        hideProgressBar();
+        
+        // 恢复按钮状态
+        const executeBtn = document.getElementById('reasoning-execute-btn');
+        const closeBtn = document.getElementById('reasoning-close-btn');
+        if (executeBtn) executeBtn.disabled = false;
+        if (closeBtn) closeBtn.disabled = false;
+        
+        log(`⚠️ [归因推演中断] 推演已取消`, "normal");
+    }
     
     // 恢复所有卡牌到桌面
     slotContents.forEach((cardData) => {
@@ -154,7 +174,7 @@ export function executeReasoning() {
     if (closeBtn) closeBtn.disabled = true;
     
     // 5秒后显示结局
-    setTimeout(() => {
+    reasoningTimeoutId = setTimeout(() => {
         // 查找匹配的结局
         let ending = REASONING_ENDINGS[combinationKey];
         if (!ending) {

@@ -4,8 +4,9 @@
 import { closeDialogueModal, nextDialogue } from './dialogue.js';
 import { closeReasoningModal, executeReasoning } from './reasoning.js';
 import { closeExplorationModal, startExploration } from './exploration.js';
-import { toggleEndingPanel } from './ui.js';
+import { toggleEndingPanel, closeTrueNameModal } from './ui.js';
 import { syncModalAssets, resumeExploration } from './engine.js';
+import { initModalDrag } from './shared.js';
 
 /**
  * 初始化所有 UI 事件绑定
@@ -87,5 +88,23 @@ export function initUIEvents() {
     const reasoningCloseBtn = document.getElementById('reasoning-close-btn');
     if (reasoningCloseBtn) {
         reasoningCloseBtn.addEventListener('click', closeReasoningModal);
+    }
+    
+    // === 真名揭示弹窗 ===
+    const trueNameModal = document.getElementById('true-name-modal');
+    if (trueNameModal) {
+        // 添加拖动功能
+        initModalDrag(trueNameModal);
+        
+        // 添加关闭按钮事件
+        const trueNameModalClose = document.getElementById('true-name-modal-close');
+        if (trueNameModalClose) {
+            trueNameModalClose.addEventListener('click', closeTrueNameModal);
+        }
+        
+        const trueNameCloseBtn = document.getElementById('true-name-close-btn');
+        if (trueNameCloseBtn) {
+            trueNameCloseBtn.addEventListener('click', closeTrueNameModal);
+        }
     }
 }

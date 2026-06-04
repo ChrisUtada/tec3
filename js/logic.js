@@ -5,6 +5,15 @@ import { log, showEndingReport, setSystemStatus, updateModalContent, toggleScene
 import { showStackProgressBar, hideStackProgressBar, showSpeechBubble, hideSpeechBubble } from './renderer.js';
 import { CARD } from './consts.js';
 
+// 导入全局任务标志
+let isAnyTaskProcessing = false;
+export function setTaskProcessing(value) {
+    isAnyTaskProcessing = value;
+}
+export function getTaskProcessing() {
+    return isAnyTaskProcessing;
+}
+
 // 重新导出 renderer 中的 DOM 操作，保持向后兼容
 export { showStackProgressBar, hideStackProgressBar };
 
@@ -74,7 +83,6 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
 
     // 生成无序组合键（确保 A+B 和 B+A 相同）
     const combinationKey = [moved.templateId, target.templateId].sort().join('+');
-    console.log('[组合检查]', { moved: moved.templateId, target: target.templateId, key: combinationKey, hasRule: !!CARD_COMBINATIONS[combinationKey] });
     const rule = CARD_COMBINATIONS[combinationKey];
     
     if (!rule) {
@@ -83,37 +91,91 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
     }
 
     // 找到匹配的组合，显示进度条
-    // 进度条显示在堆叠位置的正下方（使用两张卡牌的中心点中点）
-    const positionX = (moved.x + target.x + CARD.WIDTH) / 2;
-    const positionY = target.y + CARD.DROP_OFFSET_Y;
+    //  不提前计算掉落位置，延迟到进度条完成时再计算（使用卡牌的最新位置）
 
     // 特效类组合（speech）：显示气泡，不产出卡牌
     if (rule.type === 'speech') {
+        // speech 类型立即计算位置（因为不需要延迟）
+        const targetEl = document.getElementById(target.instanceId);
+        let positionX, positionY;
+        if (targetEl) {
+            const targetLeft = parseInt(targetEl.style.left) || target.x;
+            const targetTop = parseInt(targetEl.style.top) || target.y;
+            positionX = targetLeft + CARD.WIDTH / 2;
+            positionY = targetTop + CARD.DROP_OFFSET_Y;
+        } else {
+            positionX = target.x + CARD.WIDTH / 2;
+            positionY = target.y + CARD.DROP_OFFSET_Y;
+        }
+        
         showSpeechBubble(positionX, target.y, rule.speechText, rule.speechDuration || 2500);
         log(`✨ [${rule.type}] ${rule.message}`, "success");
-        setTimeout(() => {
+        
+        //  保存 speech timeoutId，以便需要时取消
+        const speechTimeoutId = setTimeout(() => {
             hideSpeechBubble();
         }, rule.speechDuration || 2500);
+        
+        // 将 timeoutId 附加到 target 卡牌（可选，用于高级控制）
+        target.speechTimeoutId = speechTimeoutId;
+        
         return true;
     }
 
-    showStackProgressBar(positionX, positionY, rule.delay);
+    // 显示进度条（进度条在目标卡牌上）
+    showStackProgressBar(target.instanceId, rule.delay);
+
+    //  设置全局任务标志，阻止其他堆叠操作
+    isAnyTaskProcessing = true;
+
     log(`✨ [${rule.type}] ${rule.message}`, "success");
-    
-    // 延迟执行结果
-    setTimeout(() => {
-        // 隐藏进度条
-        hideStackProgressBar();
+
+    //  延迟执行结果
+    const timeoutId = setTimeout(() => {
+
+        // 清除 pendingTimeoutId
+        delete target.pendingTimeoutId;
         
+        // 隐藏进度条
+        hideStackProgressBar(target.instanceId);
+        
+        //  重新计算掉落位置（使用卡牌的最新位置，可能是拖拽后的新位置）
+        const targetEl = document.getElementById(target.instanceId);
+        let positionX, positionY;
+        
+        if (targetEl) {
+            // 使用目标卡牌的 DOM 最新位置
+            const targetLeft = parseInt(targetEl.style.left) || target.x;
+            const targetTop = parseInt(targetEl.style.top) || target.y;
+            
+            // 掉落位置：在目标卡牌下方，水平居中
+            positionX = targetLeft + CARD.WIDTH / 2;
+            positionY = targetTop + CARD.DROP_OFFSET_Y;
+        } else {
+            // 回退到使用数据坐标
+            positionX = target.x + CARD.WIDTH / 2;
+            positionY = target.y + CARD.DROP_OFFSET_Y;
+        }
+
         // 概率检查：如果规则有 chance 属性，需要先判断概率
         const hasChance = rule.chance !== undefined && rule.chance < 1;
         const rollSuccess = !hasChance || Math.random() <= rule.chance;
-        
+
         if (hasChance && !rollSuccess) {
             // 概率失败
             if (rule.failMessage) {
                 log(`❌ [概率失败] ${rule.failMessage}`, "normal");
             }
+            // 清除全局任务标志
+            isAnyTaskProcessing = false;
+            return; // 不生成卡牌，直接返回
+        }
+
+        //  检查堆叠关系是否仍然存在（玩家可能已经拖拽分开了卡牌）
+        if (!moved.parent || moved.parent !== target.instanceId) {
+            log(`️ [组合中断] 卡牌已分离，任务取消`, "normal");
+            // 清除全局任务标志
+            isAnyTaskProcessing = false;
             return; // 不生成卡牌，直接返回
         }
         
@@ -125,56 +187,45 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
         });
         
         // 处理原料卡消耗
-        console.log('[消耗检查]', {
-            movedTemplate: CARD_TEMPLATES[moved.templateId],
-            targetTemplate: CARD_TEMPLATES[target.templateId],
-            movedId: moved.instanceId,
-            targetId: target.instanceId
-        });
-        
+
         if (rule.consumeAll) {
-            console.log('🗑️ 全部消耗模式');
             destroyCard(moved.instanceId);
             destroyCard(target.instanceId);
         } else if (rule.consumeMover !== undefined || rule.consumeTarget !== undefined) {
             // 精确消耗控制
             if (rule.consumeMover === true) {
                 destroyCard(moved.instanceId);
-                console.log('🗑️ 精确消耗 - 移动的卡被消耗');
             }
             if (rule.consumeTarget === true) {
                 destroyCard(target.instanceId);
-                console.log('🗑️ 精确消耗 - 目标的卡被消耗');
             }
         } else {
             // 根据每张卡牌自身的 consumable 属性决定是否消耗
             const movedConsumable = CARD_TEMPLATES[moved.templateId].consumable;
             const targetConsumable = CARD_TEMPLATES[target.templateId].consumable;
-            
-            console.log('📦 智能消耗 - 根据卡牌 consumable 属性:');
-            
+
             if (movedConsumable) {
-                console.log(`🗑️ 消耗移动的卡: ${moved.instanceId} (consumable=${movedConsumable})`);
                 destroyCard(moved.instanceId);
-            } else {
-                console.log(`✅ 保留移动的卡: ${moved.instanceId} (consumable=${movedConsumable})`);
             }
-            
+
             if (targetConsumable) {
-                console.log(`️ 消耗目标的卡: ${target.instanceId} (consumable=${targetConsumable})`);
                 destroyCard(target.instanceId);
-            } else {
-                console.log(`✅ 保留目标的卡: ${target.instanceId} (consumable=${targetConsumable})`);
             }
         }
-        
+
         // 显示成功消息（如果有）
         if (rule.successMessage && hasChance) {
             log(`✅ [概率成功] ${rule.successMessage}`, "success");
         } else {
             log(`✅ [组合完成] 已生成 ${rule.result.length} 张新卡牌`, "success");
         }
+
+        // 清除全局任务标志
+        isAnyTaskProcessing = false;
     }, rule.delay);
-    
+
+    //  保存 timeoutId 到目标卡牌，以便在卡牌分离时取消任务
+    target.pendingTimeoutId = timeoutId;
+
     return true; // 阻止默认堆叠
 }

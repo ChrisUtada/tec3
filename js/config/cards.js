@@ -14,35 +14,59 @@ export const CARD_TEMPLATES = {
     'CLUE_tx': { name: '线索：铁锈的味道', desc: '【味觉异常】致命污染。用于归因推演的关键线索。', type: 'clue', class: 'clue-taste', consumable: true },
     'CLUE_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
     
-    // 新增测试线索
+    // 五感线索卡 - 每种感官对应一种线索
+    'CLUE_vision_eye': { name: '线索：扭曲的视线', desc: '【视觉】视网膜捕捉到不属于这个世界的影像。', type: 'clue', class: 'clue-vision', consumable: true, senseType: 'vision' },
+    'CLUE_hearing_echo': { name: '线索：回响的低语', desc: '【听觉】来自异空间的声音碎片。', type: 'clue', class: 'clue-hearing', consumable: true, senseType: 'hearing' },
+    'CLUE_taste_metal': { name: '线索：金属的苦涩', desc: '【味觉】口腔中蔓延的诡异金属味。', type: 'clue', class: 'clue-taste', consumable: true, senseType: 'taste' },
+    'CLUE_touch_ice': { name: '线索：刺骨的寒意', desc: '【触觉】穿透衣物的异常低温。', type: 'clue', class: 'clue-touch', consumable: true, senseType: 'touch' },
+    'CLUE_smell_rot': { name: '线索：腐朽的气息', desc: '【嗅觉】令人作呕的腐烂气味。', type: 'clue', class: 'clue-smell', consumable: true, senseType: 'smell' },
+    
+    // 原有测试线索
     'CLUE_shadow': { name: '线索：墙上的阴影', desc: '【视觉异常】不合常理的投影角度。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
     'CLUE_whisper': { name: '线索：低语声', desc: '【听觉异常】来自虚空的呢喃。用于归因推演的关键线索。', type: 'clue', class: 'clue-hearing', consumable: true },
-    'CLUE_cold': { name: '线索：骤降的温度', desc: '【触觉异常】空间温度异常波动。用于归因推演的关键线索。', type: 'clue', class: 'clue-taste', consumable: true },
+    'CLUE_cold': { name: '线索：骤降的温度', desc: '【触觉异常】空间温度异常波动。用于归因推演的关键线索。', type: 'clue', class: 'clue-touch', consumable: true },
     'CLUE_blood': { name: '线索：血迹图案', desc: '【视觉线索】地板上神秘的符文。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
+    
+    // 功能卡：捕获（常驻功能）
+    'LOGIC_capture': { name: '⚡捕获', desc: '【常驻功能卡】将此卡放置在人物、场景或物品上进行捕获，可获得隐藏线索。此卡不会被消耗。', type: 'logic', class: 'logic-card capture-card', consumable: false },
     
     // 逻辑归因卡牌
     'LOGIC_reason': { name: '逻辑归因', desc: '【指令卡】打开归因推演界面，通过线索组合推导真相。双击使用。', type: 'logic', class: 'logic-card', consumable: true },
     
-    // 回收卡牌（功能卡）
+    // 献祭卡牌（功能卡）
     'ITEM_recycle': { 
-        name: '物资回收站', 
-        desc: '【功能】消耗多余卡牌，兑换金币。将卡牌拖放到此卡上即可回收。', 
+        name: '⚡献祭', 
+        desc: '【功能】将多余卡牌献祭，获取因果律。将卡牌拖放到此卡上即可献祭。', 
         type: 'logic', 
         class: 'logic-card', 
         consumable: false,
         recycleValue: 10,
-        interactText: '将多余卡牌拖放到回收站上，可将其兑换为金币。'
+        interactText: '将多余卡牌拖放到献祭台上，可将其转化为因果律。'
     },
     
-    // 金币卡
+    // 因果律卡
     'ITEM_coin': { 
-        name: '金币', 
-        desc: '【货币】可用于购买物资或线索。', 
+        name: '因果律', 
+        desc: '【因果货币】可用于改变事件概率或购买特殊物品。', 
         type: 'item', 
         class: 'item-card', 
         consumable: true,
         value: 10,
-        interactText: '金币：可用于交易的货币。'
+        interactText: '因果律：可用于干预现实的力量。'
+    },
+    
+    // 真名卡
+    'ITEM_true_name': { 
+        name: '???', 
+        desc: '【真名容器】未知的存在等待被揭示。将五感线索拖放到此卡上进行揭示。', 
+        type: 'item', 
+        class: 'item-card true-name-card', 
+        consumable: false,
+        isRevealed: false,
+        realName: '「深渊低语者」',
+        realDesc: '【旧日支配者碎片】\n\n这是一个来自深渊的古老存在的真名残片。\n\n当五个感官线索全部收集完毕，\n它的真实形态将被揭示。\n\n——「在无尽的黑暗中，它凝视着你」',
+        targetSenses: ['vision', 'hearing', 'taste', 'touch', 'smell'],
+        collectedSenses: []
     },
     
     // 新掉落物品
@@ -52,6 +76,6 @@ export const CARD_TEMPLATES = {
     'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'equipment', class: 'equipment-card', consumable: false },
-    'ITEM_shoudiantong': { name: '手电筒', desc: '【道具】另一个手电筒。', type: 'item', class: 'item-card', consumable: false },
+    
     'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false }
 };

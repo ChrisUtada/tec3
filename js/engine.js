@@ -1,21 +1,26 @@
 //  渲染引擎与拖拽逻辑
 import { CARD_TEMPLATES } from './config.js';
 import { gameState, updateState } from './state.js';
-import { log, updateQueryDisplay, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus } from './ui.js';
-import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding } from './logic.js';
-import { showStackProgressBar, hideStackProgressBar } from './renderer.js';
+import { log, updateQueryDisplay, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus, openTrueNameModal } from './ui.js';
+import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding, getTaskProcessing, setTaskProcessing } from './logic.js';
+import { showStackProgressBar, hideStackProgressBar, updateProgressBarPosition, hideSpeechBubble } from './renderer.js';
 import { openDialogue, placeCardInSlot } from './dialogue.js';
 import { openReasoningModal, placeCardInReasoningSlot } from './reasoning.js';
 import { openExploration, initExplorationModule, placeCardInExplorationSlot } from './exploration.js';
 import { restoreCardToBoard } from './shared.js';
 import { CARD } from './consts.js';
+import { sacrificeSystem } from './systems/sacrifice.js';
+import { trueNameSystem } from './systems/truename.js';
+import { taskManager } from './core/task-manager.js';
+import { stackSystem } from './core/stack-system.js';
+import { dragSystem } from './core/drag-system.js';
 
 const boardCanvas = document.getElementById('board-canvas');
 let cardsData = [];
 let cardsMap = new Map(); // 性能优化：O(1) 查找
-let activeDragId = null;
-let dragOffsetX = 0; 
-let dragOffsetY = 0;
+
+//  暴露获取 cardsData 的函数，供 renderer.js 使用
+window.getCardsData = () => cardsData;
 
 // 卡牌类型固定层级（数值越大越上层）
 const Z_INDEX = {
@@ -33,17 +38,9 @@ initExplorationModule(directSpawnCard, () => cardsData);
 export function findCardData(id) { 
     return cardsMap.get(id); // O(1) 查找替代 O(n) find
 }
-export function isChildOf(parentId, childId) {
-    let c = findCardData(parentId); 
-    while(c) { 
-        if (c.instanceId === childId) return true; 
-        c = c.next ? cardsMap.get(c.next) : null; 
-    } 
-    return false;
-}
-
 export function destroyCard(id) {
-    cardsData = cardsData.filter(c => c.instanceId !== id);
+    const idx = cardsData.findIndex(c => c.instanceId === id);
+    if (idx !== -1) cardsData.splice(idx, 1);
     cardsMap.delete(id); // 同步删除 Map
     const el = document.getElementById(id); 
     if (el) el.remove();
@@ -90,95 +87,96 @@ export function directSpawnCard(templateId, x, y, allowDuplicate = false) {
     renderAllCards();
 }
 
-// 🗑️ 回收卡牌功能
-export function recycleCard(cardToRecycle, recycleCard, spawnFn, destroyFn) {
-    const recycledTemplate = CARD_TEMPLATES[cardToRecycle.templateId];
-    const recycleTemplate = CARD_TEMPLATES[recycleCard.templateId];
-    
-    // 金币卡不可回收（防止无限循环）
-    if (cardToRecycle.templateId === 'ITEM_coin') {
-        log(`❌ [回收系统] 【${recycledTemplate.name}】是货币，无法回收！`, "normal");
-        return;
-    }
-    
-    // 获取回收价值
-    const coinValue = recycleTemplate.recycleValue || 10;
-    
-    // 🌟 1. 建立正常堆叠关系（与堆叠组合相同的逻辑）
-    recycleCard.next = cardToRecycle.instanceId;
-    cardToRecycle.parent = recycleCard.instanceId;
-    renderAllCards();
-    
-    // 2. 在回收卡位置显示进度条（使用堆叠进度条，与手电筒放人物效果一致）
-    const positionX = recycleCard.x + CARD.HALF_WIDTH; // 卡牌中心位置
-    const positionY = recycleCard.y + CARD.DROP_OFFSET_Y; // 卡牌正下方
-    
-    // 显示堆叠进度条
-    showStackProgressBar(positionX, positionY, 3000);
-    log(`✨ [回收系统] 正在解析【${recycledTemplate.name}】因果结构...`, "success");
-    
-    // 3秒后执行回收（与堆叠组合相同的延迟执行逻辑）
-    setTimeout(() => {
-        // 隐藏进度条
-        hideStackProgressBar();
-        
-        // 立即销毁卡牌并生成金币
-        destroyFn(cardToRecycle.instanceId);
-        
-        // 立即在回收卡附近生成金币卡（无额外延迟）
-        const offsetX = (Math.random() - 0.5) * 60;
-        const offsetY = (Math.random() - 0.5) * 60;
-        const goldCard = spawnFn('ITEM_coin', recycleCard.x + offsetX, recycleCard.y + offsetY + 50, true);
-        
-        log(`🗑️ [回收系统] 【${recycledTemplate.name}】已被回收，兑换 ${coinValue} 金币！`, "success");
-    }, 3000);
-}
-
 export function resetVerbCard(verb, originalX, originalY) {
     if (verb.parent) { const p = findCardData(verb.parent); if (p) p.next = null; verb.parent = null; }
     verb.x = originalX; verb.y = originalY;
     renderAllCards();
 }
 
-export function breakStackChain(cards) {
-    cards.forEach(c => { if(c.parent) { const p = findCardData(c.parent); if(p) p.next = null; c.parent = null; } c.next = null; });
-    renderAllCards();
-}
-
 export function renderAllCards() {
-    // 第一步：收集所有需要渲染的卡牌，并计算它们的最终层级
+    // 第一步：识别所有堆叠组合，并为每个组合分配基础z-index
+    const cardDepths = new Map();
+    const stackBaseZIndex = new Map();  // 记录每个堆叠组合的基础z-index
+    let nextBaseZIndex = 100;  // 下一个可用的基础z-index
+    
+    // 先计算所有卡牌的depth
+    cardsData.forEach(card => {
+        if (card.parent) {
+            let depth = 0;
+            let p = cardsMap.get(card.parent);
+            while(p) {
+                depth++;
+                p = p.parent ? cardsMap.get(p.parent) : null;
+            }
+            cardDepths.set(card.instanceId, depth);
+        } else {
+            cardDepths.set(card.instanceId, 0);
+        }
+    });
+    
+    // 第二步：为每个堆叠组合分配连续的z-index范围
+    // 遍历所有卡牌，为每个堆叠组合分配z-index范围
+    cardsData.forEach(card => {
+        const depth = cardDepths.get(card.instanceId);
+        
+        // 只处理根卡牌（depth=0且没有parent）
+        if (depth === 0 && !card.parent) {
+            // 计算这个堆叠组合的最大depth（有多少张卡牌）
+            let maxDepth = 0;
+            let current = card;
+            while(current.next) {
+                const nextCard = cardsMap.get(current.next);
+                //  安全检查：如果next卡牌不存在（已被销毁），跳出循环
+                if (!nextCard) {
+                    console.warn(`[堆叠组合] 链断裂：${current.instanceId}.next=${current.next} 不存在`);
+                    current.next = null;  // 清理断裂的链接
+                    break;
+                }
+                current = nextCard;
+                const d = cardDepths.get(current.instanceId);
+                if (d > maxDepth) maxDepth = d;
+            }
+            
+            // 为这个组合分配连续的z-index范围
+            stackBaseZIndex.set(card.instanceId, nextBaseZIndex);
+            nextBaseZIndex += maxDepth + 1;  // 跳过这个组合占用的范围
+        }
+    });
+    
+    // 第三步：收集所有卡牌，计算最终位置和z-index
     const renderQueue = [];
     
     cardsData.forEach(card => {
-        let finalX = card.x; 
+        let finalX = card.x;
         let finalY = card.y;
+        const depth = cardDepths.get(card.instanceId) || 0;
+        let zIndex;
         
-        // 获取卡牌类型对应的固定层级
-        const cardType = CARD_TEMPLATES[card.templateId].type;
-        let baseZIndex = Z_INDEX[cardType] || 100;
-        
-        // 如果有父级，计算堆叠偏移
-        if (card.parent) {
-            const parentCard = cardsMap.get(card.parent);
-            let p = parentCard;
-            let depth = 0;
-            while(p) { 
-                depth++; 
-                finalX = p.x; 
-                finalY = p.y + (depth * 24); 
-                p = p.parent ? cardsMap.get(p.parent) : null; 
+        // 计算堆叠位置
+        if (depth > 0) {
+            // 找到根父级（最底层的卡牌）
+            let rootCard = card;
+            while(rootCard.parent) {
+                rootCard = cardsMap.get(rootCard.parent);
             }
-            // 堆叠卡牌的层级基于父级类型 + 深度偏移
-            const parentType = CARD_TEMPLATES[parentCard?.templateId]?.type;
-            baseZIndex = (Z_INDEX[parentType] || 100) + depth;
+            finalX = rootCard.x;
+            finalY = rootCard.y + (depth * 24);  // 向下偏移，露出上半部分
+            
+            // 堆叠卡牌的z-index：根卡牌的基础z-index + depth
+            const rootBaseZ = stackBaseZIndex.get(rootCard.instanceId);
+            zIndex = rootBaseZ + depth;
+            
+        } else {
+            // 独立卡牌：直接使用基础z-index
+            zIndex = stackBaseZIndex.get(card.instanceId);
         }
         
-        // 如果是正在拖动的卡牌，赋予绝对最高层级
-        if (card.instanceId === activeDragId) {
-            baseZIndex = 9999;
+        // 拖动中的卡牌赋予最高层级
+        if (card.instanceId === dragSystem.activeDragId) {
+            zIndex = 9999;
         }
         
-        renderQueue.push({ card, finalX, finalY, zIndex: baseZIndex });
+        renderQueue.push({ card, finalX, finalY, zIndex });
     });
     
     // 第二步：按 zIndex 排序，确保渲染顺序正确
@@ -193,11 +191,35 @@ export function renderAllCards() {
             const t = CARD_TEMPLATES[card.templateId];
             
             cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}`;
-            cardEl.innerHTML = `
-                <div class="card-name">${t.name}</div>
-                ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-                <div class="card-type-tag">${t.type}</div>
-            `;
+            
+            // 真名卡特殊处理
+            if (t.class.includes('true-name-card')) {
+                const isRevealed = card.isRevealed || t.isRevealed || false;
+                const collectedSenses = card.collectedSenses || t.collectedSenses || [];
+                
+                if (isRevealed) {
+                    cardEl.classList.add('revealed');
+                }
+                
+                const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
+                    const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
+                    const isCollected = collectedSenses.includes(sense);
+                    return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
+                }).join('');
+                
+                cardEl.innerHTML = `
+                    <div class="true-name-senses">${senseIcons}</div>
+                    <div class="card-name">${isRevealed ? t.realName : t.name}</div>
+                    ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+                    <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
+                `;
+            } else {
+                cardEl.innerHTML = `
+                    <div class="card-name">${t.name}</div>
+                    ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+                    <div class="card-type-tag">${t.type}</div>
+                `;
+            }
             
             cardEl.addEventListener('mousedown', (e) => {
                 updateQueryDisplay(card, t);
@@ -207,7 +229,7 @@ export function renderAllCards() {
                         return; 
                     } 
                 }
-                startDrag(e, card);
+                dragSystem.startDrag(e, card);
             });
             cardEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
@@ -217,18 +239,47 @@ export function renderAllCards() {
                 if (cardType === 'char') {
                     // 人物卡牌：打开对话窗口
                     openDialogue(card.templateId);
-                } else if (cardType === 'logic') {
+                } else if (cardType === 'logic' && card.templateId === 'LOGIC_reason') {
                     // 逻辑归因卡牌：打开归因推演窗口
                     openReasoningModal();
                 } else if (cardType === 'scene') {
                     // 场景卡牌：打开探索窗口
                     openExploration(card.templateId);
+                } else if (t.class.includes('true-name-card') && (card.isRevealed || t.isRevealed)) {
+                    // 真名卡：打开真名信息窗口
+                    openTrueNameModal(card, t);
                 } else {
                     // 其他卡牌：密码盒等
                     tryOpenComboLock(card, destroyCard, spawnUnboundCard);
                 }
             });
             boardCanvas.appendChild(cardEl);
+        } else {
+            // 更新真名卡的显示
+            const t = CARD_TEMPLATES[card.templateId];
+            if (t.class.includes('true-name-card')) {
+                const isRevealed = card.isRevealed || t.isRevealed || false;
+                const collectedSenses = card.collectedSenses || t.collectedSenses || [];
+                
+                if (isRevealed) {
+                    cardEl.classList.add('revealed');
+                } else {
+                    cardEl.classList.remove('revealed');
+                }
+                
+                const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
+                    const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
+                    const isCollected = collectedSenses.includes(sense);
+                    return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
+                }).join('');
+                
+                cardEl.innerHTML = `
+                    <div class="true-name-senses">${senseIcons}</div>
+                    <div class="card-name">${isRevealed ? t.realName : t.name}</div>
+                    ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+                    <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
+                `;
+            }
         }
 
         // 结局触发时的卡牌高亮修饰
@@ -248,159 +299,6 @@ export function renderAllCards() {
         cardEl.style.top = finalY + 'px';
         cardEl.style.zIndex = zIndex;
     });
-}
-
-function startDrag(e, card) {
-    if (gameState.isGameOver) return;
-    
-    activeDragId = card.instanceId;
-    // 拖拽开始时只需设置 activeDragId，renderAllCards 会自动设置 z-index 为 9999
-    
-    if (card.parent) { const p = cardsMap.get(card.parent); if (p) p.next = null; card.parent = null; }
-    const rect = document.getElementById(card.instanceId).getBoundingClientRect();
-    dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top;
-    document.addEventListener('mousemove', processDrag);
-    document.addEventListener('mouseup', endDrag);
-    e.stopPropagation();
-}
-
-function processDrag(e) {
-    if (!activeDragId) return;
-    const mainCard = findCardData(activeDragId);
-    if (!mainCard) {
-        activeDragId = null;
-        return;
-    }
-    const canvasRect = boardCanvas.getBoundingClientRect();
-    let newX = e.clientX - canvasRect.left - dragOffsetX; 
-    let newY = e.clientY - canvasRect.top - dragOffsetY;
-    let diffX = newX - mainCard.x; 
-    let diffY = newY - mainCard.y;
-    let current = mainCard;
-    while(current) { 
-        current.x += diffX; 
-        current.y += diffY; 
-        current = current.next ? cardsMap.get(current.next) : null; 
-    }
-    renderAllCards();
-}
-
-function endDrag(e) {
-    document.removeEventListener('mousemove', processDrag); document.removeEventListener('mouseup', endDrag);
-    if (!activeDragId) return;
-    const mainCard = findCardData(activeDragId);
-    
-    // 检查是否拖拽到对话槽或归因槽中
-    const dialogueSlot = document.getElementById('dialogue-slot');
-    const dialogueModal = document.getElementById('dialogue-modal');
-    
-    // 检查对话槽
-    if (dialogueSlot && dialogueModal.style.display === 'flex') {
-        const slotRect = dialogueSlot.getBoundingClientRect();
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
-        
-        if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
-            mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-            placeCardInSlot(mainCard);
-            activeDragId = null;
-            renderAllCards();
-            return;
-        }
-    }
-    
-    // 检查归因推演槽
-    const reasoningModal = document.getElementById('reasoning-modal');
-    if (reasoningModal && reasoningModal.style.display === 'flex') {
-        for (let i = 0; i < 5; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            if (!slot) continue;
-            
-            const slotRect = slot.getBoundingClientRect();
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            
-            if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
-                mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-                placeCardInReasoningSlot(mainCard, i);
-                activeDragId = null;
-                renderAllCards();
-                return;
-            }
-        }
-    }
-    
-    // 检查探索窗口槽位
-    const explorationModal = document.getElementById('exploration-modal');
-    console.log('[拖拽检测] 探索窗口状态:', explorationModal?.style.display);
-    
-    if (explorationModal && (explorationModal.style.display === 'flex' || explorationModal.style.display === 'block')) {
-        console.log('[拖拽检测] 探索窗口已打开，开始检测槽位');
-        const explorationSlotsContainer = document.getElementById('exploration-slots');
-        if (explorationSlotsContainer) {
-            const slots = explorationSlotsContainer.querySelectorAll('.exploration-slot');
-            console.log('[拖拽检测] 找到槽位数量:', slots.length);
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            console.log('[拖拽检测] 鼠标位置:', mouseX, mouseY);
-            
-            for (let i = 0; i < slots.length; i++) {
-                const slotRect = slots[i].getBoundingClientRect();
-                console.log(`[拖拽检测] 槽位 ${i} 位置:`, slotRect);
-                
-                if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
-                    mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-                    console.log(`[拖拽检测] 鼠标在槽位 ${i} 上！`);
-                    // 调用 exploration.js 中的函数
-                    placeCardInExplorationSlot(mainCard);
-                    activeDragId = null;
-                    renderAllCards();
-                    return;
-                }
-            }
-        }
-    }
-    
-    // 检查是否拖放到回收卡牌上
-    for (let i = 0; i < cardsData.length; i++) {
-        let target = cardsData[i];
-        if (target.instanceId === mainCard.instanceId) continue;
-        
-        // 检查目标是否是回收卡牌
-        if (target.templateId === 'ITEM_recycle') {
-            if (Math.abs(mainCard.x - target.x) < 80 && Math.abs(mainCard.y - target.y) < 100) {
-                // 回收卡牌逻辑（使用直接生成，进度条在 recycleCard 内部显示）
-                recycleCard(mainCard, target, directSpawnCard, destroyCard);
-                activeDragId = null;
-                renderAllCards();
-                return;
-            }
-        }
-    }
-    
-    // 原有的堆叠逻辑
-    
-    for (let i = 0; i < cardsData.length; i++) {
-        let target = cardsData[i];
-        if (target.instanceId === mainCard.instanceId || isChildOf(mainCard.instanceId, target.instanceId) || target.next) continue;
-        
-        if (Math.abs(mainCard.x - target.x) < 80 && Math.abs(mainCard.y - target.y) < 100) {
-            // 先建立普通层叠附着（让卡牌先吸附上去）
-            target.next = mainCard.instanceId; 
-            mainCard.parent = target.instanceId;
-            
-            // 然后检查是否是结局判定逻辑（无论堆叠顺序如何）
-            if (checkReaction(mainCard, target, destroyCard, spawnUnboundCard, directSpawnCard)) {
-                activeDragId = null; 
-                renderAllCards();
-                return;
-            }
-
-            if (gameState.isGameOver) break;
-            break;
-        }
-    }
-    activeDragId = null; renderAllCards();
 }
 
 export function syncModalAssets() {
@@ -440,6 +338,71 @@ export function resumeExploration() {
     renderAllCards();
 }
 
+/**
+ * 初始化所有特殊系统模块（依赖注入）
+ */
+function _initSystems() {
+    // 1. 初始化任务管理器
+    taskManager.init({
+        findCardData,
+        hideStackProgressBar,
+        log,
+        getTaskProcessing,
+        setTaskProcessing
+    });
+
+    // 2. 初始化堆叠系统
+    stackSystem.init({
+        findCardData,
+        renderAllCards
+    });
+
+    // 3. 初始化拖拽系统
+    dragSystem.init({
+        gameState,
+        hideSpeechBubble,
+        cardsMap,
+        taskManager,
+        boardCanvas,
+        findCardData,
+        renderAllCards,
+        updateProgressBarPosition,
+        placeCardInSlot,
+        placeCardInReasoningSlot,
+        placeCardInExplorationSlot,
+        cardsData,
+        sacrificeSystem,
+        trueNameSystem,
+        stackSystem,
+        checkReaction,
+        destroyCard,
+        spawnUnboundCard,
+        directSpawnCard,
+        log,
+        hideStackProgressBar
+    });
+
+    // 4. 构建子系统 API
+    const api = {
+        findCardData,
+        cardsMap,
+        cardsData,
+        destroyCard,
+        directSpawnCard,
+        renderAllCards,
+        enqueueTask: taskManager.enqueueTask.bind(taskManager),
+        removeCardFromStack: stackSystem.removeCardFromStack.bind(stackSystem),
+        getTaskQueue: taskManager.getTaskQueue.bind(taskManager),
+        log,
+        showStackProgressBar,
+        hideStackProgressBar,
+        setSystemStatus
+    };
+
+    sacrificeSystem.init(api);
+    trueNameSystem.init(api);
+}
+
 export function initBaseTable() {
     cardsData = [
         // 移除指令卡，所有功能通过堆叠组合实现
@@ -453,7 +416,17 @@ export function initBaseTable() {
         { instanceId: 'cl_whisper', templateId: 'CLUE_whisper', x: 40, y: 430, next: null, parent: null, isCaptured: true },
         { instanceId: 'cl_cold', templateId: 'CLUE_cold', x: 175, y: 430, next: null, parent: null, isCaptured: true },
         // 回收卡牌
-        { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 240, next: null, parent: null, isCaptured: true }
+        { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 240, next: null, parent: null, isCaptured: true },
+        // 捕获功能卡
+        { instanceId: 'l_capture', templateId: 'LOGIC_capture', x: 310, y: 50, next: null, parent: null, isCaptured: true },
+        // 真名卡
+        { instanceId: 'i_true_name', templateId: 'ITEM_true_name', x: 310, y: 430, next: null, parent: null, isCaptured: true, isRevealed: false, collectedSenses: [] },
+        // 五感线索卡（用于测试真名揭示）
+        { instanceId: 'cl_vision', templateId: 'CLUE_vision_eye', x: 445, y: 430, next: null, parent: null, isCaptured: true },
+        { instanceId: 'cl_hearing', templateId: 'CLUE_hearing_echo', x: 580, y: 430, next: null, parent: null, isCaptured: true },
+        { instanceId: 'cl_taste', templateId: 'CLUE_taste_metal', x: 715, y: 240, next: null, parent: null, isCaptured: true },
+        { instanceId: 'cl_touch', templateId: 'CLUE_touch_ice', x: 715, y: 430, next: null, parent: null, isCaptured: true },
+        { instanceId: 'cl_smell', templateId: 'CLUE_smell_rot', x: 715, y: 50, next: null, parent: null, isCaptured: true }
     ];
     
     // 同步初始化 cardsMap
@@ -461,6 +434,9 @@ export function initBaseTable() {
     cardsData.forEach(card => {
         cardsMap.set(card.instanceId, card);
     });
+    
+    // 初始化特殊系统（必须在 cardsData 赋值之后，确保引用正确）
+    _initSystems();
     
     renderAllCards();
 }

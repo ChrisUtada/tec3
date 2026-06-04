@@ -68,11 +68,63 @@ export const CARD_COMBINATIONS = {
     },
 
     // 场景解锁：手电筒 + 带有眼睛的木门 → 荒宅院落
-    // sort() 后 'ITEM_mmd_eyes' < 'ITEM_shoudiantong'（'m' < 's'）
-    'ITEM_mmd_eyes+ITEM_shoudiantong': {
+    // sort() 后 'ITEM_mmd_eyes' < 'ITEM_sdt'（'m' < 's'）
+    'ITEM_mmd_eyes+ITEM_sdt': {
         type: 'explore',
         result: ['SCENES_hzyl'],
         message: '强光照亮了木门上的眼睛，它猛然睁大——空间裂开，荒宅院落显现！',
+        delay: 3000,
+        consumeAll: false
+    },
+    
+    // 捕获功能卡规则（捕获任意人物、场景、物品掉落线索）
+    // 捕获卡是常驻功能卡，不会被消耗
+    'CHAR_zs+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_shadow', 'CLUE_whisper', 'CLUE_blood'],
+        message: '⚡ 捕获！从朱穗身上提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'CHAR_investigator+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_cold', 'CLUE_blood'],
+        message: '⚡ 捕获！从初级调查员身上提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'SCENE_wz+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_shadow', 'CLUE_xhpb'],
+        message: '⚡ 捕获！从未知地点提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'SCENES_hzyl+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_blood', 'CLUE_shadow', 'CLUE_whisper'],
+        message: '⚡ 捕获！从荒宅院落提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'ITEM_sdt+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_xhpb'],
+        message: '⚡ 捕获！从手电筒中提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'ITEM_mmd+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_shadow', 'CLUE_blood'],
+        message: '⚡ 捕获！从木门中提取到隐藏线索！',
+        delay: 3000,
+        consumeAll: false
+    },
+    'ITEM_mmd_eyes+LOGIC_capture': {
+        type: 'capture',
+        result: ['CLUE_shadow', 'CLUE_whisper', 'CLUE_cold'],
+        message: '⚡ 捕获！从带有眼睛的木门中提取到隐藏线索！',
         delay: 3000,
         consumeAll: false
     }

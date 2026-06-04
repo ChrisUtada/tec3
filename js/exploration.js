@@ -21,6 +21,9 @@ let isExploring = false;  // 是否正在探索中
 let draggedCardData = null;  // 记录被拖入的卡牌数据
 let highlightedCards = new Set();  // 高亮卡牌的 ID 集合
 
+//  保存探索 timeoutId，以便在关闭探索窗口时取消
+let explorationTimeoutId = null;
+
 // 延迟获取 DOM 元素
 let explorationModal, explorationTitle, explorationSlotsContainer, explorationProgress, explorationProgressFill, explorationProgressText, explorationInfo, startBtn, closeBtn;
 
@@ -73,7 +76,15 @@ export function openExploration(sceneId) {
     // 重置进度条和按钮
     explorationProgress.style.display = 'none';
     explorationProgressFill.style.width = '0%';
-    explorationInfo.innerText = `将人物、物品或线索拖入上方 ${sceneData.slots} 个槽位，然后点击"探索"按钮。`;
+    
+    // 显示条件提示
+    const conditionHint = getConditionHint();
+    if (conditionHint) {
+        explorationInfo.innerText = `探索条件：${conditionHint}`;
+    } else {
+        explorationInfo.innerText = `将人物、物品或线索拖入上方 ${sceneData.slots} 个槽位，然后点击"探索"按钮。`;
+    }
+    
     startBtn.style.display = 'inline-block';
     startBtn.disabled = false;
     closeBtn.style.display = 'none';
@@ -90,6 +101,21 @@ export function openExploration(sceneId) {
 // 关闭探索窗口
 export function closeExplorationModal() {
     initExplorationElements();
+    
+    //  如果正在探索，取消探索任务
+    if (explorationTimeoutId) {
+        clearTimeout(explorationTimeoutId);
+        explorationTimeoutId = null;
+        isExploring = false;
+        
+        // 隐藏进度条
+        explorationProgress.style.display = 'none';
+        
+        // 恢复按钮状态
+        if (startBtn) startBtn.disabled = false;
+        
+        log(`⚠️ [探索中断] 探索已取消`, "normal");
+    }
     
     explorationModal.style.display = 'none';
     
@@ -131,18 +157,13 @@ function setupSlotDrop(slotElement, slotIndex) {
 export function placeCardInExplorationSlot(cardData, slotIndex) {
     initExplorationElements();
     
-    console.log('[放置卡牌] 当前槽位状态:', explorationSlots);
-    console.log('[放置卡牌] 请求的槽位索引:', slotIndex);
-    
     if (!currentScene || isExploring) {
-        console.log('[放置卡牌] 拒绝：场景未打开或正在探索中');
         return;
     }
-    
+
     if (slotIndex === undefined || slotIndex === null) {
         // 自动找到第一个空槽位
         slotIndex = explorationSlots.findIndex(slot => slot === null || slot === undefined);
-        console.log('[放置卡牌] 自动找到槽位索引:', slotIndex);
         if (slotIndex === -1) {
             log(` [探索系统] 所有槽位已满`, "normal");
             return;
@@ -151,7 +172,7 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
 
     const templateId = cardData.templateId;
     const template = CARD_TEMPLATES[templateId];
-
+    
     explorationSlots[slotIndex] = cardData;
     draggedCardData = cardData;  // 保存卡牌数据
 
@@ -180,6 +201,98 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     log(` [探索系统] 将【${template.name}】放入槽位 ${slotIndex + 1}`, "success");
 }
 
+// 检查所有条件是否满足
+function checkAllConditionsMet() {
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData || !sceneData.requiredCards) {
+        // 没有配置条件限制，只要有卡牌就可以探索
+        const hasCards = explorationSlots.some(slot => slot !== null && slot !== undefined);
+        return hasCards;
+    }
+    
+    const requiredCards = sceneData.requiredCards;
+    
+    // 统计当前槽位中各类卡牌的数量
+    const currentCounts = {};
+    let totalCards = 0;
+    explorationSlots.forEach(cardData => {
+        if (cardData) {
+            totalCards++;
+            const cardTemplate = CARD_TEMPLATES[cardData.templateId];
+            const key = `type_${cardTemplate.type}`;
+            currentCounts[key] = (currentCounts[key] || 0) + 1;
+            currentCounts[`id_${cardData.templateId}`] = (currentCounts[`id_${cardData.templateId}`] || 0) + 1;
+        }
+    });
+    
+    // 检查每个条件的 min 是否满足
+    for (const condition of requiredCards) {
+        let currentCount = 0;
+        
+        if (condition.templateId) {
+            currentCount = currentCounts[`id_${condition.templateId}`] || 0;
+        } else if (condition.type) {
+            currentCount = currentCounts[`type_${condition.type}`] || 0;
+        }
+        
+        if (currentCount < condition.min) {
+            return false;
+        }
+    }
+    
+    // 检查总卡牌数不超过槽位数
+    return totalCards > 0 && totalCards <= sceneData.slots;
+}
+
+// 获取条件不满足的提示信息
+function getConditionHint() {
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData || !sceneData.requiredCards) {
+        return '';
+    }
+    
+    const requiredCards = sceneData.requiredCards;
+    const hints = [];
+    
+    // 统计当前槽位中各类卡牌的数量
+    const currentCounts = {};
+    explorationSlots.forEach(cardData => {
+        if (cardData) {
+            const cardTemplate = CARD_TEMPLATES[cardData.templateId];
+            const key = `type_${cardTemplate.type}`;
+            currentCounts[key] = (currentCounts[key] || 0) + 1;
+            currentCounts[`id_${cardData.templateId}`] = (currentCounts[`id_${cardData.templateId}`] || 0) + 1;
+        }
+    });
+    
+    for (const condition of requiredCards) {
+        let currentCount = 0;
+        let name = '';
+        
+        if (condition.templateId) {
+            currentCount = currentCounts[`id_${condition.templateId}`] || 0;
+            const template = CARD_TEMPLATES[condition.templateId];
+            name = template ? template.name : condition.templateId;
+        } else if (condition.type) {
+            currentCount = currentCounts[`type_${condition.type}`] || 0;
+            const typeNames = { char: '人物', item: '道具', clue: '线索', scene: '场景', equipment: '装备', logic: '逻辑' };
+            name = typeNames[condition.type] || condition.type;
+        }
+        
+        if (condition.min > 0 || condition.max > 0) {
+            if (condition.min === condition.max) {
+                hints.push(`${name}：需要 ${condition.min} 张（当前 ${currentCount}）`);
+            } else if (condition.min === 0) {
+                hints.push(`${name}：最多 ${condition.max} 张（当前 ${currentCount}）`);
+            } else {
+                hints.push(`${name}：需要 ${condition.min}-${condition.max} 张（当前 ${currentCount}）`);
+            }
+        }
+    }
+    
+    return hints.join('，');
+}
+
 // 开始探索
 export function startExploration() {
     initExplorationElements();
@@ -190,10 +303,17 @@ export function startExploration() {
 
     const sceneData = SCENE_EXPLORATION[currentScene];
     
-    // 检查是否有卡牌放入
-    const hasCards = explorationSlots.some(slot => slot !== null && slot !== undefined);
-    if (!hasCards) {
-        log(` [探索系统] 请至少放入一张卡牌再开始探索`, "normal");
+    // 检查条件是否满足
+    if (!checkAllConditionsMet()) {
+        const hint = getConditionHint();
+        if (hint) {
+            // 在弹窗中显示条件提示
+            explorationInfo.innerHTML = `<span style="color: #e74c3c;">❌ 探索条件未满足！</span><br>需要：${hint}`;
+            log(`❌ [探索系统] 探索条件未满足！${hint}`, "normal");
+        } else {
+            explorationInfo.innerHTML = `<span style="color: #e74c3c;">❌ 请放入符合条件的卡牌再开始探索</span>`;
+            log(`❌ [探索系统] 请放入符合条件的卡牌再开始探索`, "normal");
+        }
         return;
     }
 
@@ -215,7 +335,7 @@ export function startExploration() {
     log(` [探索系统] 开始探索【${sceneData.name}】，预计 ${sceneData.exploreTime / 1000} 秒`, "success");
     
     // 探索完成后处理掉落
-    setTimeout(() => {
+    explorationTimeoutId = setTimeout(() => {
         completeExploration(sceneData);
     }, sceneData.exploreTime);
 }
@@ -258,13 +378,13 @@ function completeExploration(sceneData) {
     
     // 根据概率计算掉落
     const drops = calculateDrops(sceneData.drops);
-    console.log('[探索掉落] 计算的掉落:', drops);
-    
     // 计算生成位置（在画布中央）
     const boardCanvas = document.getElementById('board-canvas');
     const boardRect = boardCanvas.getBoundingClientRect();
-    const centerX = boardRect.width / 2;
-    const centerY = boardRect.height / 2;
+    
+    //  使用 boardCanvas 的 offsetWidth/offsetHeight 获取实际内容区域大小
+    const centerX = boardCanvas.offsetWidth / 2;
+    const centerY = boardCanvas.offsetHeight / 2;
     
     // 直接生成掉落物（探索窗口内部已有进度条，不需要额外的堆叠进度条）
     let actualDrops = 0;  // 实际生成的数量
@@ -294,14 +414,46 @@ function completeExploration(sceneData) {
     });
         
     // 显示提示信息
-    explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。`;
+    explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。点击"完成"按钮关闭窗口。`;
         
     log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
     
-    // 延迟1秒后自动关闭探索窗口（让用户看到掉落结果）
-    setTimeout(() => {
-        closeExplorationModal();
-    }, 1000);
+    // 显示关闭按钮，让用户手动关闭
+    closeBtn.style.display = 'inline-block';
+    
+    // 重置状态，允许再次放入卡牌进行探索
+    resetExplorationState();
+}
+
+// 重置探索状态（完成探索后调用）
+function resetExplorationState() {
+    initExplorationElements();
+    
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData) return;
+    
+    // 清空槽位显示
+    explorationSlotsContainer.innerHTML = '';
+    
+    // 重新初始化槽位数组
+    explorationSlots = new Array(sceneData.slots).fill(null);
+    draggedCardData = null;
+    
+    // 重新生成槽位
+    for (let i = 0; i < sceneData.slots; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'exploration-slot';
+        slot.dataset.slotIndex = i;
+        slot.innerHTML = `<div class="exploration-slot-placeholder">槽位 ${i + 1}</div>`;
+        explorationSlotsContainer.appendChild(slot);
+        
+        // 设置拖放事件
+        setupSlotDrop(slot, i);
+    }
+    
+    // 重置按钮状态
+    startBtn.style.display = 'inline-block';
+    startBtn.disabled = false;
 }
 
 // 计算掉落
