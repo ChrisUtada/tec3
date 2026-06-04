@@ -9,7 +9,7 @@ export const SCENE_EXPLORATION = {
         // 槽位条件限制（可选）
         // requiredCards 定义必须放入的卡牌条件
         // templateId: 指定卡牌模板ID（与 type 二选一）
-        // type: 指定卡牌类型（char/item/clue/scene/equipment/logic）
+        // type: 指定卡牌类型（char/item/clue/scene/logic）
         // min: 最少需要放入的数量
         // max: 最多允许放入的数量
         requiredCards: [

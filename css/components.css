@@ -37,14 +37,19 @@
 }
 .card:active { cursor: grabbing; }
 
-.card.item-card { background: var(--color-item); border-color: #3e4451; }
-.card.scene-card { background: var(--color-scene); border-color: #4b3b6e; }
-.card.char-card { background: var(--color-char); border-color: #7e2222; }
-.card.clue-vision { background: #081d17; border-color: var(--color-vision); }
-.card.clue-taste { background: #1d0814; border-color: var(--color-taste); }
-.card.clue-hearing { background: #0a0a1f; border-color: #6c5ce7; }
-.card.clue-touch { background: #1a0f0f; border-color: #e17055; }
-.card.clue-smell { background: #0f1a10; border-color: #00b894; }
+.card.item-card { background: var(--color-item); border-color: #5dade2; }
+.card.scene-card { background: var(--color-scene); border-color: #7c3aed; }
+.card.char-card { background: var(--color-char); border-color: #e67e22; }
+
+/* 所有线索卡统一配色 - 感官区分通过右上角 emoji（::after）实现 */
+.card.clue-vision,
+.card.clue-taste,
+.card.clue-hearing,
+.card.clue-touch,
+.card.clue-smell {
+    background: #081d17;
+    border-color: var(--color-vision);
+}
 .card.lock-card { border-color: #ffb86c; box-shadow: 0 0 6px rgba(255,184,108,0.2); }
 .card.equipment-card { 
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
@@ -166,11 +171,11 @@
     text-shadow: 0 0 8px currentColor;
 }
 
-.sense-icon.vision { color: #4ecdc4; }
-.sense-icon.hearing { color: #6c5ce7; }
-.sense-icon.taste { color: #fd79a8; }
-.sense-icon.touch { color: #e17055; }
-.sense-icon.smell { color: #00b894; }
+.sense-icon.vision { color: var(--color-vision); }
+.sense-icon.hearing { color: var(--color-hearing); }
+.sense-icon.taste { color: var(--color-taste); }
+.sense-icon.touch { color: var(--color-touch); }
+.sense-icon.smell { color: var(--color-smell); }
 
 /* 已移除旧的结局触发按钮样式，现在使用逻辑归因卡牌 */
 
@@ -229,11 +234,11 @@
     font-size: 13px;
     color: #e0d8ff;
     background: rgba(20, 10, 40, 0.85);
-    border: 1px solid #9b59b6;
+    border: 1px solid #a78bfa;
     border-radius: 8px;
     padding: 8px 16px;
     white-space: nowrap;
-    box-shadow: 0 0 12px rgba(155, 89, 182, 0.3);
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
     animation: speechFade 2.5s ease-in-out forwards;
 }
 
@@ -242,7 +247,7 @@
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid #9b59b6;
+    border-top: 6px solid #a78bfa;
     margin-top: -1px;
 }
 
@@ -256,13 +261,16 @@
 /*  逻辑归因卡牌 */
 .card.logic-card {
     background: linear-gradient(135deg, #1a0a2e, #2d1b4e);
-    border: 2px solid #9b59b6;
-    box-shadow: 0 0 15px rgba(155, 89, 182, 0.4);
+    border: 2px solid #a78bfa;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
 }
 .card.logic-card:hover {
-    box-shadow: 0 0 25px rgba(155, 89, 182, 0.7);
+    box-shadow: 0 0 25px rgba(167, 139, 250, 0.7);
     transform: scale(1.05);
 }
+
+/* 捕获卡 - 复用 item-card 配色（已在 item-card 中定义），此处预留扩展样式 */
+.card.capture-card { }
 
 /* 提示手动点选捕获的虚线高亮 */
 .card.unbound {

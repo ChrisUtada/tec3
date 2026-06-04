@@ -24,12 +24,11 @@ window.getCardsData = () => cardsData;
 
 // 卡牌类型固定层级（数值越大越上层）
 const Z_INDEX = {
-    scene: 100,    // 场景卡最底层
-    char: 200,     // 人物卡
-    item: 300,     // 道具卡
-    equipment: 350, // 装备卡
-    clue: 400,     // 线索卡最上层
-    logic: 500,   // 逻辑归因卡
+    scene: 100,
+    char: 200,
+    item: 300,
+    clue: 400,
+    logic: 500,
 };
 
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
@@ -46,7 +45,13 @@ export function destroyCard(id) {
     if (el) el.remove();
 }
 
-export function spawnUnboundCard(templateId, x, y, allowDuplicate = false) {
+export function spawnUnboundCard(templateId, x, y, allowDuplicateOverride = null) {
+    // 从卡牌模板读取 allowDuplicate 配置（type 上的统一属性）
+    const template = CARD_TEMPLATES[templateId];
+    const allowDuplicate = allowDuplicateOverride !== null
+        ? allowDuplicateOverride
+        : (template?.allowDuplicate === true);
+
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
         // 使用 Map 检查更快
@@ -57,18 +62,24 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicate = false) {
             }
         }
     }
-    
+
     const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);
     const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
     cardsData.push(newCard);
     cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`📡 发现线索：【${CARD_TEMPLATES[templateId].name}】已刷出。`, "capture");
     renderAllCards();
-    
+
     return newCard;  // 返回新生成的卡牌数据
 }
 
-export function directSpawnCard(templateId, x, y, allowDuplicate = false) {
+export function directSpawnCard(templateId, x, y, allowDuplicateOverride = null) {
+    // 从卡牌模板读取 allowDuplicate 配置（type 上的统一属性）
+    const template = CARD_TEMPLATES[templateId];
+    const allowDuplicate = allowDuplicateOverride !== null
+        ? allowDuplicateOverride
+        : (template?.allowDuplicate === true);
+
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
         for (const card of cardsMap.values()) {
@@ -78,7 +89,7 @@ export function directSpawnCard(templateId, x, y, allowDuplicate = false) {
             }
         }
     }
-    
+
     const newId = 'spawn_' + templateId + '_' + Math.floor(Math.random()*10000);
     const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
     cardsData.push(newCard);

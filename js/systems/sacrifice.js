@@ -135,7 +135,7 @@ class SacrificeSystem {
                         offsetY = (Math.random() - 0.5) * 60;
                     } while (Math.abs(offsetX) < 50);
 
-                    directSpawnCard('ITEM_coin', actualX + offsetX, actualY + offsetY, true);
+                    directSpawnCard('ITEM_coin', actualX + offsetX, actualY + offsetY);
                 }
 
                 log(`🗑️ [献祭系统] 【${recycledTemplate.name}】已被献祭，获得 ${coinValue} 因果律！`, "success");

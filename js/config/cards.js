@@ -1,8 +1,8 @@
 // 🃏 卡牌模板定义
 export const CARD_TEMPLATES = {
-    'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
     'SCENE_wz': { name: '场景：未知地点', desc: '【核心锚点】初始坐标。将其与手电筒叠加，并用[⚡前往]卡催化。', type: 'scene', class: 'scene-card', consumable: true },
-    'CHAR_zs': { name: '人物：朱穗', desc: '【NPC】高级调查员。可以直接扔线索给她进行无卡自发对质。', type: 'char', class: 'char-card', consumable: false },
+    'CHAR_zs': { name: '人物：朱穗', desc: '【NPC】高级调查员。可以直接扔线索给她进行无卡自发对质。', type: 'char', class: 'char-card', consumable: false, allowDuplicate: true },
     'CHAR_investigator': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false },
     
     'SCENES_hzyl': { name: '场景：荒宅院落', desc: '【因果宣告处】二级核心场景。将捕获后的关键线索堆叠于此触发终局。', type: 'scene', class: 'scene-card', consumable: false },
@@ -22,13 +22,13 @@ export const CARD_TEMPLATES = {
     'CLUE_smell_rot': { name: '线索：腐朽的气息', desc: '【嗅觉】令人作呕的腐烂气味。', type: 'clue', class: 'clue-smell', consumable: true, senseType: 'smell' },
     
     // 原有测试线索
-    'CLUE_shadow': { name: '线索：墙上的阴影', desc: '【视觉异常】不合常理的投影角度。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
+    'CLUE_shadow': { name: '线索：墙上的阴影', desc: '【视觉异常】不合常理的投影角度。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true, allowDuplicate: true },
     'CLUE_whisper': { name: '线索：低语声', desc: '【听觉异常】来自虚空的呢喃。用于归因推演的关键线索。', type: 'clue', class: 'clue-hearing', consumable: true },
     'CLUE_cold': { name: '线索：骤降的温度', desc: '【触觉异常】空间温度异常波动。用于归因推演的关键线索。', type: 'clue', class: 'clue-touch', consumable: true },
-    'CLUE_blood': { name: '线索：血迹图案', desc: '【视觉线索】地板上神秘的符文。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
+    'CLUE_blood': { name: '线索：血迹图案', desc: '【视觉线索】地板上神秘的符文。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true, allowDuplicate: true },
     
     // 功能卡：捕获（常驻功能）
-    'LOGIC_capture': { name: '⚡捕获', desc: '【常驻功能卡】将此卡放置在人物、场景或物品上进行捕获，可获得隐藏线索。此卡不会被消耗。', type: 'logic', class: 'logic-card capture-card', consumable: false },
+    'LOGIC_capture': { name: '⚡捕获', desc: '【常驻功能卡】将此卡放置在人物、场景或物品上进行捕获，可获得隐藏线索。此卡不会被消耗。', type: 'item', class: 'item-card capture-card', consumable: false },
     
     // 逻辑归因卡牌
     'LOGIC_reason': { name: '逻辑归因', desc: '【指令卡】打开归因推演界面，通过线索组合推导真相。双击使用。', type: 'logic', class: 'logic-card', consumable: true },
@@ -45,12 +45,13 @@ export const CARD_TEMPLATES = {
     },
     
     // 因果律卡
-    'ITEM_coin': { 
-        name: '因果律', 
-        desc: '【因果货币】可用于改变事件概率或购买特殊物品。', 
-        type: 'item', 
-        class: 'item-card', 
+    'ITEM_coin': {
+        name: '因果律',
+        desc: '【因果货币】可用于改变事件概率或购买特殊物品。',
+        type: 'item',
+        class: 'item-card',
         consumable: true,
+        allowDuplicate: true,    // 货币可无限刷出
         value: 10,
         interactText: '因果律：可用于干预现实的力量。'
     },
@@ -70,12 +71,12 @@ export const CARD_TEMPLATES = {
     },
     
     // 新掉落物品
-    'ITEM_cdyg': { name: '惨白的月亮', desc: '【道具】散发着诡异光芒的装饰。', type: 'item', class: 'item-card', consumable: false },
-    'ITEM_zxtz': { name: '嘴型贴纸', desc: '【资产】带有神秘图案的贴纸。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_mmd': { name: '木门', desc: '【道具】一扇古朴的木门。', type: 'item', class: 'item-card', consumable: false },
-    'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'equipment', class: 'equipment-card', consumable: false },
+    'ITEM_cdyg': { name: '惨白的月亮', desc: '【道具】散发着诡异光芒的装饰。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
+    'ITEM_zxtz': { name: '嘴型贴纸', desc: '【资产】带有神秘图案的贴纸。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
+    'ITEM_mmd': { name: '木门', desc: '【道具】一扇古朴的木门。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
+    'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
+    'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
+    'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'item', class: 'equipment-card', consumable: false, allowDuplicate: true },
     
     'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false }
 };

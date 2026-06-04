@@ -150,31 +150,29 @@ class TrueNameSystem {
                     const q = getTaskQueue(targetCard.instanceId);
                     q.preemptedStack = [];
 
+                    // 先读取位置，再销毁
+                    const targetEl = document.getElementById(targetCard.instanceId);
+                    const actualX = targetEl ? parseInt(targetEl.style.left) : targetCard.x;
+                    const actualY = targetEl ? parseInt(targetEl.style.top) : targetCard.y;
+
                     destroyCard(targetCard.instanceId);
                     destroyCard(mainId);
 
-                    const currentTargetCard = findCardData(targetCard.instanceId);
-                    if (currentTargetCard) {
-                        const targetEl = document.getElementById(targetCard.instanceId);
-                        const actualX = targetEl ? parseInt(targetEl.style.left) : currentTargetCard.x;
-                        const actualY = targetEl ? parseInt(targetEl.style.top) : currentTargetCard.y;
-
-                        const offsetX = (Math.random() - 0.5) * 40;
-                        const offsetY = (Math.random() - 0.5) * 40;
-                        const revealedCard = {
-                            instanceId: 'revealed_' + targetCard.instanceId,
-                            templateId: targetCard.templateId,
-                            x: actualX + offsetX,
-                            y: actualY + offsetY + 50,
-                            next: null,
-                            parent: null,
-                            isCaptured: true,
-                            isRevealed: true,
-                            collectedSenses: [...targetSenses]
-                        };
-                        cardsData.push(revealedCard);
-                        cardsMap.set(revealedCard.instanceId, revealedCard);
-                    }
+                    const offsetX = (Math.random() - 0.5) * 40;
+                    const offsetY = (Math.random() - 0.5) * 40;
+                    const revealedCard = {
+                        instanceId: 'revealed_' + targetCard.instanceId,
+                        templateId: targetCard.templateId,
+                        x: actualX + offsetX,
+                        y: actualY + offsetY + 50,
+                        next: null,
+                        parent: null,
+                        isCaptured: true,
+                        isRevealed: true,
+                        collectedSenses: [...targetSenses]
+                    };
+                    cardsData.push(revealedCard);
+                    cardsMap.set(revealedCard.instanceId, revealedCard);
 
                     log(`✨ [真名揭示] 新卡牌已生成！双击查看详情。`, "success");
                     done();

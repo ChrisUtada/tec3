@@ -275,7 +275,7 @@ function getConditionHint() {
             name = template ? template.name : condition.templateId;
         } else if (condition.type) {
             currentCount = currentCounts[`type_${condition.type}`] || 0;
-            const typeNames = { char: '人物', item: '道具', clue: '线索', scene: '场景', equipment: '装备', logic: '逻辑' };
+            const typeNames = { char: '人物', item: '道具', clue: '线索', scene: '场景', logic: '逻辑' };
             name = typeNames[condition.type] || condition.type;
         }
         
@@ -398,8 +398,8 @@ function completeExploration(sceneData) {
         // 生成新卡牌
         const template = CARD_TEMPLATES[drop.templateId];
         if (template && spawnCard) {
-            // 探索掉落允许重复生成，传入 allowDuplicate = true
-            const cardData = spawnCard(drop.templateId, spawnX, spawnY, true);
+            // 探索掉落：是否可重复由卡牌模板上的 allowDuplicate 决定
+            const cardData = spawnCard(drop.templateId, spawnX, spawnY);
                 
             // 添加高亮效果
             if (cardData) {
