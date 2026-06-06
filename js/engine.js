@@ -196,9 +196,9 @@ export function renderAllCards() {
             zIndex = stackBaseZIndex.get(card.instanceId);
         }
         
-        // 拖动中的卡牌赋予最高层级
+        // 拖动中的卡牌赋予最高层级（高于所有面板）
         if (card.instanceId === dragSystem.activeDragId) {
-            zIndex = 9999;
+            zIndex = 200000;  // 高于面板的 100000
         }
         
         renderQueue.push({ card, finalX, finalY, zIndex });

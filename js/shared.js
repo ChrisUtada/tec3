@@ -67,13 +67,32 @@ export function embedCardInSlot(cardEl, cardData, slotElement, embeddedClass = '
  * 将卡牌恢复到桌面画布
  * @param {Object} cardData - 卡牌数据
  * @param {string} containerId - 容器 ID（默认为 board-canvas）
+ * @param {boolean} forceRandom - 是否强制随机位置（用于从槽位恢复的卡牌）
  */
-export function restoreCardToBoard(cardData, containerId = 'board-canvas') {
+export function restoreCardToBoard(cardData, containerId = 'board-canvas', forceRandom = false) {
     const cardEl = document.getElementById(cardData.instanceId);
     if (!cardEl) return;
     
     const boardCanvas = document.getElementById(containerId);
     boardCanvas.appendChild(cardEl);
+    
+    // 计算可见区域边界（右侧面板宽度为420px）
+    const panelWidth = 420;
+    const visibleRightBound = window.innerWidth - panelWidth - CARD.WIDTH - 20;
+    const visibleBottomBound = window.innerHeight - CARD.HEIGHT - 20;
+    
+    // 如果强制随机位置，或者卡牌位置在面板区域内，调整到可见区域的随机位置
+    if (forceRandom || cardData.x > visibleRightBound || cardData.y > visibleBottomBound) {
+        // 在面板左侧可见区域内随机放置（靠近面板）
+        const padding = 40;
+        const maxX = visibleRightBound - padding;
+        const maxY = visibleBottomBound - padding;
+        
+        // 优先放置在面板左侧附近（x 在 maxX*0.6 到 maxX 之间）
+        const minX = maxX * 0.6;
+        cardData.x = minX + Math.random() * (maxX - minX);
+        cardData.y = padding + Math.random() * maxY;
+    }
     
     cardEl.style.position = 'absolute';
     cardEl.style.left = cardData.x + 'px';
@@ -134,8 +153,8 @@ export function setupCardDragOut(cardEl, cardData, options = {}) {
         const diffY = e.clientY - startY;
         
         if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
-            // 将卡牌移回桌面
-            restoreCardToBoard(cardData);
+            // 将卡牌移回桌面（强制随机位置，避免被面板遮挡）
+            restoreCardToBoard(cardData, 'board-canvas', true);
             
             // 清除槽位数据
             if (slotsArray && slotIndex !== undefined) {
@@ -241,7 +260,7 @@ export function isCardType(templateId, expectedType) {
  */
 export function toggleModal(modal, show) {
     if (modal) {
-        modal.style.display = show ? 'flex' : 'none';
+        modal.classList.toggle('show', show);
     }
 }
 
@@ -262,14 +281,10 @@ export function resetSlotDisplay(slotElement, placeholderText = '将卡牌拖入
  */
 export function closeOtherPanels(excludeId) {
     document.querySelectorAll('.right-panel').forEach(panel => {
-        if (panel.id !== excludeId && panel.style.display === 'flex') {
-            panel.classList.add('panel-closing');
-            setTimeout(() => {
-                panel.style.display = 'none';
-                panel.classList.remove('panel-closing');
-                // 触发自定义事件，让对应模块清理状态
-                panel.dispatchEvent(new CustomEvent('panelclosed'));
-            }, 300);
+        if (panel.id !== excludeId && panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            // 触发自定义事件，让对应模块清理状态
+            panel.dispatchEvent(new CustomEvent('panelclosed'));
         }
     });
 }

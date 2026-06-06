@@ -34,7 +34,7 @@ function initReasoningElements() {
                 if (executeBtn) executeBtn.disabled = false;
                 if (closeBtn) closeBtn.disabled = false;
             }
-            slotContents.forEach(cd => { if (cd) restoreCardToBoard(cd); });
+            slotContents.forEach(cd => { if (cd) restoreCardToBoard(cd, 'board-canvas', true); });
             slotContents = [null, null, null, null, null];
             reasoningSlots.forEach((slot, i) => {
                 slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${i + 1}</div>`;
@@ -64,8 +64,7 @@ export function openReasoningModal() {
     
     // 关闭其他面板后显示
     closeOtherPanels('reasoning-panel');
-    reasoningPanel.classList.remove('panel-closing');
-    reasoningPanel.style.display = 'flex';
+    reasoningPanel.classList.add('show');
     
     log(`🔮 [归因推演] 开启了归因推演仪`, "success");
 }
@@ -94,7 +93,7 @@ export function closeReasoningModal() {
     // 恢复所有卡牌到桌面
     slotContents.forEach((cardData) => {
         if (cardData) {
-            restoreCardToBoard(cardData);
+            restoreCardToBoard(cardData, 'board-canvas', true);
         }
     });
     
@@ -105,11 +104,9 @@ export function closeReasoningModal() {
         slot.classList.remove('drag-over');
     });
     
-    reasoningPanel.classList.add('panel-closing');
-    setTimeout(() => {
-        reasoningPanel.style.display = 'none';
-        reasoningPanel.classList.remove('panel-closing');
-    }, 300);
+    // 淡出动画
+    reasoningPanel.classList.remove('show');
+    
     log(`🔮 [归因推演] 关闭了归因推演仪`, "normal");
 }
 
@@ -125,12 +122,28 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
     // 检查是否是线索卡牌
     if (!isCardType(cardData.templateId, 'clue')) {
         log(`❌ [归因推演] 只能放入线索卡牌！`, "normal");
-        return;
+        // 先清除所有槽位的错误状态
+        reasoningSlots.forEach(slot => {
+            if (slot) slot.classList.remove('shake-error');
+        });
+        // 只对当前槽位显示错误
+        const slotElement = reasoningSlots[slotIndex];
+        if (slotElement) {
+            void slotElement.offsetWidth;
+            slotElement.classList.add('shake-error');
+        }
+        const hint = document.getElementById('reasoning-hint');
+        if (hint) {
+            hint.innerText = '❌ 只能放入线索卡牌！';
+        }
+        // 将卡牌放回桌面（强制随机位置）
+        restoreCardToBoard(cardData, 'board-canvas', true);
+        return false;  // 返回失败状态
     }
     
     // 如果槽位已有卡牌，先恢复旧卡牌
     if (slotContents[slotIndex]) {
-        restoreCardToBoard(slotContents[slotIndex]);
+        restoreCardToBoard(slotContents[slotIndex], 'board-canvas', true);
     }
     
     // 保存新卡牌数据
@@ -158,6 +171,7 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
     
     const template = CARD_TEMPLATES[cardData.templateId];
     log(` [归因推演] 线索【${template.name}】已放入槽位 ${slotIndex + 1}`, "success");
+    return true;  // 返回成功状态
 }
 
 // 更新推演按钮状态

@@ -1,6 +1,6 @@
 /* 探测窗口 */
 #scene-modal {
-    display: none; 
+    display: flex; 
     position: absolute; 
     top: 12%; left: 15%; width: 70%; height: 65%;
     background: #080d14; 
@@ -10,6 +10,16 @@
     z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
     flex-direction: column; 
     padding: 20px;
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#scene-modal.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
 }
 
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2736; padding-bottom: 8px; }
@@ -28,7 +38,7 @@
 
 /*  右侧面板基类 */
 .right-panel {
-    display: none;
+    display: flex;
     position: fixed;
     right: 0;
     top: 0;
@@ -38,11 +48,16 @@
     box-shadow: -10px 0 40px rgba(0,0,0,0.8);
     z-index: 100000;
     flex-direction: column;
-    transform: translateX(0);
-    transition: transform 0.3s ease;
+    opacity: 0;
+    transform: translateX(20px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.right-panel.panel-closing {
-    transform: translateX(100%);
+
+.right-panel.show {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
 }
 
 .sync-btn { background: var(--color-vision); border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; color: #000; }
@@ -566,6 +581,13 @@
     background: rgba(255, 136, 0, 0.15);
 }
 
+.exploration-slot.shake-error {
+    animation: shake 0.4s ease;
+    border-color: #ff3333 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5) !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
 .exploration-slot-placeholder {
     color: #4a5d72;
     font-size: 11px;
@@ -694,6 +716,13 @@
     box-shadow: 0 0 15px rgba(78, 204, 163, 0.3);
 }
 
+.reasoning-slot.shake-error {
+    animation: shake 0.4s ease;
+    border-color: #ff3333 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5) !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
 .reasoning-slot .slot-placeholder {
     font-size: 10px;
     color: var(--text-muted);
@@ -818,7 +847,7 @@
 
 /* 真名揭示窗口 */
 #true-name-modal {
-    display: none;
+    display: flex;
     position: absolute;
     top: 20%;
     left: 25%;
@@ -832,18 +861,16 @@
     z-index: 100000;
     flex-direction: column;
     padding: 20px;
-    animation: true-name-modal-appear 0.5s ease-out;
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-@keyframes true-name-modal-appear {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+#true-name-modal.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
 }
 
 #true-name-modal .modal-header {
@@ -878,7 +905,7 @@
 
 /* 观测叙事弹窗 */
 #observation-modal {
-    display: none;
+    display: flex;
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.7);
@@ -886,6 +913,14 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+#observation-modal.show {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .observation-content {
@@ -897,6 +932,14 @@
     width: 90%;
     box-shadow: 0 0 40px rgba(243, 156, 18, 0.15);
     cursor: default;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.25s ease 0.1s, transform 0.25s ease 0.1s;
+}
+
+#observation-modal.show .observation-content {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .observation-card-name {

@@ -49,8 +49,8 @@ function initExplorationElements() {
                 if (explorationProgress) explorationProgress.style.display = 'none';
                 if (startBtn) startBtn.disabled = false;
             }
-            explorationSlots.forEach(cd => { if (cd) restoreCardToBoard(cd); });
-            if (draggedCardData) { restoreCardToBoard(draggedCardData); draggedCardData = null; }
+            explorationSlots.forEach(cd => { if (cd) restoreCardToBoard(cd, 'board-canvas', true); });
+            if (draggedCardData) { restoreCardToBoard(draggedCardData, 'board-canvas', true); draggedCardData = null; }
             currentScene = null;
             explorationSlots = [];
             isExploring = false;
@@ -109,8 +109,7 @@ export function openExploration(sceneId) {
 
     // 关闭其他面板后显示
     closeOtherPanels('exploration-panel');
-    explorationPanel.classList.remove('panel-closing');
-    explorationPanel.style.display = 'flex';
+    explorationPanel.classList.add('show');
     
     log(`🌍 [探索系统] 开启了【${sceneData.name}】的探索`, "success");
 }
@@ -134,23 +133,19 @@ export function closeExplorationModal() {
         log(`⚠️ [探索中断] 探索已取消`, "normal");
     }
     
-    // 滑出动画
-    explorationPanel.classList.add('panel-closing');
-    setTimeout(() => {
-        explorationPanel.style.display = 'none';
-        explorationPanel.classList.remove('panel-closing');
-    }, 300);
+    // 淡出动画
+    explorationPanel.classList.remove('show');
     
     // 恢复桌面上的卡牌
     explorationSlots.forEach((cardData) => {
         if (cardData) {
-            restoreCardToBoard(cardData);
+            restoreCardToBoard(cardData, 'board-canvas', true);
         }
     });
     
     // 恢复被拖入的卡牌
     if (draggedCardData) {
-        restoreCardToBoard(draggedCardData);
+        restoreCardToBoard(draggedCardData, 'board-canvas', true);
         draggedCardData = null;
     }
     
@@ -198,7 +193,20 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     // 白名单校验：场景有 requiredCards 时，槽位只接受 required 卡 + 因果律
     if (!isCardAllowedInSlot(templateId)) {
         log(`❌ [探索系统] 【${template.name}】不能放入此探索槽位（仅接受探索条件和因果律）`, "normal");
-        return;
+        // 先清除所有槽位的错误状态
+        explorationSlotsContainer.querySelectorAll('.exploration-slot').forEach(slot => {
+            slot.classList.remove('shake-error');
+        });
+        // 只对当前槽位显示错误
+        const slotElement = explorationSlotsContainer.children[slotIndex];
+        if (slotElement) {
+            void slotElement.offsetWidth;
+            slotElement.classList.add('shake-error');
+        }
+        explorationInfo.innerText = `❌ 【${template.name}】不能放入此探索槽位（仅接受探索条件和因果律）`;
+        // 将卡牌放回桌面（强制随机位置）
+        restoreCardToBoard(cardData, 'board-canvas', true);
+        return false;  // 返回失败状态
     }
     
     explorationSlots[slotIndex] = cardData;
@@ -227,6 +235,7 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     }
 
     log(` [探索系统] 将【${template.name}】放入槽位 ${slotIndex + 1}`, "success");
+    return true;  // 返回成功状态
 }
 
 // 获取某个 requiredCards 配置的当前匹配状态
@@ -454,16 +463,8 @@ function completeExploration(sceneData) {
                 }
             } else if (template) {
                 log(`✅ [探索系统] 【${template.name}】保留`, "success");
-                // 将不可消耗的卡牌移回桌面
-                const cardEl = document.getElementById(cardData.instanceId);
-                if (cardEl) {
-                    const boardCanvas = document.getElementById('board-canvas');
-                    boardCanvas.appendChild(cardEl);
-                    cardEl.style.position = 'absolute';
-                    cardEl.style.width = CARD.WIDTH + 'px';
-                    cardEl.style.height = CARD.HEIGHT + 'px';
-                    cardEl.classList.remove('embedded');
-                }
+                // 将不可消耗的卡牌移回桌面（强制随机位置，避免被面板遮挡）
+                restoreCardToBoard(cardData, 'board-canvas', true);
             }
         }
     });

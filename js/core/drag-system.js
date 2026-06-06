@@ -189,17 +189,21 @@ export class DragSystem {
         const dialogueSlot = document.getElementById('dialogue-slot');
         const dialoguePanel = document.getElementById('dialogue-panel');
 
-        if (dialogueSlot && dialoguePanel.style.display === 'flex') {
+        if (dialogueSlot && dialoguePanel.classList.contains('show')) {
             const slotRect = dialogueSlot.getBoundingClientRect();
             const mouseX = e.clientX;
             const mouseY = e.clientY;
 
             if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
                 mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-                d.placeCardInSlot(mainCard);
-                this._activeDragId = null;
-                d.renderAllCards();
-                return true;
+                // 检查返回值，只有成功时才清除拖拽状态
+                if (d.placeCardInSlot(mainCard)) {
+                    this._activeDragId = null;
+                    d.renderAllCards();
+                    return true;
+                }
+                // 验证失败，返回 false 让流程继续到标准堆叠逻辑
+                return false;
             }
         }
         return false;
@@ -213,7 +217,7 @@ export class DragSystem {
         const d = this._deps;
         const reasoningPanel = document.getElementById('reasoning-panel');
 
-        if (reasoningPanel && reasoningPanel.style.display === 'flex') {
+        if (reasoningPanel && reasoningPanel.classList.contains('show')) {
             for (let i = 0; i < 5; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if (!slot) continue;
@@ -224,10 +228,14 @@ export class DragSystem {
 
                 if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
                     mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-                    d.placeCardInReasoningSlot(mainCard, i);
-                    this._activeDragId = null;
-                    d.renderAllCards();
-                    return true;
+                    // 检查返回值，只有成功时才清除拖拽状态
+                    if (d.placeCardInReasoningSlot(mainCard, i)) {
+                        this._activeDragId = null;
+                        d.renderAllCards();
+                        return true;
+                    }
+                    // 验证失败，返回 false 让流程继续到标准堆叠逻辑
+                    return false;
                 }
             }
         }
@@ -242,7 +250,7 @@ export class DragSystem {
         const d = this._deps;
         const explorationPanel = document.getElementById('exploration-panel');
 
-        if (explorationPanel && (explorationPanel.style.display === 'flex' || explorationPanel.style.display === 'block')) {
+        if (explorationPanel && explorationPanel.classList.contains('show')) {
             const explorationSlotsContainer = document.getElementById('exploration-slots');
             if (explorationSlotsContainer) {
                 const slots = explorationSlotsContainer.querySelectorAll('.exploration-slot');
@@ -254,10 +262,14 @@ export class DragSystem {
 
                     if (mouseX >= slotRect.left && mouseX <= slotRect.right &&
                         mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
-                        d.placeCardInExplorationSlot(mainCard);
-                        this._activeDragId = null;
-                        d.renderAllCards();
-                        return true;
+                        // 检查返回值，只有成功时才清除拖拽状态
+                        if (d.placeCardInExplorationSlot(mainCard, i)) {
+                            this._activeDragId = null;
+                            d.renderAllCards();
+                            return true;
+                        }
+                        // 验证失败，返回 false 让流程继续到标准堆叠逻辑
+                        return false;
                     }
                 }
             }

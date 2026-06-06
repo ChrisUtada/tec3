@@ -64,7 +64,7 @@ export function hideEndingReport() {
 }
 
 export function toggleSceneModal(show) {
-    sceneModal.style.display = show ? 'flex' : 'none';
+    sceneModal.classList.toggle('show', show);
 }
 
 export function updateModalContent(title, body, btnText, disabled) {
@@ -93,12 +93,12 @@ export function openTrueNameModal(card, template) {
         descEl.innerText = template.realDesc || template.desc;
     }
     
-    trueNameModal.style.display = 'flex';
+    trueNameModal.classList.add('show');
 }
 
 export function closeTrueNameModal() {
     if (trueNameModal) {
-        trueNameModal.style.display = 'none';
+        trueNameModal.classList.remove('show');
     }
 }
 
@@ -109,12 +109,12 @@ export function showObservationModal(cardName, text) {
     if (!observationModal) return;
     document.getElementById('observation-card-name').innerText = `「${cardName}」`;
     document.getElementById('observation-text').innerText = text;
-    observationModal.style.display = 'flex';
+    observationModal.classList.add('show');
 }
 
 export function hideObservationModal() {
     if (observationModal) {
-        observationModal.style.display = 'none';
+        observationModal.classList.remove('show');
     }
 }
 
