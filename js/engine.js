@@ -296,14 +296,8 @@ export function renderAllCards() {
         // 结局触发时的卡牌高亮修饰
         if (gameState.isGameOver) {
             cardEl.style.opacity = "0.85";
-            if (card.templateId === 'SCENES_hzyl') {
-                cardEl.style.boxShadow = "0 0 15px rgba(255,255,255,0.6)";
-            }
         } else {
             cardEl.style.opacity = "1";
-            if (card.templateId === 'SCENES_hzyl') {
-                cardEl.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)";
-            }
         }
 
         cardEl.style.left = finalX + 'px'; 
@@ -313,8 +307,6 @@ export function renderAllCards() {
 }
 
 export function syncModalAssets() {
-    if (gameState.sceneSynced) return;
-    directSpawnCard('SCENES_hzyl', 250, 420);
     if (gameState.hasSanityPollution) {
         directSpawnCard('ITEM_tz', 390, 420); 
         log("✨ 异界物质激化：【五行贴纸】无限制落地！", "success");
@@ -416,28 +408,13 @@ function _initSystems() {
 
 export function initBaseTable() {
     cardsData = [
-        // 移除指令卡，所有功能通过堆叠组合实现
-        { instanceId: 'i_sdt', templateId: 'ITEM_sdt', x: 40, y: 240, next: null, parent: null, isCaptured: true },
-        { instanceId: 's_wz', templateId: 'SCENE_wz', x: 175, y: 240, next: null, parent: null, isCaptured: true },
-        { instanceId: 'c_zs', templateId: 'CHAR_zs', x: 310, y: 240, next: null, parent: null, isCaptured: true },
+        // 初始桌面只保留 5 张核心卡：献祭、捕获、逻辑归因、初级调查员、TEC总部
         { instanceId: 'c_investigator', templateId: 'CHAR_investigator', x: 40, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'l_reason', templateId: 'LOGIC_reason', x: 445, y: 50, next: null, parent: null, isCaptured: true },
-        // 测试线索卡牌
-        { instanceId: 'cl_shadow', templateId: 'CLUE_shadow', x: 445, y: 240, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_whisper', templateId: 'CLUE_whisper', x: 40, y: 430, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_cold', templateId: 'CLUE_cold', x: 175, y: 430, next: null, parent: null, isCaptured: true },
-        // 回收卡牌
-        { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 240, next: null, parent: null, isCaptured: true },
-        // 捕获功能卡
+        { instanceId: 's_tec', templateId: 'SCENE_tec', x: 175, y: 50, next: null, parent: null, isCaptured: true },
         { instanceId: 'l_capture', templateId: 'LOGIC_capture', x: 310, y: 50, next: null, parent: null, isCaptured: true },
-        // 真名卡
-        { instanceId: 'i_true_name', templateId: 'ITEM_true_name', x: 310, y: 430, next: null, parent: null, isCaptured: true, isRevealed: false, collectedSenses: [] },
-        // 五感线索卡（用于测试真名揭示）
-        { instanceId: 'cl_vision', templateId: 'CLUE_vision_eye', x: 445, y: 430, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_hearing', templateId: 'CLUE_hearing_echo', x: 580, y: 430, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_taste', templateId: 'CLUE_taste_metal', x: 715, y: 240, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_touch', templateId: 'CLUE_touch_ice', x: 715, y: 430, next: null, parent: null, isCaptured: true },
-        { instanceId: 'cl_smell', templateId: 'CLUE_smell_rot', x: 715, y: 50, next: null, parent: null, isCaptured: true }
+        { instanceId: 'l_reason', templateId: 'LOGIC_reason', x: 445, y: 50, next: null, parent: null, isCaptured: true },
+        { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 50, next: null, parent: null, isCaptured: true },
+        { instanceId: 'l_observe', templateId: 'LOGIC_observe', x: 40, y: 180, next: null, parent: null, isCaptured: true }
     ];
     
     // 同步初始化 cardsMap

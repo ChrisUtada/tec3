@@ -39,7 +39,7 @@ export function showStackProgressBar(cardId, delay) {
         return false;
     }
 
-    // 如果已经有进度条，先移除
+    // 如果已经有该卡牌的进度条，先移除
     if (activeProgressBars[cardId]) {
         hideStackProgressBar(cardId);
     }
@@ -49,12 +49,6 @@ export function showStackProgressBar(cardId, delay) {
         console.error('[进度条] 未找到 board-canvas');
         return false;
     }
-
-    //  安全起见，清除所有残留的进度条 DOM 元素
-    const existingProgressBars = boardCanvas.querySelectorAll('.card-progress-container');
-    existingProgressBars.forEach(bar => bar.remove());
-    // 清空记录
-    Object.keys(activeProgressBars).forEach(key => delete activeProgressBars[key]);
 
     //  使用 DOM 元素的 style.left/top（由 renderAllCards 设置）
     const cardLeft = parseInt(cardEl.style.left) || 0;
@@ -223,17 +217,11 @@ export function hideSpeechBubble() {
  */
 export function updateCardElementStyle(cardEl, card, finalX, finalY, zIndex) {
     // 结局触发时的卡牌高亮修饰
-    if (gameState.isGameOver) {
-        cardEl.style.opacity = "0.85";
-        if (card.templateId === 'SCENES_hzyl') {
-            cardEl.style.boxShadow = "0 0 15px rgba(255,255,255,0.6)";
+        if (gameState.isGameOver) {
+            cardEl.style.opacity = "0.85";
+        } else {
+            cardEl.style.opacity = "1";
         }
-    } else {
-        cardEl.style.opacity = "1";
-        if (card.templateId === 'SCENES_hzyl') {
-            cardEl.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)";
-        }
-    }
 
     cardEl.style.left = finalX + 'px'; 
     cardEl.style.top = finalY + 'px';

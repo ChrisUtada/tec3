@@ -1,7 +1,7 @@
 // 🎮 核心游戏逻辑：合成、捕获与结局判定
-import { CARD_TEMPLATES, CARD_COMBINATIONS } from './config.js';
+import { CARD_TEMPLATES, CARD_COMBINATIONS, OBSERVATION_TEXTS } from './config.js';
 import { gameState, updateState } from './state.js';
-import { log, showEndingReport, setSystemStatus, updateModalContent, toggleSceneModal } from './ui.js';
+import { log, showEndingReport, setSystemStatus, updateModalContent, toggleSceneModal, showObservationModal } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar, showSpeechBubble, hideSpeechBubble } from './renderer.js';
 import { CARD } from './consts.js';
 
@@ -80,6 +80,38 @@ export function triggerEnding(title, story) {
 
 export function checkReaction(moved, target, destroyCard, spawnUnboundCard, directSpawnCard) {
     if (gameState.isGameOver) return false;
+
+    // 观测卡：拖放到任意卡牌上触发叙事文本（双向检测，有观测进度）
+    if (moved.templateId === 'LOGIC_observe' || target.templateId === 'LOGIC_observe') {
+        const observed = moved.templateId === 'LOGIC_observe' ? target : moved;
+        const observedTemplate = CARD_TEMPLATES[observed.templateId];
+        const cardName = observedTemplate ? observedTemplate.name : observed.templateId;
+        let text = OBSERVATION_TEXTS[observed.templateId];
+        if (!text) {
+            const fallbacks = {
+                char: '这个人身上有一种难以言明的气息。他经历的比你多，但愿意说的比你少。',
+                item: '这个物品在光线下的质感不太对劲。它的影子比实物大了一圈。',
+                scene: '这个场景在你眨眼后会微妙地变化。门的位置、窗户的数量——总有什么不对劲。',
+                clue: '这条线索指向一个你不确定是否想去的方向。有些真相知道了就无法回头。',
+                logic: '一张写满规则的功能卡。但规则在这里是被用来打破的。'
+            };
+            text = fallbacks[observedTemplate?.type] || '你仔细观察着它，感受到一种难以名状的不安。';
+        }
+        
+        const observeDelay = 2500;
+        showStackProgressBar(observed.instanceId, observeDelay);
+        isAnyTaskProcessing = true;
+        
+        const timeoutId = setTimeout(() => {
+            delete observed.pendingTimeoutId;
+            hideStackProgressBar(observed.instanceId);
+            showObservationModal(cardName, text);
+            isAnyTaskProcessing = false;
+        }, observeDelay);
+        
+        observed.pendingTimeoutId = timeoutId;
+        return true;
+    }
 
     // 生成无序组合键（确保 A+B 和 B+A 相同）
     const combinationKey = [moved.templateId, target.templateId].sort().join('+');
@@ -192,11 +224,11 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
             destroyCard(moved.instanceId);
             destroyCard(target.instanceId);
         } else if (rule.consumeMover !== undefined || rule.consumeTarget !== undefined) {
-            // 精确消耗控制
-            if (rule.consumeMover === true) {
+            // 精确消耗控制（consumable: false 是硬约束，永远跳过销毁）
+            if (rule.consumeMover === true && CARD_TEMPLATES[moved.templateId].consumable !== false) {
                 destroyCard(moved.instanceId);
             }
-            if (rule.consumeTarget === true) {
+            if (rule.consumeTarget === true && CARD_TEMPLATES[target.templateId].consumable !== false) {
                 destroyCard(target.instanceId);
             }
         } else {

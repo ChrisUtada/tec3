@@ -1,12 +1,11 @@
 // 🃏 卡牌模板定义
 export const CARD_TEMPLATES = {
-    'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
+    'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false },
     'SCENE_wz': { name: '场景：未知地点', desc: '【核心锚点】初始坐标。将其与手电筒叠加，并用[⚡前往]卡催化。', type: 'scene', class: 'scene-card', consumable: true },
     'CHAR_zs': { name: '人物：朱穗', desc: '【NPC】高级调查员。可以直接扔线索给她进行无卡自发对质。', type: 'char', class: 'char-card', consumable: false, allowDuplicate: true },
     'CHAR_investigator': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false },
     
-    'SCENES_hzyl': { name: '场景：荒宅院落', desc: '【因果宣告处】二级核心场景。将捕获后的关键线索堆叠于此触发终局。', type: 'scene', class: 'scene-card', consumable: false },
-    'CLUES_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。直接堆在荒宅场景上可完成常态脱离。', type: 'clue', class: 'clue-vision', consumable: true },
+    'CLUES_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。', type: 'clue', class: 'clue-vision', consumable: true },
     'ITEM_mt': { name: '道具：木桶', desc: '【道具】坚固旧木桶。直接把贴纸丢上去可以融合成密码盒。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_tz': { name: '五行贴纸', desc: '【资产】带有高维规约的符号贴纸。直接丢进木桶里自发反应。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_mmh': { name: '暗码铁盒', desc: '【机械锁】沉重紧闭的盒身。[双击卡面] 激活解码校验机制。', type: 'item', class: 'item-card lock-card', consumable: false },
@@ -78,5 +77,40 @@ export const CARD_TEMPLATES = {
     'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
     'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'item', class: 'equipment-card', consumable: false, allowDuplicate: true },
     
-    'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false }
+    'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false },
+    
+    // TEC 总部 + 植物学家的花园
+    'SCENE_tec': { name: '场景：TEC总部', desc: '【核心锚点】调查员联合机构的物理中枢。需与初级调查员叠加，揭开 TEC 的真实面目。', type: 'scene', class: 'scene-card', consumable: false },
+    'CHAR_tec': { name: '人物：TEC', desc: '【NPC】自称"调查员联合机构"。将初级调查员送入 TEC 总部后显露的真身。', type: 'char', class: 'char-card', consumable: false },
+    'SCENE_plant_hunter': { name: '场景：植物学家的花园', desc: '【二级场景】由 TEC 引导进入的异界花园。植物学家在此失踪。', type: 'scene', class: 'scene-card', consumable: false },
+    
+    // 植物学家的花园 - 探索掉落物
+    'ITEM_black_curtain': { name: '物品：黑色帘幕', desc: '【道具】厚重的黑色帘幕，遮蔽着什么。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_plant': { name: '物品：植物', desc: '【道具】花园中随处可见的植物，触碰时有微妙感觉。', type: 'item', class: 'item-card', consumable: false },
+    'SCENE_desk': { name: '地点：书桌', desc: '【场景】植物学家的工作台，上面散落着研究笔记。', type: 'scene', class: 'scene-card', consumable: false },
+    'ITEM_phonograph': { name: '物品：唱机', desc: '【道具】老式留声机，唱片在无人触碰时自己转动。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_shadow_figure': { name: '物品：黑影', desc: '【道具】一团无法聚焦的黑色人形虚影，似乎有自我意识。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_syringe': { name: '物品：注射器', desc: '【道具】锈迹斑斑的医用注射器，内含不明液体。', type: 'item', class: 'item-card', consumable: false },
+    
+    // 书桌调查 - 产出物
+    'ITEM_handwritten_note': { name: '物品：手写笔记', desc: '【道具】植物学家留下的研究笔记，字迹潦草。', type: 'item', class: 'item-card', consumable: false },
+    'SCENE_drawer': { name: '地点：抽屉', desc: '【场景】书桌的抽屉，藏有隐秘的物品。打开它需要仔细检查。', type: 'scene', class: 'scene-card', consumable: false },
+    'ITEM_trash_can': { name: '物品：垃圾桶', desc: '【道具】角落里的垃圾桶，里面有揉皱的纸条。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_desk_lamp': { name: '物品：台灯', desc: '【道具】老式台灯，灯罩泛黄，光线昏黄。', type: 'item', class: 'item-card', consumable: false },
+    
+    // 抽屉调查 - 产出物
+    'ITEM_scissors': { name: '物品：剪刀', desc: '【道具】一把老式剪刀，金属部分有锈迹。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_wooden_box': { name: '物品：精致的木盒', desc: '【道具】做工精细的小木盒，似乎装着重要的东西。', type: 'item', class: 'item-card', consumable: false },
+    
+    // 合成物：手电筒照亮黑影
+    'ITEM_bandaged_corpse': { name: '物品：缠满绷带的尸体', desc: '【道具】一具被绷带层层缠绕的尸体，手电筒照亮后显出真实形态。', type: 'item', class: 'item-card', consumable: false },
+    
+    // 陆珩松相关
+    'ITEM_corpse_lu': { name: '物品：陆珩松的尸体', desc: '【道具】绷带被剪开后，露出的是一张苍白的脸——植物学家本人。', type: 'item', class: 'item-card', consumable: false },
+    'CHAR_lu': { name: '人物：陆珩松', desc: '【NPC】植物学家。他沉默地站着，仿佛从一场长眠中醒来，但灵魂还没有完全回来。', type: 'char', class: 'char-card', consumable: false },
+    'ITEM_crumpled_paper': { name: '物品：皱巴巴的纸', desc: '【道具】从陆珩松身上找到的纸条，上面的字迹被汗渍浸得模糊——只能认出几个词："花园"、"别回来"、"它醒了"。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_stylus': { name: '物品：唱针', desc: '【道具】一枚老式唱针，沾着暗红色的痕迹。将它装回唱机上，也许能播放出本不该被听到的声音。', type: 'item', class: 'item-card', consumable: false },
+    
+    // 观测卡（常驻功能卡）
+    'LOGIC_observe': { name: '🔍观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false }
 };

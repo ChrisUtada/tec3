@@ -8,3 +8,4 @@ export { CARD_COMBINATIONS } from './config/combinations.js';
 export { SCENE_EXPLORATION } from './config/scenes.js';
 export { DIALOGUE_DATA } from './config/dialogues.js';
 export { REASONING_ENDINGS } from './config/endings.js';
+export { OBSERVATION_TEXTS } from './config/observations.js';

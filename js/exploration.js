@@ -173,6 +173,12 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     const templateId = cardData.templateId;
     const template = CARD_TEMPLATES[templateId];
     
+    // 白名单校验：场景有 requiredCards 时，槽位只接受 required 卡 + 因果律
+    if (!isCardAllowedInSlot(templateId)) {
+        log(`❌ [探索系统] 【${template.name}】不能放入此探索槽位（仅接受探索条件和因果律）`, "normal");
+        return;
+    }
+    
     explorationSlots[slotIndex] = cardData;
     draggedCardData = cardData;  // 保存卡牌数据
 
@@ -201,93 +207,156 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     log(` [探索系统] 将【${template.name}】放入槽位 ${slotIndex + 1}`, "success");
 }
 
-// 检查所有条件是否满足
-function checkAllConditionsMet() {
-    const sceneData = SCENE_EXPLORATION[currentScene];
-    if (!sceneData || !sceneData.requiredCards) {
-        // 没有配置条件限制，只要有卡牌就可以探索
-        const hasCards = explorationSlots.some(slot => slot !== null && slot !== undefined);
-        return hasCards;
-    }
-    
-    const requiredCards = sceneData.requiredCards;
-    
-    // 统计当前槽位中各类卡牌的数量
+// 获取某个 requiredCards 配置的当前匹配状态
+function checkConditionSet(requiredCards) {
     const currentCounts = {};
-    let totalCards = 0;
     explorationSlots.forEach(cardData => {
         if (cardData) {
-            totalCards++;
-            const cardTemplate = CARD_TEMPLATES[cardData.templateId];
-            const key = `type_${cardTemplate.type}`;
-            currentCounts[key] = (currentCounts[key] || 0) + 1;
             currentCounts[`id_${cardData.templateId}`] = (currentCounts[`id_${cardData.templateId}`] || 0) + 1;
         }
     });
-    
-    // 检查每个条件的 min 是否满足
     for (const condition of requiredCards) {
-        let currentCount = 0;
-        
-        if (condition.templateId) {
-            currentCount = currentCounts[`id_${condition.templateId}`] || 0;
-        } else if (condition.type) {
-            currentCount = currentCounts[`type_${condition.type}`] || 0;
-        }
-        
-        if (currentCount < condition.min) {
-            return false;
-        }
+        const min = condition.min ?? 1;
+        const current = currentCounts[`id_${condition.templateId}`] || 0;
+        if (current < min) return false;
+    }
+    return true;
+}
+
+// 获取当前匹配的 dropGroup（有 dropGroups 时）
+function getActiveDropGroup(sceneData) {
+    if (!sceneData.dropGroups) return null;
+    return sceneData.dropGroups.find(group => checkConditionSet(group.requiredCards)) || null;
+}
+
+// 校验卡牌是否可以放入当前场景的探索槽位
+// 规则：有 requiredCards 或 dropGroups 时，槽位只接受条件中声明的卡 + 因果律
+function isCardAllowedInSlot(templateId) {
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData) return true;
+    
+    // 因果律永远允许
+    if (templateId === 'ITEM_coin') return true;
+    
+    // 收集所有允许的 templateId
+    let allConditions = [];
+    if (sceneData.dropGroups) {
+        allConditions = sceneData.dropGroups.flatMap(g => g.requiredCards);
+    } else if (sceneData.requiredCards) {
+        allConditions = sceneData.requiredCards;
     }
     
-    // 检查总卡牌数不超过槽位数
-    return totalCards > 0 && totalCards <= sceneData.slots;
+    if (allConditions.length === 0) return true;  // 无条件：自由放入
+    
+    const currentCounts = countSlotsByTemplate();
+    for (const condition of allConditions) {
+        if (condition.templateId === templateId) {
+            const current = currentCounts[`id_${templateId}`] || 0;
+            const max = condition.max ?? Infinity;
+            if (current < max) return true;
+        }
+    }
+    return false;
+}
+
+// 统计当前槽位中各 templateId 的数量
+function countSlotsByTemplate() {
+    const counts = {};
+    explorationSlots.forEach(cardData => {
+        if (cardData) {
+            const key = `id_${cardData.templateId}`;
+            counts[key] = (counts[key] || 0) + 1;
+        }
+    });
+    return counts;
+}
+
+// 计算当前槽位中的因果律数量
+function countCoinsInSlots() {
+    let count = 0;
+    explorationSlots.forEach(cardData => {
+        if (cardData && cardData.templateId === 'ITEM_coin') {
+            count++;
+        }
+    });
+    return count;
+}
+
+// 检查所有条件是否满足
+function checkAllConditionsMet() {
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData) return false;
+    
+    const hasCards = explorationSlots.some(slot => slot !== null && slot !== undefined);
+    if (!hasCards) return false;
+    
+    if (sceneData.dropGroups) {
+        // 任一 dropGroup 的条件满足即可
+        return sceneData.dropGroups.some(group => checkConditionSet(group.requiredCards));
+    }
+    
+    if (!sceneData.requiredCards) {
+        return true;  // 无条件：有卡即可
+    }
+    
+    // 旧版：所有 requiredCards 必须满足
+    return checkConditionSet(sceneData.requiredCards);
 }
 
 // 获取条件不满足的提示信息
 function getConditionHint() {
     const sceneData = SCENE_EXPLORATION[currentScene];
-    if (!sceneData || !sceneData.requiredCards) {
-        return '';
-    }
+    if (!sceneData) return '';
     
-    const requiredCards = sceneData.requiredCards;
     const hints = [];
+    const currentCounts = countSlotsByTemplate();
     
-    // 统计当前槽位中各类卡牌的数量
-    const currentCounts = {};
-    explorationSlots.forEach(cardData => {
-        if (cardData) {
-            const cardTemplate = CARD_TEMPLATES[cardData.templateId];
-            const key = `type_${cardTemplate.type}`;
-            currentCounts[key] = (currentCounts[key] || 0) + 1;
-            currentCounts[`id_${cardData.templateId}`] = (currentCounts[`id_${cardData.templateId}`] || 0) + 1;
-        }
-    });
-    
-    for (const condition of requiredCards) {
-        let currentCount = 0;
-        let name = '';
-        
-        if (condition.templateId) {
-            currentCount = currentCounts[`id_${condition.templateId}`] || 0;
-            const template = CARD_TEMPLATES[condition.templateId];
-            name = template ? template.name : condition.templateId;
-        } else if (condition.type) {
-            currentCount = currentCounts[`type_${condition.type}`] || 0;
-            const typeNames = { char: '人物', item: '道具', clue: '线索', scene: '场景', logic: '逻辑' };
-            name = typeNames[condition.type] || condition.type;
-        }
-        
-        if (condition.min > 0 || condition.max > 0) {
-            if (condition.min === condition.max) {
-                hints.push(`${name}：需要 ${condition.min} 张（当前 ${currentCount}）`);
-            } else if (condition.min === 0) {
-                hints.push(`${name}：最多 ${condition.max} 张（当前 ${currentCount}）`);
-            } else {
-                hints.push(`${name}：需要 ${condition.min}-${condition.max} 张（当前 ${currentCount}）`);
+    if (sceneData.dropGroups) {
+        // 展示所有分支的条件
+        sceneData.dropGroups.forEach((group) => {
+            const groupHints = group.requiredCards.map(cond => {
+                const template = CARD_TEMPLATES[cond.templateId];
+                const name = template ? template.name : cond.templateId;
+                const current = currentCounts[`id_${cond.templateId}`] || 0;
+                const need = cond.min ?? 1;
+                return `${name} ${current}/${need}`;
+            });
+            hints.push(`[${group.label}] ${groupHints.join('、')}`);
+        });
+    } else if (sceneData.requiredCards) {
+        for (const condition of sceneData.requiredCards) {
+            let currentCount = 0;
+            let name = '';
+            
+            if (condition.templateId) {
+                currentCount = currentCounts[`id_${condition.templateId}`] || 0;
+                const template = CARD_TEMPLATES[condition.templateId];
+                name = template ? template.name : condition.templateId;
+            } else if (condition.type) {
+                currentCount = currentCounts[`type_${condition.type}`] || 0;
+                const typeNames = { char: '人物', item: '道具', clue: '线索', scene: '场景', logic: '逻辑' };
+                name = typeNames[condition.type] || condition.type;
+            }
+            
+            if (condition.min > 0 || condition.max > 0) {
+                if (condition.min === condition.max) {
+                    hints.push(`${name}：需要 ${condition.min} 张（当前 ${currentCount}）`);
+                } else if (condition.min === 0) {
+                    hints.push(`${name}：最多 ${condition.max} 张（当前 ${currentCount}）`);
+                } else {
+                    hints.push(`${name}：需要 ${condition.min}-${condition.max} 张（当前 ${currentCount}）`);
+                }
             }
         }
+    }
+    
+    // 因果律加成提示
+    const coinCount = countCoinsInSlots();
+    if (coinCount > 0) {
+        const boost = Math.min(coinCount * 0.1, 1.0);
+        hints.push(`💰 因果律：${coinCount} 张 → 全掉落概率 +${Math.round(boost * 100)}%`);
+    } else {
+        hints.push(`💰 提示：拖入因果律可提升掉落概率（+10%/张，上限 100%）`);
     }
     
     return hints.join('，');
@@ -320,9 +389,13 @@ export function startExploration() {
     isExploring = true;
     startBtn.disabled = true;
     
+    // 获取匹配的 dropGroup 动态消息
+    const activeGroup = getActiveDropGroup(sceneData);
+    const progressMessage = activeGroup && activeGroup.message ? activeGroup.message : sceneData.message;
+    
     // 显示进度条
     explorationProgress.style.display = 'flex';
-    explorationProgressText.innerText = sceneData.message;
+    explorationProgressText.innerText = progressMessage;
     
     // 启动进度条动画
     explorationProgressFill.style.width = '0%';
@@ -373,11 +446,11 @@ function completeExploration(sceneData) {
         }
     });
     
+    // 根据概率计算掉落（支持条件分支产出，必须在清空槽位之前）
+    const drops = calculateDrops(sceneData);
+    
     // 清空槽位数据
     explorationSlots = [];
-    
-    // 根据概率计算掉落
-    const drops = calculateDrops(sceneData.drops);
     // 计算生成位置（在画布中央）
     const boardCanvas = document.getElementById('board-canvas');
     const boardRect = boardCanvas.getBoundingClientRect();
@@ -457,12 +530,28 @@ function resetExplorationState() {
 }
 
 // 计算掉落
-function calculateDrops(dropsConfig) {
+function calculateDrops(sceneData) {
     const results = [];
     
+    // 确定使用哪个掉落配置
+    let dropsConfig;
+    if (sceneData.dropGroups) {
+        const activeGroup = getActiveDropGroup(sceneData);
+        dropsConfig = activeGroup ? activeGroup.drops : [];
+    } else {
+        dropsConfig = sceneData.drops || [];
+    }
+    
+    if (dropsConfig.length === 0) return results;
+    
+    // 因果律加成：每张 +10%，封顶 100%
+    const coinCount = countCoinsInSlots();
+    const boost = Math.min(coinCount * 0.1, 1.0);
+    
     dropsConfig.forEach(drop => {
-        // 随机判定是否掉落
-        if (Math.random() < drop.chance) {
+        // 应用加成后概率，封顶 1.0
+        const finalChance = Math.min(drop.chance + boost, 1.0);
+        if (Math.random() < finalChance) {
             results.push(drop);
         }
     });
@@ -483,7 +572,7 @@ function initExplorationDrag() {
     initModalDrag(explorationModal, () => isExploring);
 }
 
-// 🌟 高亮掉落卡牌
+// 🌟 高亮掉落卡牌（固定 1 秒后自动取消）
 export function highlightDroppedCard(cardInstanceId) {
     const cardEl = document.getElementById(cardInstanceId);
     if (!cardEl) return;
@@ -492,19 +581,12 @@ export function highlightDroppedCard(cardInstanceId) {
     cardEl.classList.add('dropped-highlight');
     highlightedCards.add(cardInstanceId);
     
-    // 监听鼠标移动，移除高亮
-    const removeHighlightOnMove = () => {
+    // 1 秒后自动移除高亮
+    setTimeout(() => {
         const el = document.getElementById(cardInstanceId);
         if (el) {
             el.classList.remove('dropped-highlight');
-            highlightedCards.delete(cardInstanceId);
         }
-        // 只触发一次
-        document.removeEventListener('mousemove', removeHighlightOnMove);
-    };
-    
-    // 延迟一小段时间后开始监听（避免立即触发）
-    setTimeout(() => {
-        document.addEventListener('mousemove', removeHighlightOnMove, { once: true });
-    }, 500);
+        highlightedCards.delete(cardInstanceId);
+    }, 1000);
 }

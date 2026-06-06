@@ -101,3 +101,28 @@ export function closeTrueNameModal() {
         trueNameModal.style.display = 'none';
     }
 }
+
+// 观测叙事弹窗
+const observationModal = document.getElementById('observation-modal');
+
+export function showObservationModal(cardName, text) {
+    if (!observationModal) return;
+    document.getElementById('observation-card-name').innerText = `「${cardName}」`;
+    document.getElementById('observation-text').innerText = text;
+    observationModal.style.display = 'flex';
+}
+
+export function hideObservationModal() {
+    if (observationModal) {
+        observationModal.style.display = 'none';
+    }
+}
+
+// 点击半透明背景关闭
+if (observationModal) {
+    observationModal.addEventListener('click', (e) => {
+        if (e.target === observationModal) {
+            hideObservationModal();
+        }
+    });
+}

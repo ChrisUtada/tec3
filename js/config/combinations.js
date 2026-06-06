@@ -1,14 +1,5 @@
 // 🎯 卡牌堆叠组合配置（核心玩法）
 export const CARD_COMBINATIONS = {
-    // 场景探索类：手电筒 + 未知地点 → 荒宅院落
-    'ITEM_sdt+SCENE_wz': {
-        type: 'explore',
-        result: ['SCENES_hzyl'],
-        message: '强光穿透迷雾，空间坐标锚定...新场景已解锁！',
-        delay: 3000,
-        consumeAll: false
-    },
-    
     // 人物互动类：手电筒 + 朱穗 → 木桶
     'CHAR_zs+ITEM_sdt': {
         type: 'interaction',
@@ -67,13 +58,43 @@ export const CARD_COMBINATIONS = {
         consumeTarget: true
     },
 
-    // 场景解锁：手电筒 + 带有眼睛的木门 → 荒宅院落
-    // sort() 后 'ITEM_mmd_eyes' < 'ITEM_sdt'（'m' < 's'）
-    'ITEM_mmd_eyes+ITEM_sdt': {
-        type: 'explore',
-        result: ['SCENES_hzyl'],
-        message: '强光照亮了木门上的眼睛，它猛然睁大——空间裂开，荒宅院落显现！',
+    // 献祭类：植物学家的花园 + TEC → 真名卡（花园被消耗，TEC 保留）
+    // sort() 后 'CHAR_tec' < 'SCENE_plant_hunter'（C < S）
+    'CHAR_tec+SCENE_plant_hunter': {
+        type: 'crafting',
+        result: ['ITEM_true_name'],
+        message: '植物学家的花园向 TEC 倾吐了它最后的秘密——一颗被掩埋的"真名"破土而出。',
         delay: 3000,
+        consumeMover: true
+    },
+    
+    // 调查类：初级调查员 + 陆珩松的尸体 → 皱巴巴的纸 + 唱针
+    // sort() 后 'CHAR_investigator' < 'ITEM_corpse_lu'（C < I）
+    'CHAR_investigator+ITEM_corpse_lu': {
+        type: 'explore',
+        result: ['ITEM_crumpled_paper', 'ITEM_stylus'],
+        message: '初级调查员颤抖着翻开陆珩松的口袋，发现了一张皱巴巴的纸条和一枚沾着暗红的唱针。',
+        delay: 3000,
+        consumeAll: false
+    },
+    
+    // 合成类：剪刀 + 缠满绷带的尸体 → 陆珩松的尸体 + 陆珩松
+    // sort() 后 'ITEM_bandaged_corpse' < 'ITEM_scissors'（'b' < 's'）
+    'ITEM_bandaged_corpse+ITEM_scissors': {
+        type: 'crafting',
+        result: ['ITEM_corpse_lu', 'CHAR_lu'],
+        message: '剪刀剪开层层绷带——一张苍白的脸露了出来。陆珩松缓缓睁开了眼睛。',
+        delay: 3000,
+        consumeAll: true
+    },
+    
+    // 合成类：手电筒 + 黑影 → 缠满绷带的尸体（手电筒与黑影都保留，参考设备/捕获的非消耗模式）
+    // sort() 后 'ITEM_sdt' < 'ITEM_shadow_figure'（'sd' < 'sh'）
+    'ITEM_sdt+ITEM_shadow_figure': {
+        type: 'crafting',
+        result: ['ITEM_bandaged_corpse'],
+        message: '手电筒照亮黑影，它在光中崩解为一具缠满绷带的尸体。',
+        delay: 2500,
         consumeAll: false
     },
     
@@ -97,13 +118,6 @@ export const CARD_COMBINATIONS = {
         type: 'capture',
         result: ['CLUE_shadow', 'CLUE_xhpb'],
         message: '⚡ 捕获！从未知地点提取到隐藏线索！',
-        delay: 3000,
-        consumeAll: false
-    },
-    'SCENES_hzyl+LOGIC_capture': {
-        type: 'capture',
-        result: ['CLUE_blood', 'CLUE_shadow', 'CLUE_whisper'],
-        message: '⚡ 捕获！从荒宅院落提取到隐藏线索！',
         delay: 3000,
         consumeAll: false
     },

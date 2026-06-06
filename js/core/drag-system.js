@@ -79,9 +79,10 @@ export class DragSystem {
             card.parent = null;
         }
 
-        const rect = document.getElementById(card.instanceId).getBoundingClientRect();
-        this._dragOffsetX = e.clientX - rect.left;
-        this._dragOffsetY = e.clientY - rect.top;
+        // 用数据坐标计算偏移，避开 getBoundingClientRect 在复杂卡牌上的 reflow 误差
+        const canvasRect = d.boardCanvas.getBoundingClientRect();
+        this._dragOffsetX = (e.clientX - canvasRect.left) - card.x;
+        this._dragOffsetY = (e.clientY - canvasRect.top) - card.y;
         document.addEventListener('mousemove', this._boundProcessDrag);
         document.addEventListener('mouseup', this._boundEndDrag);
         e.stopPropagation();

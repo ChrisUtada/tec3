@@ -835,3 +835,61 @@
     color: #000;
     font-weight: bold;
 }
+
+/* 观测卡 */
+.card.observe-card {
+    background: var(--color-item);
+    border-color: #f39c12;
+}
+
+/* 观测叙事弹窗 */
+#observation-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 200000;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.observation-content {
+    background: #0d1117;
+    border: 1px solid #f39c12;
+    border-radius: 6px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(243, 156, 18, 0.15);
+    cursor: default;
+}
+
+.observation-card-name {
+    font-size: 14px;
+    color: #f39c12;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.observation-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #f39c12, transparent);
+    margin-bottom: 16px;
+}
+
+.observation-text {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #c8d0dc;
+    text-align: justify;
+    padding: 4px 8px;
+}
+
+.observation-hint {
+    font-size: 10px;
+    color: #4a5568;
+    text-align: center;
+    margin-top: 16px;
+}
