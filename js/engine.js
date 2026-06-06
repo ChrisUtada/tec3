@@ -11,6 +11,7 @@ import { restoreCardToBoard } from './shared.js';
 import { CARD } from './consts.js';
 import { sacrificeSystem } from './systems/sacrifice.js';
 import { trueNameSystem } from './systems/truename.js';
+import { corruptionSystem } from './systems/corruption.js';
 import { taskManager } from './core/task-manager.js';
 import { stackSystem } from './core/stack-system.js';
 import { dragSystem } from './core/drag-system.js';
@@ -38,9 +39,10 @@ export function findCardData(id) {
     return cardsMap.get(id); // O(1) 查找替代 O(n) find
 }
 export function destroyCard(id) {
+    corruptionSystem.stopTimer(id);
     const idx = cardsData.findIndex(c => c.instanceId === id);
     if (idx !== -1) cardsData.splice(idx, 1);
-    cardsMap.delete(id); // 同步删除 Map
+    cardsMap.delete(id);
     const el = document.getElementById(id); 
     if (el) el.remove();
 }
@@ -68,6 +70,12 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicateOverride = null
     cardsData.push(newCard);
     cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`📡 发现线索：【${CARD_TEMPLATES[templateId].name}】已刷出。`, "capture");
+
+    // 自动启动腐化倒计时
+    if (template?.corruptionTime) {
+        corruptionSystem.startTimer(newCard.instanceId, template.corruptionTime);
+    }
+
     renderAllCards();
 
     return newCard;  // 返回新生成的卡牌数据
@@ -95,6 +103,11 @@ export function directSpawnCard(templateId, x, y, allowDuplicateOverride = null)
     cardsData.push(newCard);
     cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`✨ 因果固化：实体资产【${CARD_TEMPLATES[templateId].name}】已成功存盘。`, "success");
+
+    if (template?.corruptionTime) {
+        corruptionSystem.startTimer(newCard.instanceId, template.corruptionTime);
+    }
+
     renderAllCards();
     return newCard;
 }
@@ -305,6 +318,8 @@ export function renderAllCards() {
         cardEl.style.top = finalY + 'px';
         cardEl.style.zIndex = zIndex;
     });
+
+    corruptionSystem.updateAllBars();
 }
 
 export function syncModalAssets() {
@@ -405,6 +420,7 @@ function _initSystems() {
 
     sacrificeSystem.init(api);
     trueNameSystem.init(api);
+    corruptionSystem.init(api);
 }
 
 // 从旧堆叠链中分离卡牌
