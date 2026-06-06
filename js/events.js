@@ -5,7 +5,7 @@ import { closeDialogueModal, nextDialogue } from './dialogue.js';
 import { closeReasoningModal, executeReasoning } from './reasoning.js';
 import { closeExplorationModal, startExploration } from './exploration.js';
 import { toggleEndingPanel, closeTrueNameModal } from './ui.js';
-import { syncModalAssets, resumeExploration } from './engine.js';
+import { syncModalAssets, resumeExploration, tidyCardsByScene } from './engine.js';
 import { initModalDrag } from './shared.js';
 
 /**
@@ -88,6 +88,12 @@ export function initUIEvents() {
     const reasoningCloseBtn = document.getElementById('reasoning-close-btn');
     if (reasoningCloseBtn) {
         reasoningCloseBtn.addEventListener('click', closeReasoningModal);
+    }
+    
+    // === 整理按钮 ===
+    const tidyBtn = document.getElementById('tidy-btn');
+    if (tidyBtn) {
+        tidyBtn.addEventListener('click', tidyCardsByScene);
     }
     
     // === 真名揭示弹窗 ===

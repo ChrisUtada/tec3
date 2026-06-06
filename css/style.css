@@ -56,6 +56,10 @@ header {
 header h1 { font-size: 14px; color: #fff; letter-spacing: 1px; }
 header .system-status { font-size: 11px; color: var(--color-vision); }
 
+.header-controls { display: flex; gap: 8px; align-items: center; }
+.tidy-btn { background: #1c2a3a; border: 1px solid #3a4a5e; color: var(--text-main); padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 11px; font-family: inherit; }
+.tidy-btn:hover { background: #2a3a4e; border-color: var(--color-vision); color: #fff; }
+
 #board-canvas { 
     background: rgba(6, 9, 13, 0.4); 
     border: 1px solid var(--panel-border); 

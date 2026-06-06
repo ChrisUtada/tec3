@@ -96,6 +96,7 @@ export function directSpawnCard(templateId, x, y, allowDuplicateOverride = null)
     cardsMap.set(newId, newCard); // 同步添加到 Map
     log(`✨ 因果固化：实体资产【${CARD_TEMPLATES[templateId].name}】已成功存盘。`, "success");
     renderAllCards();
+    return newCard;
 }
 
 export function resetVerbCard(verb, originalX, originalY) {
@@ -404,6 +405,55 @@ function _initSystems() {
 
     sacrificeSystem.init(api);
     trueNameSystem.init(api);
+}
+
+// 从旧堆叠链中分离卡牌
+function detachFromChain(card) {
+    if (!card.parent) return;
+    const oldParent = cardsMap.get(card.parent);
+    if (oldParent && oldParent.next === card.instanceId) {
+        oldParent.next = card.next;
+    }
+    card.parent = null;
+    card.next = null;
+}
+
+// 按来源场景整理卡牌（仅物品卡堆叠到对应的场景卡上）
+export function tidyCardsByScene() {
+    if (getTaskProcessing()) {
+        log(`⚠️ [整理] 有卡牌正在执行堆叠任务，请等待完成后再整理`, "normal");
+        return;
+    }
+    const groups = {};
+    cardsData.forEach(card => {
+        if (card.sourceScene) {
+            const template = CARD_TEMPLATES[card.templateId];
+            if (template && template.type === 'item') {
+                if (!groups[card.sourceScene]) groups[card.sourceScene] = [];
+                groups[card.sourceScene].push(card);
+            }
+        }
+    });
+
+    Object.entries(groups).forEach(([sceneId, children]) => {
+        const sceneCard = cardsData.find(c => c.templateId === sceneId && !c.parent);
+        if (!sceneCard || children.length === 0) return;
+
+        children.forEach(detachFromChain);
+
+        let prev = sceneCard;
+        children.forEach((child, i) => {
+            child.parent = prev.instanceId;
+            prev.next = child.instanceId;
+            child.x = sceneCard.x;
+            child.y = sceneCard.y + (i + 1) * 24;
+            prev = child;
+        });
+        prev.next = null;
+    });
+
+    renderAllCards();
+    log(`📦 [整理] 已按来源场景归位卡牌`, "success");
 }
 
 export function initBaseTable() {

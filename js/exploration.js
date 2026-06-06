@@ -474,8 +474,9 @@ function completeExploration(sceneData) {
             // 探索掉落：是否可重复由卡牌模板上的 allowDuplicate 决定
             const cardData = spawnCard(drop.templateId, spawnX, spawnY);
                 
-            // 添加高亮效果
+            // 标记卡牌的来源场景（用于整理归位）
             if (cardData) {
+                cardData.sourceScene = currentScene;
                 highlightDroppedCard(cardData.instanceId);
             }
                 
