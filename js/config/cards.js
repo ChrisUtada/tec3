@@ -103,7 +103,7 @@ export const CARD_TEMPLATES = {
     'ITEM_wooden_box': { name: '物品：精致的木盒', desc: '【道具】做工精细的小木盒，似乎装着重要的东西。', type: 'item', class: 'item-card', consumable: false },
     
     // 合成物：手电筒照亮黑影
-    'ITEM_bandaged_corpse': { name: '物品：缠满绷带的尸体', desc: '【道具】一具被绷带层层缠绕的尸体，手电筒照亮后显出真实形态。', type: 'item', class: 'item-card', consumable: false },
+    'ITEM_bandaged_corpse': { name: '物品：缠满绷带的尸体', desc: '【道具】一具被绷带层层缠绕的尸体，手电筒照亮后显出真实形态。', type: 'item', class: 'item-card', consumable: true },
     
     // 陆珩松相关
     'ITEM_corpse_lu': { name: '物品：陆珩松的尸体', desc: '【道具】绷带被剪开后，露出的是一张苍白的脸——植物学家本人。', type: 'item', class: 'item-card', consumable: false },

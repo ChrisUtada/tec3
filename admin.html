@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEC3 编辑工具</title>
+<style>
+:root {
+    --bg: #f8f5ef; --grid: #e8e0d8; --panel: rgba(253,250,245,0.98);
+    --border: #4a3a2a; --dim: #5a4a3a; --fg: #2a1a0a;
+    --cv: #7a5f3a; --ch: #6a6a8a; --ct: #a84a3a; --cto: #b99217; --cs: #5a7a5a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Courier New',Consolas,monospace;
+    background: var(--bg); color: var(--fg);
+    height: 100vh; display: flex; flex-direction: column;
+    font-size: 14px; line-height: 1.6;
+}
+.hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; background: var(--border); color: #fdfaf5;
+    border-bottom: 2px double var(--cto); flex-shrink: 0; flex-wrap: wrap; gap: 6px;
+}
+.hdr h1 { font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+.hdr .g { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hb {
+    padding: 4px 10px; font-size: 11px; font-weight: bold; cursor: pointer;
+    border: 1px solid var(--cto); background: transparent; color: #fdfaf5;
+    border-radius: 2px; font-family: inherit; white-space: nowrap;
+}
+.hb:hover { background: var(--cto); color: var(--fg); }
+.hb:disabled { opacity: 0.4; cursor: default; }
+#loadInput { display: none; }
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* Left */
+.left {
+    width: 260px; min-width: 200px;
+    border-right: 1px solid var(--grid); display: flex; flex-direction: column;
+    background: var(--panel);
+}
+.left .srch { padding: 8px; border-bottom: 1px solid var(--grid); flex-shrink: 0; }
+.left .srch input {
+    width: 100%; padding: 6px 8px; border: 1px solid var(--grid);
+    background: var(--bg); color: var(--fg); font-size: 13px;
+    font-family: inherit; border-radius: 2px; outline: none;
+}
+.left .srch input:focus { border-color: var(--ct); }
+.left .list { flex: 1; overflow-y: auto; }
+.gr { margin-bottom: 2px; }
+.gr-hd {
+    padding: 4px 10px; font-size: 12px; font-weight: bold;
+    letter-spacing: 1px; color: var(--dim);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--grid); position: sticky; top: 0; cursor: default;
+}
+.gr-hd .cnt { font-size: 11px; color: var(--dim); }
+.gr-hd .add {
+    cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: var(--cs);
+    font-weight: bold;
+}
+.gr-hd .add:hover { color: var(--fg); }
+.it {
+    padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid var(--grid); transition: background 0.1s; font-size: 13px;
+}
+.it:hover { background: var(--grid); }
+.it.sel { background: #d8d0c0; }
+.it .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.it .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.it .id { font-size: 10px; color: var(--dim); flex-shrink: 0; }
+.it .sub { font-size: 11px; color: var(--dim); }
+.empty { padding: 20px; text-align: center; color: var(--dim); font-size: 13px; }
+
+/* Center */
+.ctr { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 0; }
+.ctr .pl { text-align: center; color: var(--dim); margin-top: 60px; font-size: 14px; }
+.sec { margin-bottom: 16px; }
+.sec-hd {
+    font-size: 11px; font-weight: bold; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 1px; padding: 4px 0; margin-bottom: 6px;
+    border-bottom: 1px solid var(--grid); display: flex; align-items: center; gap: 8px;
+}
+.fg { display: flex; flex-direction: column; gap: 3px; }
+.fg label { font-size: 10px; font-weight: bold; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.fg input, .fg textarea, .fg select {
+    padding: 6px 8px; border: 1px solid var(--grid); background: var(--bg);
+    color: var(--fg); font-size: 13px; font-family: inherit; border-radius: 2px; outline: none;
+}
+.fg input:focus, .fg textarea:focus, .fg select:focus { border-color: var(--ct); }
+.fg textarea { min-height: 50px; resize: vertical; }
+.fg .ck { display: flex; gap: 14px; flex-wrap: wrap; }
+.fg .ck label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 12px; text-transform: none; }
+.fg .ck input[type="checkbox"] { width: auto; }
+.fr { display: flex; gap: 12px; }
+.fr .fg { flex: 1; }
+.btn {
+    padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel);
+    color: var(--fg); border-radius: 2px; font-family: inherit; transition: all 0.15s;
+}
+.btn:hover { background: var(--border); color: #fdfaf5; }
+.btn-p { background: var(--border); color: #fdfaf5; }
+.btn-p:hover { background: var(--ct); border-color: var(--ct); }
+.btn-s { background: #3a7a5a; color: #fdfaf5; }
+.btn-d { background: #a84a3a; color: #fdfaf5; }
+.btn-sm { padding: 3px 10px; font-size: 11px; }
+.fa { display: flex; flex-direction: column; gap: 3px; }
+.fa-r { display: flex; gap: 4px; align-items: center; }
+.fa-r input { flex: 1; }
+.de { border: 1px solid var(--grid); padding: 6px; border-radius: 2px; margin-bottom: 4px; }
+.de .fa-r { margin-bottom: 2px; }
+.cb { background: #2a1a0a; color: #e8dcc8; padding: 10px; border-radius: 2px; font-size: 11px; white-space: pre-wrap; overflow-x: auto; max-height: 150px; border: 1px solid var(--border); margin-top: 6px; }
+
+/* Right */
+.right {
+    width: 280px; min-width: 220px; border-left: 1px solid var(--grid);
+    display: flex; flex-direction: column; background: var(--panel); overflow-y: auto;
+}
+.right .sec { padding: 10px 12px; border-bottom: 1px solid var(--grid); margin-bottom: 0; }
+.right .sec-hd { font-size: 10px; margin-bottom: 4px; }
+.right .hint { color: var(--dim); font-size: 13px; font-style: italic; }
+.card-pv {
+    width: 120px; height: 160px; border-radius: 3px; padding: 12px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1);
+    border: 1px solid #4a3a2a; margin: 0 auto; font-size: 12px; position: relative;
+}
+.card-pv .pn { font-weight: bold; font-size: 13px; }
+.card-pv .pt { font-size: 10px; color: var(--dim); margin-top: auto; text-align: right; }
+.pv-char { background: linear-gradient(135deg,#f5ece8,#ece0d5); border-top:3px solid #8a5a3a; }
+.pv-scene { background: linear-gradient(135deg,#edf0e8,#dde5d5); border-top:3px solid #3a7a5a; }
+.pv-item { background: linear-gradient(135deg,#f0ecf0,#e5dde8); border-top:3px solid #7a5a8a; }
+.pv-logic { background: linear-gradient(135deg,#e8e8ec,#d5d5dd); border-top:3px solid #5a6a7a; }
+.pv-clue { background: linear-gradient(135deg,#fdfaf5,#f0e8e0); }
+.rl { padding: 3px 0; font-size: 13px; border-bottom: 1px solid var(--grid); display: flex; align-items: center; gap: 5px; }
+.rl:last-child { border-bottom: none; }
+.rt { padding: 2px 6px; font-size: 10px; border-radius: 2px; font-weight: bold; flex-shrink: 0; }
+.rt-c { background: #e8dcc8; color: #5a4a3a; }
+.rt-s { background: #dde5d5; color: #3a5a3a; }
+.rt-d { background: #ece0d5; color: #6a4a2a; }
+.rt-o { background: #d8d8e0; color: #4a4a5a; }
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(42,26,10,0.6); z-index: 9999;
+    justify-content: center; align-items: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+    background: var(--panel); border: 2px double var(--border);
+    border-radius: 3px; width: 660px; max-width: 92vw;
+    display: flex; flex-direction: column; max-height: 85vh;
+}
+.modal .mh {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 14px; border-bottom: 2px double var(--border);
+}
+.modal .mh h3 { font-size: 14px; }
+.modal .mh .mc { cursor: pointer; color: var(--dim); font-size: 16px; padding: 2px 6px; }
+.modal .mh .mc:hover { color: var(--ct); }
+.modal .mb { padding: 12px 14px; overflow-y: auto; flex: 1; }
+.modal .mb textarea {
+    width: 100%; min-height: 300px; padding: 8px;
+    border: 1px solid var(--grid); background: #2a1a0a; color: #e8dcc8;
+    font-size: 11px; font-family: 'Courier New',monospace; border-radius: 2px; resize: vertical;
+}
+.modal .mf { padding: 8px 14px; border-top: 1px solid var(--grid); display: flex; gap: 8px; justify-content: flex-end; }
+.modal .mf .ok { font-size: 11px; color: var(--cs); margin-right: auto; align-self: center; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--grid); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+    <h1>□ TEC3 编辑工具</h1>
+    <div class="g">
+        <span id="status" style="font-size:11px;color:#c8b8a0;">未加载</span>
+        <button class="hb" id="loadBtn" onclick="document.getElementById('loadInput').click()">📂 加载</button>
+        <button class="hb" id="exportBtn" onclick="doExport()" disabled>💾 导出</button>
+        <button class="hb" id="svBtn" onclick="saveToServer()" disabled>💻 保存</button>
+        <span id="fc" style="font-size:10px;color:#c8b8a0;"></span>
+    </div>
+    <input type="file" id="loadInput" multiple accept=".js" onchange="loadFiles(event)">
+</div>
+
+<div class="main">
+    <div class="left">
+        <div class="srch"><input id="srch" placeholder="搜索卡牌..." oninput="renderList()"></div>
+        <div class="list" id="list"></div>
+    </div>
+    <div class="ctr" id="ctr">
+        <div class="pl">← 加载源文件后选择卡牌</div>
+    </div>
+    <div class="right">
+        <div class="sec"><div class="sec-hd">预览</div><div id="pv"><div class="hint">选择后预览</div></div></div>
+        <div class="sec"><div class="sec-hd">关联</div><div id="rel"><div class="hint">选择后显示</div></div></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="exportModal">
+    <div class="modal">
+        <div class="mh"><h3 id="exportTitle">导出</h3><span class="mc" onclick="closeModal('exportModal')">✕</span></div>
+        <div class="mb"><textarea id="exportCode"></textarea></div>
+        <div class="mf">
+            <span class="ok" id="exportStatus"></span>
+            <button class="btn" onclick="closeModal('exportModal')">关闭</button>
+            <button class="btn btn-p" id="dlBtn" onclick="downloadExports()">下载全部</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══ State ═══
+const D = {};
+let selId = null;
+let isSrv = false;
+let loadedFiles = {};
+const TYPES = ['char','scene','item','clue','logic'];
+const TN = { char:'人物', scene:'场景', item:'物品', clue:'线索', logic:'逻辑' };
+const TC = { char:'#8a5a3a', scene:'#3a7a5a', item:'#7a5a8a', clue:'#b99217', logic:'#5a6a7a' };
+function esc(s) { return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
+function escJs(s) { return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,''):''; }
+function len(n) { return D[n]?Object.keys(D[n]).length:0; }
+
+// ═══ Load ═══
+window.loadFiles = async function(e) {
+    for (const f of e.target.files) loadedFiles[f.name] = await f.text();
+    parseAll();
+};
+function parseAll() {
+    const keys = Object.keys(loadedFiles);
+    document.getElementById('fc').textContent = keys.length+' 文件';
+    const map = { 'cards.js':'CARD_TEMPLATES', 'combinations.js':'CARD_COMBINATIONS',
+        'scenes.js':'SCENE_EXPLORATION', 'dialogues.js':'DIALOGUE_DATA',
+        'observations.js':'OBSERVATION_TEXTS', 'endings.js':'REASONING_ENDINGS' };
+    const scope = {};
+    for (const [fn,vn] of Object.entries(map)) {
+        const f = keys.find(k=>k.includes(fn));
+        if (f) {
+            try {
+                const c = loadedFiles[f].replace(/^import\s+.*?;?\s*$/gm,'')
+                    .replace(/export\s+(const|let|var)\s+(\w+)\s*=\s*/gm, (_,__,vn)=>`scope['${vn}']=`);
+                eval(c);
+            } catch(e) { console.warn('Parse fail', fn, e); }
+        }
+    }
+    if (!scope.CARD_TEMPLATES) { setStatus('解析失败'); return; }
+    Object.assign(D, scope);
+    if (!D.REASONING_ENDINGS) D.REASONING_ENDINGS = {};
+    isSrv = false;
+    setStatus(`已加载: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合 ${len('SCENE_EXPLORATION')}场景 ${len('DIALOGUE_DATA')}对话 ${len('OBSERVATION_TEXTS')}观测`);
+    document.getElementById('exportBtn').disabled = false;
+    document.getElementById('svBtn').disabled = true;
+    selId = null;
+    renderList();
+    showEmpty();
+}
+
+async function trySrv() {
+    try {
+        const r = await fetch('/');
+        if (!r.ok) return;
+        isSrv = true;
+        setStatus('加载中...');
+        const files = [
+            {u:'./js/config/cards.js',n:'CARD_TEMPLATES'},{u:'./js/config/combinations.js',n:'CARD_COMBINATIONS'},
+            {u:'./js/config/scenes.js',n:'SCENE_EXPLORATION'},{u:'./js/config/dialogues.js',n:'DIALOGUE_DATA'},
+            {u:'./js/config/observations.js',n:'OBSERVATION_TEXTS'},{u:'./js/config/endings.js',n:'REASONING_ENDINGS'}
+        ];
+        const scope = {};
+        for (const f of files) {
+            try {
+                const t = await (await fetch(f.u)).text();
+                const c = t.replace(/^import\s+.*?;?\s*$/gm,'')
+                    .replace(/export\s+(const|let|var)\s+(\w+)\s*=\s*/gm, (_,__,vn)=>`scope['${vn}']=`);
+                eval(c);
+            } catch(e) {}
+        }
+        if (scope.CARD_TEMPLATES) {
+            Object.assign(D, scope);
+            if (!D.REASONING_ENDINGS) D.REASONING_ENDINGS = {};
+            setStatus(`服务器: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合`);
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('svBtn').disabled = false;
+            selId = null;
+            renderList();
+            showEmpty();
+        }
+    } catch(e) {}
+}
+
+// ═══ List ═══
+function renderList() {
+    const el = document.getElementById('list');
+    if (!D.CARD_TEMPLATES) { el.innerHTML = '<div class="empty">加载源文件</div>'; return; }
+    const q = (document.getElementById('srch').value||'').toLowerCase();
+    const gr = {};
+    for (const [id,t] of Object.entries(D.CARD_TEMPLATES)) {
+        const ty = t.type||'item';
+        if (q && !id.toLowerCase().includes(q) && !(t.name||'').toLowerCase().includes(q)) continue;
+        if (!gr[ty]) gr[ty] = [];
+        gr[ty].push({id,name:t.name||id});
+    }
+    if (!Object.keys(gr).length) { el.innerHTML = '<div class="empty">无匹配</div>'; return; }
+    let h = '';
+    for (const ty of TYPES) {
+        if (!gr[ty]) continue;
+        h += `<div class="gr"><div class="gr-hd"><span>${TN[ty]||ty}</span><span style="display:flex;align-items:center;gap:6px;"><span class="cnt">${gr[ty].length}</span><span class="add" onclick="event.stopPropagation();addCard('${ty}')">+</span></span></div>`;
+        for (const c of gr[ty]) {
+            h += `<div class="it${c.id===selId?' sel':''}" onclick="selectCard('${c.id}')"><span class="dot" style="background:${TC[ty]||'#4a3a2a'}"></span><span class="nm">${esc(c.name)}</span><span class="id">${c.id}</span></div>`;
+        }
+        h += '</div>';
+    }
+    el.innerHTML = h;
+}
+
+// ═══ Select card → show all config ═══
+window.selectCard = function(id) {
+    selId = id;
+    renderList();
+    showCard(id);
+};
+
+function showCard(id) {
+    const t = D.CARD_TEMPLATES[id];
+    if (!t) { showEmpty(); return; }
+    let h = `<div class="sec"><div class="sec-hd">基础属性</div>
+        <div class="fg"><label>ID</label><input id="f_id" value="${esc(id)}" readonly style="color:var(--dim)"></div>
+        <div class="fr">
+            <div class="fg"><label>名称</label><input id="f_name" value="${esc(t.name)}"></div>
+            <div class="fg"><label>类型</label><select id="f_type">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
+        </div>
+        <div class="fg"><label>描述</label><textarea id="f_desc">${esc(t.desc||'')}</textarea></div>
+        <div class="fr">
+            <div class="fg"><div class="ck">
+                <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 消耗品</label>
+                <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 可重复</label>
+            </div></div>
+        </div>
+        <div class="fg" id="extraFields"></div>
+    </div>`;
+    
+    // Special fields
+    const sf = [];
+    if (t.corruptionTime!==undefined) sf.push({k:'corruptionTime',l:'腐化时间(ms)',v:t.corruptionTime});
+    if (t.senseType) sf.push({k:'senseType',l:'感官类型',v:t.senseType});
+    if (t.recycleValue!==undefined) sf.push({k:'recycleValue',l:'献祭价值',v:t.recycleValue});
+    if (t.value!==undefined) sf.push({k:'value',l:'价值',v:t.value});
+    if (t.realName) sf.push({k:'realName',l:'真名',v:t.realName});
+    if (t.realDesc) sf.push({k:'realDesc',l:'真名描述',v:t.realDesc});
+    if (t.targetSenses) sf.push({k:'targetSenses',l:'目标感官',v:JSON.stringify(t.targetSenses)});
+    if (t.collectedSenses) sf.push({k:'collectedSenses',l:'已收集感官',v:JSON.stringify(t.collectedSenses)});
+    if (t.interactText) sf.push({k:'interactText',l:'交互文本',v:t.interactText});
+    if (t.class && t.class !== baseClass(t.type) && t.class !== `${baseClass(t.type)} ${t.type}-card`) {
+        sf.push({k:'class',l:'额外CSS类',v:t.class});
+    }
+    
+    // ═══ Combo section ═══
+    let comboHtml = '';
+    if (D.CARD_COMBINATIONS) {
+        const combos = Object.entries(D.CARD_COMBINATIONS).filter(([k])=>k.split('+').includes(id));
+        if (combos.length) {
+            comboHtml += `<div class="sec"><div class="sec-hd">组合配方 <span style="font-weight:normal;font-size:10px;color:var(--dim);">(${combos.length})</span></div>`;
+            for (const [key, v] of combos) {
+                const parts = key.split('+');
+                const other = parts.find(p=>p!==id);
+                const res = (v.result||[]).join(', ');
+                comboHtml += `<div class="de">
+                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><span class="rt rt-c">${v.type}</span></div>
+                    <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID"><input class="combo-res" value="${esc(res)}" placeholder="产出ID(逗号分隔)" style="flex:1.5"></div>
+                    <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="触发文本" style="flex:2"><input class="combo-delay" type="number" value="${v.delay||2000}" placeholder="延迟" style="width:60px"></div>
+                    <div class="fa-r" style="gap:8px;">
+                        <label style="font-size:11px;">概率 <input type="number" step="0.01" class="combo-ch" value="${v.chance||''}" style="width:60px;padding:2px 4px;"></label>
+                        <button class="btn btn-sm btn-d" onclick="delCombo('${key}')">✕</button>
+                    </div>
+                </div>`;
+            }
+            comboHtml += `<button class="btn btn-sm" onclick="addCombo('${id}')">＋ 新增组合</button></div>`;
+        }
+    }
+    
+    // ═══ Scene section ═══
+    let sceneHtml = '';
+    if (D.SCENE_EXPLORATION && D.SCENE_EXPLORATION[id]) {
+        const s = D.SCENE_EXPLORATION[id];
+        sceneHtml += `<div class="sec"><div class="sec-hd">场景配置</div>
+            <div class="fr"><div class="fg"><label>槽位数</label><input id="s_slots" type="number" value="${s.slots}"></div>
+            <div class="fg"><label>探索时间(ms)</label><input id="s_time" type="number" value="${s.exploreTime}"></div></div>
+            <div class="fg"><label>探索消息</label><textarea id="s_msg">${esc(s.message||'')}</textarea></div>
+            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">条件卡牌</span></div>
+            <div id="s_req">`;
+        for (const r of (s.requiredCards||[])) {
+            sceneHtml += `<div class="fa-r"><input class="sr-id" value="${esc(r.templateId)}" placeholder="ID" style="flex:1.5"><input class="sr-min" type="number" value="${r.min||1}" style="width:50px"><input class="sr-max" type="number" value="${r.max||1}" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+        }
+        sceneHtml += `<button class="btn btn-sm" onclick="addSReq()">＋ 条件</button></div>
+            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">掉落</span></div>
+            <div id="s_dr">`;
+        for (const d of (s.drops||[])) {
+            sceneHtml += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.01" value="${d.chance}" style="width:60px"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+        }
+        sceneHtml += `<button class="btn btn-sm" onclick="addSDrop()">＋ 掉落</button></div>
+            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">分支掉落组</span></div>
+            <div id="s_dg">`;
+        for (const g of (s.dropGroups||[])) {
+            sceneHtml += `<div class="de"><div class="fa-r"><input class="sg-id" value="${esc(g.id)}" placeholder="组ID" style="flex:1"><input class="sg-lb" value="${esc(g.label)}" placeholder="标签" style="flex:1"><input class="sg-msg" value="${esc(g.message||'')}" placeholder="消息" style="flex:1"></div>`;
+            sceneHtml += `<div style="font-size:9px;color:var(--dim);">条件卡牌：</div>`;
+            for (const r of (g.requiredCards||[])) {
+                sceneHtml += `<div class="fa-r"><input class="sgr-id" value="${esc(r.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgr-min" type="number" value="${r.min||1}" style="width:50px"><input class="sgr-max" type="number" value="${r.max||1}" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+            }
+            sceneHtml += `<div style="font-size:9px;color:var(--dim);">掉落：</div>`;
+            for (const d of (g.drops||[])) {
+                sceneHtml += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.01" value="${d.chance}" style="width:60px"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+            }
+            sceneHtml += `<button class="btn btn-sm" onclick="addSGDrop(this)">＋ 组掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">删除组</button></div>`;
+        }
+        sceneHtml += `<button class="btn btn-sm" onclick="addSGroup()">＋ 分支组</button></div></div>`;
+    }
+    
+    // ═══ Dialogue section ═══
+    let diaHtml = '';
+    if (D.DIALOGUE_DATA && D.DIALOGUE_DATA[id]) {
+        const cfg = D.DIALOGUE_DATA[id];
+        const dialogues = cfg.dialogues || {};
+        diaHtml += `<div class="sec"><div class="sec-hd">对话</div>
+            <div class="fr"><div class="fg"><label>角色ID</label><input id="d_id" value="${esc(id)}"></div>
+            <div class="fg"><label>显示名</label><input id="d_name" value="${esc(cfg.name||'')}"></div></div>
+            <div id="d_grps">`;
+        for (const [tid, lines] of Object.entries(dialogues)) {
+            const cname = D.CARD_TEMPLATES?.[tid]?.name||tid;
+            diaHtml += `<div class="de">
+                <div class="fa-r"><input class="d-trg" value="${esc(tid)}" placeholder="触发卡ID" style="flex:1"><span style="font-size:11px;color:var(--dim);flex:1">${esc(cname)}</span><button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">✕</button></div>`;
+            for (const l of lines) {
+                diaHtml += `<div class="fa-r"><input class="d-txt" value="${esc(l.text||'')}" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="${l.index||0}" style="width:40px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+            }
+            diaHtml += `<button class="btn btn-sm" onclick="addDLine(this)">＋ 行</button></div>`;
+        }
+        diaHtml += `</div><button class="btn btn-sm" onclick="addDGroup()">＋ 对话组</button></div>`;
+    }
+    
+    // ═══ Observation section ═══
+    let obsHtml = '';
+    if (D.OBSERVATION_TEXTS) {
+        const obsText = D.OBSERVATION_TEXTS[id] || '';
+        obsHtml += `<div class="sec"><div class="sec-hd">观测文本</div>
+            <div class="fg"><textarea id="f_obs" rows="3">${esc(obsText)}</textarea></div></div>`;
+    }
+    
+    // ═══ Save button ═══
+    h += comboHtml + sceneHtml + diaHtml + obsHtml;
+    h += `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-p" onclick="saveCard('${id}')">💾 应用修改</button>
+        <button class="btn btn-d" onclick="delCard('${id}')">🗑 删除卡牌</button>
+        <span id="svStatus" style="font-size:11px;color:var(--cs);align-self:center;"></span>
+    </div>`;
+    
+    document.getElementById('ctr').innerHTML = h;
+    showPreview(id);
+    showRelations(id);
+}
+
+function showEmpty() {
+    document.getElementById('ctr').innerHTML = '<div class="pl">← 选择卡牌编辑</div>';
+    document.getElementById('pv').innerHTML = '<div class="hint">选择后预览</div>';
+    document.getElementById('rel').innerHTML = '<div class="hint">选择后显示</div>';
+}
+
+function baseClass(type) { return type==='char'?'char-card':type==='scene'?'scene-card':type==='item'?'item-card':type==='clue'?'clue-card':type==='logic'?'logic-card':'item-card'; }
+
+// ═══ Preview ═══
+function showPreview(id) {
+    const t = D.CARD_TEMPLATES?.[id];
+    if (!t) { document.getElementById('pv').innerHTML = '<div class="hint">选择后预览</div>'; return; }
+    const ty = t.type||'item';
+    let ex = '';
+    if (ty==='clue') { const sm={vision:'var(--cv)',hearing:'var(--ch)',taste:'var(--ct)',touch:'var(--cto)',smell:'var(--cs)'}; ex=`border-top:3px solid ${sm[t.senseType]||'var(--cv)'};`; }
+    else if (ty==='char') ex='border-top:3px solid #8a5a3a;';
+    else if (ty==='scene') ex='border-top:3px solid #3a7a5a;';
+    else if (ty==='item') ex='border-top:3px solid #7a5a8a;';
+    else if (ty==='logic') ex='border-top:3px solid #5a6a7a;';
+    if (t.class?.includes('true-name')) ex+='border-color:#c9a227;box-shadow:0 0 15px rgba(201,162,39,0.3);';
+    document.getElementById('pv').innerHTML = `<div class="card-pv pv-${ty}" style="${ex}"><div class="pn">${esc(t.name)}</div><div class="pt">${t.type}${t.consumable?' •消耗':''}</div></div>`;
+}
+
+function showRelations(id) {
+    const el = document.getElementById('rel');
+    if (!D.CARD_TEMPLATES?.[id]) { el.innerHTML = '<div class="hint">选择后显示</div>'; return; }
+    let h = '';
+    if (D.CARD_COMBINATIONS) {
+        const cs = Object.entries(D.CARD_COMBINATIONS).filter(([k])=>k.split('+').includes(id));
+        if (cs.length) {
+            h += '<div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:bold;color:var(--dim);margin-bottom:2px;">组合</div>';
+            for (const [k,v] of cs) {
+                const o = k.split('+').filter(p=>p!==id).map(p=>D.CARD_TEMPLATES[p]?.name||p).join(', ');
+                const r = (v.result||[]).map(r=>D.CARD_TEMPLATES[r]?.name||r).join(', ');
+                h += `<div class="rl"><span class="rt rt-c">${v.type}</span>${esc(o)} → ${esc(r)}</div>`;
+            }
+            h += '</div>';
+        }
+    }
+    if (D.SCENE_EXPLORATION) {
+        for (const [sid] of Object.entries(D.SCENE_EXPLORATION)) {
+            if (sid===id) h += `<div class="rl"><span class="rt rt-s">场景</span>已配置此场景</div>`;
+        }
+    }
+    if (D.DIALOGUE_DATA) {
+        for (const [cid,cfg] of Object.entries(D.DIALOGUE_DATA)) {
+            const dlg = cfg.dialogues || {};
+            if (cid===id) h += `<div class="rl"><span class="rt rt-d">对话</span>此角色有${Object.keys(dlg).length}组对话</div>`;
+            if (Object.keys(dlg).includes(id)) h += `<div class="rl"><span class="rt rt-d">触发</span>${esc(D.CARD_TEMPLATES?.[cid]?.name||cid)}的对话触发</div>`;
+        }
+    }
+    if (D.OBSERVATION_TEXTS?.[id]) h += `<div class="rl"><span class="rt rt-o">观测</span>${esc((D.OBSERVATION_TEXTS[id]||'').substring(0,50))}</div>`;
+    if (!h) h = '<div class="hint">无关联</div>';
+    el.innerHTML = h;
+}
+
+// ═══ Save card ═══
+window.saveCard = function(id) {
+    const t = D.CARD_TEMPLATES[id];
+    t.name = document.getElementById('f_name')?.value || t.name;
+    t.type = document.getElementById('f_type')?.value || t.type;
+    t.desc = document.getElementById('f_desc')?.value || '';
+    t.consumable = document.getElementById('f_csm')?.checked || false;
+    t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
+    // Auto-set class based on type
+    t.class = baseClass(t.type);
+    
+    // Save combos
+    if (D.CARD_COMBINATIONS) {
+        document.querySelectorAll('.de').forEach(el => {
+            const other = el.querySelector('.combo-other')?.value;
+            const res = el.querySelector('.combo-res')?.value;
+            if (!other) return;
+            const key = [id, other].sort().join('+');
+            const existing = D.CARD_COMBINATIONS[key];
+            if (!existing) D.CARD_COMBINATIONS[key] = { type: 'interaction', result: [], message: '', delay: 2000 };
+            const v = D.CARD_COMBINATIONS[key];
+            if (res) v.result = res.split(',').map(s=>s.trim()).filter(Boolean);
+            if (el.querySelector('.combo-msg')) v.message = el.querySelector('.combo-msg').value;
+            if (el.querySelector('.combo-delay')) v.delay = parseInt(el.querySelector('.combo-delay').value)||2000;
+            const ch = el.querySelector('.combo-ch')?.value;
+            if (ch) v.chance = parseFloat(ch);
+            else delete v.chance;
+        });
+    }
+    
+    // Save scene
+    if (D.SCENE_EXPLORATION && D.SCENE_EXPLORATION[id]) {
+        const s = D.SCENE_EXPLORATION[id];
+        s.slots = parseInt(document.getElementById('s_slots')?.value)||2;
+        s.exploreTime = parseInt(document.getElementById('s_time')?.value)||5000;
+        s.message = document.getElementById('s_msg')?.value||'';
+        s.requiredCards = [];
+        document.querySelectorAll('#s_req .fa-r:not(:last-child)').forEach(r => {
+            const ins = r.querySelectorAll('input');
+            if (ins[0]?.value) s.requiredCards.push({templateId: ins[0].value, min: parseInt(ins[1]?.value)||1, max: parseInt(ins[2]?.value)||1});
+        });
+        s.drops = [];
+        document.querySelectorAll('#s_dr .fa-r:not(:last-child)').forEach(r => {
+            const ins = r.querySelectorAll('input');
+            if (ins[0]?.value) s.drops.push({templateId: ins[0].value, chance: parseFloat(ins[1]?.value)||0, message: ins[2]?.value||''});
+        });
+        s.dropGroups = [];
+        document.querySelectorAll('#s_dg .de').forEach(el => {
+            const g = { id: el.querySelector('.sg-id')?.value||'', label: el.querySelector('.sg-lb')?.value||'', message: el.querySelector('.sg-msg')?.value||'', requiredCards: [], drops: [] };
+            el.querySelectorAll('.fa-r').forEach(r => {
+                const sgid = r.querySelector('.sgr-id');
+                const sgdid = r.querySelector('.sgd-id');
+                if (sgid) g.requiredCards.push({templateId: sgid.value, min: parseInt(r.querySelector('.sgr-min')?.value)||1, max: parseInt(r.querySelector('.sgr-max')?.value)||1});
+                if (sgdid) g.drops.push({templateId: sgdid.value, chance: parseFloat(r.querySelector('.sgd-ch')?.value)||0, message: r.querySelector('.sgd-msg')?.value||''});
+            });
+            if (g.id) s.dropGroups.push(g);
+        });
+    }
+    
+    // Save dialogue
+    if (D.DIALOGUE_DATA && D.DIALOGUE_DATA[id]) {
+        const dialogues = {};
+        document.querySelectorAll('#d_grps .de').forEach(el => {
+            const tid = el.querySelector('.d-trg')?.value;
+            if (!tid) return;
+            const lines = [];
+            el.querySelectorAll('.d-txt').forEach((txt, i) => {
+                const idxs = el.querySelectorAll('.d-idx');
+                if (txt.value) lines.push({text: txt.value, index: parseInt(idxs[i]?.value)||i});
+            });
+            if (lines.length) dialogues[tid] = lines;
+        });
+        D.DIALOGUE_DATA[id] = { name: document.getElementById('d_name')?.value || '', dialogues };
+    }
+    
+    // Save observation
+    if (D.OBSERVATION_TEXTS) {
+        D.OBSERVATION_TEXTS[id] = document.getElementById('f_obs')?.value || '';
+    }
+    
+    D.CARD_TEMPLATES[id] = t;
+    setStatus(`已保存: ${id}`);
+    document.getElementById('svStatus').textContent = '✓ 已应用';
+    renderList();
+    showPreview(id);
+    showRelations(id);
+};
+
+window.addCard = function(type) {
+    const id = `ITEM_new_${Date.now()}`;
+    D.CARD_TEMPLATES[id] = { name: `新${TN[type]||type}`, desc: '', type: type||'item', class: baseClass(type||'item'), consumable: false };
+    // If scene, add scene config
+    if ((type||'') === 'scene' && D.SCENE_EXPLORATION) D.SCENE_EXPLORATION[id] = { slots: 2, exploreTime: 5000, message: '', requiredCards: [], drops: [] };
+    // If char, add dialogue config
+    if ((type||'') === 'char' && D.DIALOGUE_DATA) D.DIALOGUE_DATA[id] = { name: `新${TN[type]||type}` };
+    setStatus(`已创建: ${id}`);
+    renderList();
+    selectCard(id);
+};
+
+window.delCard = function(id) {
+    if (!confirm(`确认删除 ${id}？仅影响内存副本。`)) return;
+    delete D.CARD_TEMPLATES[id];
+    if (D.SCENE_EXPLORATION) delete D.SCENE_EXPLORATION[id];
+    if (D.DIALOGUE_DATA) delete D.DIALOGUE_DATA[id];
+    if (D.OBSERVATION_TEXTS) delete D.OBSERVATION_TEXTS[id];
+    selId = null;
+    renderList();
+    showEmpty();
+    setStatus(`已删除: ${id}`);
+};
+
+// ═══ Combo helpers ═══
+window.addCombo = function(id) {
+    const other = Object.keys(D.CARD_TEMPLATES).find(k=>k!==id);
+    if (!other) return;
+    const key = [id, other].sort().join('+');
+    if (!D.CARD_COMBINATIONS[key]) D.CARD_COMBINATIONS[key] = { type:'interaction', result:[], message:'', delay:2000 };
+    selectCard(id);
+};
+window.delCombo = function(key) {
+    if (!confirm(`删除组合 ${key}？`)) return;
+    delete D.CARD_COMBINATIONS[key];
+    if (selId) selectCard(selId);
+};
+
+// ═══ Scene helpers ═══
+window.addSReq = function() {
+    const c = document.getElementById('s_req');
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="sr-id" placeholder="ID" style="flex:1.5"><input class="sr-min" type="number" value="1" style="width:50px"><input class="sr-max" type="number" value="1" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    c.insertBefore(d, c.lastElementChild);
+};
+window.addSDrop = function() {
+    const c = document.getElementById('s_dr');
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="sd-id" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.01" value="0.3" style="width:60px"><input class="sd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    c.insertBefore(d, c.lastElementChild);
+};
+window.addSGroup = function() {
+    const c = document.getElementById('s_dg');
+    const d = document.createElement('div'); d.className='de';
+    d.innerHTML='<div class="fa-r"><input class="sg-id" placeholder="组ID" style="flex:1"><input class="sg-lb" placeholder="标签" style="flex:1"><input class="sg-msg" placeholder="消息" style="flex:1"></div><button class="btn btn-sm" onclick="addSGRReq(this)">＋ 条件</button> <button class="btn btn-sm" onclick="addSGDrop(this)">＋ 掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest(\'.de\').remove()">删除</button>';
+    c.appendChild(d);
+};
+window.addSGRReq = function(btn) {
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="sgr-id" placeholder="ID" style="flex:1.5"><input class="sgr-min" type="number" value="1" style="width:50px"><input class="sgr-max" type="number" value="1" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    btn.parentElement.insertBefore(d, btn);
+};
+window.addSGDrop = function(btn) {
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="sgd-id" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.01" value="0.3" style="width:60px"><input class="sgd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    btn.parentElement.insertBefore(d, btn);
+};
+
+// ═══ Dialogue helpers ═══
+window.addDLine = function(btn) {
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="d-txt" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="0" style="width:40px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    btn.parentElement.insertBefore(d, btn);
+};
+window.addDGroup = function() {
+    const c = document.getElementById('d_grps');
+    const d = document.createElement('div'); d.className='de';
+    d.innerHTML='<div class="fa-r"><input class="d-trg" placeholder="触发卡ID" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.closest(\'.de\').remove()">✕</button></div><button class="btn btn-sm" onclick="addDLine(this)">＋ 行</button>';
+    c.appendChild(d);
+};
+
+// ═══ Export ═══
+const FCS = [
+    {n:'cards.js',v:'CARD_TEMPLATES',gen:genCards},
+    {n:'combinations.js',v:'CARD_COMBINATIONS',gen:genCombos},
+    {n:'scenes.js',v:'SCENE_EXPLORATION',gen:genScenes},
+    {n:'dialogues.js',v:'DIALOGUE_DATA',gen:genDialogues},
+    {n:'observations.js',v:'OBSERVATION_TEXTS',gen:genObs},
+];
+
+function genCards() {
+    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
+    let s = '// 卡牌模板\nexport const CARD_TEMPLATES = {\n';
+    for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
+        const f = [`name: '${escJs(t.name||'')}'`,`desc: '${escJs(t.desc||'')}'`,`type: '${t.type||'item'}'`,`class: '${t.class||baseClass(t.type)}'`];
+        if (t.consumable!==undefined) f.push(t.consumable?'consumable: true':'consumable: false');
+        if (t.allowDuplicate) f.push('allowDuplicate: true');
+        for (const k of sf) {
+            if (t[k]!==undefined&&t[k]!==null) {
+                if (typeof t[k]==='string') f.push(`${k}: '${escJs(t[k])}'`);
+                else if (Array.isArray(t[k])) f.push(`${k}: ${JSON.stringify(t[k])}`);
+                else f.push(`${k}: ${t[k]}`);
+            }
+        }
+        s += `    '${id}': { ${f.join(', ')} },\n`;
+    }
+    return s+'};\n';
+}
+function genCombos() {
+    let s = '// 组合配方\nexport const CARD_COMBINATIONS = {\n';
+    for (const [k,v] of Object.entries(D.CARD_COMBINATIONS||{})) {
+        const f = [`type: '${v.type||'interaction'}'`];
+        if (v.result?.length) f.push(`result: ${JSON.stringify(v.result)}`);
+            for (const k2 of ['message','chance','successMessage','failMessage','speechText','speechDuration','delay']) {
+            if (v[k2]!==undefined) {
+                if (typeof v[k2]==='string') f.push(`${k2}: '${escJs(v[k2])}'`);
+                else if (typeof v[k2]==='boolean') { if(v[k2]) f.push(`${k2}: true`); }
+                else f.push(`${k2}: ${v[k2]}`);
+            }
+        }
+        s += `    '${k}': { ${f.join(', ')} },\n`;
+    }
+    return s+'};\n';
+}
+function genScenes() {
+    let s = '// 场景配置\nexport const SCENE_EXPLORATION = {\n';
+    for (const [id,v] of Object.entries(D.SCENE_EXPLORATION||{})) {
+        s += `    '${id}': { slots: ${v.slots||2}, exploreTime: ${v.exploreTime||5000}`;
+        if (v.message) s += `, message: '${escJs(v.message)}'`;
+        if (v.requiredCards?.length) s += `, requiredCards: ${JSON.stringify(v.requiredCards)}`;
+        if (v.drops?.length) s += `, drops: ${JSON.stringify(v.drops)}`;
+        if (v.dropGroups?.length) s += `, dropGroups: ${JSON.stringify(v.dropGroups)}`;
+        s += ` },\n`;
+    }
+    return s+'};\n';
+}
+function genDialogues() {
+    let s = '// 对话\nexport const DIALOGUE_DATA = {\n';
+    for (const [id,cfg] of Object.entries(D.DIALOGUE_DATA||{})) {
+        s += `    '${id}': { name: '${escJs(cfg.name||'')}'`;
+        const dlg = cfg.dialogues || {};
+        for (const [tid,lines] of Object.entries(dlg)) {
+            s += `,\n        '${tid}': [`;
+            for (const l of lines) s += `\n            { text: '${escJs(l.text||'')}', index: ${l.index||0} },`;
+            s += `\n        ]`;
+        }
+        s += `\n    },\n`;
+    }
+    return s+'};\n';
+}
+function genObs() {
+    let s = '// 观测\nexport const OBSERVATION_TEXTS = {\n';
+    for (const [id,t] of Object.entries(D.OBSERVATION_TEXTS||{})) s += `    '${id}': '${escJs(t)}',\n`;
+    return s+'};\n';
+}
+
+window.doExport = function() {
+    if (!D.CARD_TEMPLATES) { setStatus('无数据'); return; }
+    document.getElementById('exportModal').classList.add('show');
+    document.getElementById('exportTitle').textContent = `导出 ${Object.keys(D.CARD_TEMPLATES).length} 卡`;
+    document.getElementById('exportCode').value = '// TEC3 导出\n'+FCS.map(f=>D[f.v]?f.gen():'').join('\n');
+    document.getElementById('exportStatus').textContent = '可分别下载各文件';
+};
+
+window.downloadExports = function() {
+    for (const f of FCS) {
+        if (D[f.v]) {
+            const b = new Blob([f.gen()], {type:'text/javascript;charset=utf-8'});
+            const u = URL.createObjectURL(b);
+            const a = document.createElement('a'); a.href=u; a.download=f.n; a.click();
+            URL.revokeObjectURL(u);
+        }
+    }
+    setStatus('已下载');
+    closeModal('exportModal');
+};
+
+// ═══ Server save ═══
+window.saveToServer = async function() {
+    if (!isSrv) { setStatus('离线模式，请使用导出'); return; }
+    setStatus('保存中...');
+    let ok=0, fail=0;
+    for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
+        try {
+            const r = await fetch('/api/save-card', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,template:t})});
+            const j = await r.json();
+            if (j.success) ok++; else fail++;
+        } catch(e) { fail++; }
+    }
+    setStatus(`保存: ${ok}成功 ${fail}失败`);
+};
+
+// ═══ Utils ═══
+function setStatus(m) { document.getElementById('status').textContent = m; }
+window.closeModal = function(id) { document.getElementById(id).classList.remove('show'); };
+
+// ═══ Init ═══
+renderList();
+trySrv();
+</script>
+</body>
+</html>

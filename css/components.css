@@ -81,12 +81,25 @@
 }
 .card:active { cursor: grabbing; }
 
-.card.item-card { background: linear-gradient(135deg, #f8f5ef 0%, #f0e8e0 100%); border-color: #5a5a7a; }
-.card.scene-card { background: linear-gradient(135deg, #f5f0e8 0%, #e8e0d8 100%); border-color: #4a6a4a; }
-.card.char-card { background: linear-gradient(135deg, #f0e8e0 0%, #e8e0d8 100%); border-color: #6a4f3a; }
-.card.logic-card { 
-    background: linear-gradient(135deg, #e8e0d8 0%, #d8d0c8 100%); 
-    border-color: #5a4a3a; 
+/* 卡牌类型配色 - 不同底色 + 顶部 3px 色条 */
+.card.char-card {
+    background: linear-gradient(135deg, #f5ece8 0%, #ece0d5 100%);
+    border-top: 3px solid #8a5a3a;
+}
+
+.card.scene-card {
+    background: linear-gradient(135deg, #edf0e8 0%, #dde5d5 100%);
+    border-top: 3px solid #3a7a5a;
+}
+
+.card.item-card {
+    background: linear-gradient(135deg, #f0ecf0 0%, #e5dde8 100%);
+    border-top: 3px solid #7a5a8a;
+}
+
+.card.logic-card {
+    background: linear-gradient(135deg, #e8e8ec 0%, #d5d5dd 100%);
+    border-top: 3px solid #5a6a7a;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 .card.logic-card::before {
@@ -95,22 +108,31 @@
     top: 2px;
     right: 4px;
     font-size: 10px;
-    color: #6a5a4a;
+    color: #5a6a7a;
 }
 
-/* 所有线索卡统一配色 - 感官区分通过右上角 emoji（::after）实现 */
+/* 线索卡 - 基础奶油色，按五感区分顶部色条 */
 .card.clue-vision,
 .card.clue-taste,
 .card.clue-hearing,
 .card.clue-touch,
 .card.clue-smell {
     background: linear-gradient(135deg, #fdfaf5 0%, #f0e8e0 100%);
-    border-color: #5a4a3a;
 }
-.card.lock-card { border-color: #b99217; box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 0 6px rgba(185, 146, 23, 0.4); }
-.card.equipment-card { 
-    background: linear-gradient(135deg, #e8e0d8 0%, #d8d0c8 100%); 
-    border-color: #985a4a; 
+.card.clue-vision { border-top: 3px solid var(--color-vision); }
+.card.clue-hearing { border-top: 3px solid var(--color-hearing); }
+.card.clue-taste { border-top: 3px solid var(--color-taste); }
+.card.clue-touch { border-top: 3px solid var(--color-touch); }
+.card.clue-smell { border-top: 3px solid var(--color-smell); }
+
+.card.lock-card {
+    border-top: 3px solid #b99217;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 0 6px rgba(185, 146, 23, 0.4);
+}
+
+.card.equipment-card {
+    background: linear-gradient(135deg, #ede5dd 0%, #e0d5cc 100%);
+    border-top: 3px solid #985a4a;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 0 8px rgba(152, 90, 74, 0.4);
 }
 .card.equipment-card::before {

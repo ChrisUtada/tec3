@@ -101,7 +101,6 @@ export function openExploration(sceneId) {
 
         startBtn.style.display = 'inline-block';
         startBtn.disabled = false;
-        closeBtn.style.display = 'none';
 
         explorationPanel.classList.add('show');
         log(`🌍 [探索系统] 开启了【${sceneData.name}】的探索`, "success");
@@ -583,9 +582,6 @@ function completeExploration(sceneData) {
     explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。不可消耗的卡牌保留在槽位中，可手动拖出。`;
         
     log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
-    
-    // 显示关闭按钮，让用户手动关闭
-    closeBtn.style.display = 'inline-block';
     
     // 重置状态，允许再次放入卡牌进行探索
     resetExplorationState();

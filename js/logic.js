@@ -218,31 +218,12 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
             directSpawnCard(resultTemplateId, positionX + offsetX, positionY);
         });
         
-        // 处理原料卡消耗
-
-        if (rule.consumeAll) {
+        // 处理原料卡消耗：由每张卡牌自身的 consumable 属性决定
+        if (CARD_TEMPLATES[moved.templateId].consumable) {
             destroyCard(moved.instanceId);
+        }
+        if (CARD_TEMPLATES[target.templateId].consumable) {
             destroyCard(target.instanceId);
-        } else if (rule.consumeMover !== undefined || rule.consumeTarget !== undefined) {
-            // 精确消耗控制（consumable: false 是硬约束，永远跳过销毁）
-            if (rule.consumeMover === true && CARD_TEMPLATES[moved.templateId].consumable !== false) {
-                destroyCard(moved.instanceId);
-            }
-            if (rule.consumeTarget === true && CARD_TEMPLATES[target.templateId].consumable !== false) {
-                destroyCard(target.instanceId);
-            }
-        } else {
-            // 根据每张卡牌自身的 consumable 属性决定是否消耗
-            const movedConsumable = CARD_TEMPLATES[moved.templateId].consumable;
-            const targetConsumable = CARD_TEMPLATES[target.templateId].consumable;
-
-            if (movedConsumable) {
-                destroyCard(moved.instanceId);
-            }
-
-            if (targetConsumable) {
-                destroyCard(target.instanceId);
-            }
         }
 
         // 显示成功消息（如果有）
