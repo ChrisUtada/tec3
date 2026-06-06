@@ -18,6 +18,33 @@
 .modal-body { font-size: 12px; line-height: 1.6; flex: 1; overflow-y: auto; white-space: pre-wrap; background: rgba(0,0,0,0.3); padding: 12px; margin: 12px 0; border-radius: 4px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
 
+/*  右侧面板通用 */
+.panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a2736; padding: 12px 16px; min-height: 44px; flex-shrink: 0; }
+.panel-title { font-size: 12px; font-weight: bold; color: var(--color-char); }
+.panel-close { color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 6px; background: rgba(255,255,255,0.05); }
+.panel-close:hover { color: #fff; background: rgba(255,255,255,0.15); }
+.panel-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.panel-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid #1a2736; flex-shrink: 0; }
+
+/*  右侧面板基类 */
+.right-panel {
+    display: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 420px;
+    height: 100vh;
+    background: #080d14;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+    z-index: 100000;
+    flex-direction: column;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+}
+.right-panel.panel-closing {
+    transform: translateX(100%);
+}
+
 .sync-btn { background: var(--color-vision); border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; color: #000; }
 .sync-btn:disabled { background: #1c2a3a; color: var(--text-muted); cursor: not-allowed; }
 
@@ -408,27 +435,15 @@
 }
 .ending-btn:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.02); }
 
-/*  人物对话窗口 */
-#dialogue-modal {
-    display: none;
-    position: absolute;
-    top: 15%; left: 20%; width: 500px;
-    background: #080d14;
-    border: 2px solid var(--color-char);
-    border-radius: 6px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-    z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
-    flex-direction: column;
-    padding: 20px;
-    cursor: move; /* 整个弹窗可拖动 */
+/*  右侧面板 - 人物对话 */
+#dialogue-panel {
+    border-left: 3px solid var(--color-char);
 }
-
-.dialogue-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin: 15px 0;
+#exploration-panel {
+    border-left: 3px solid var(--color-scene);
+}
+#reasoning-panel {
+    border-left: 3px solid var(--color-vision);
 }
 
 .dialogue-slot {
@@ -443,6 +458,7 @@
     position: relative;
     transition: all 0.3s;
     margin: 0 auto;
+    flex-shrink: 0;
 }
 
 .dialogue-slot.drag-over {
@@ -477,8 +493,7 @@
 }
 
 .dialogue-text {
-    min-height: 120px;
-    max-height: 200px;
+    flex: 1;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
@@ -487,6 +502,7 @@
     line-height: 1.6;
     color: var(--text-main);
     white-space: pre-wrap;
+    min-height: 100px;
 }
 
 .dialogue-btn {
@@ -509,51 +525,45 @@
     transform: scale(0.98);
 }
 
-/*  场景探索窗口样式 */
-#exploration-modal {
-    display: none;
-    position: absolute;  /* 改回 absolute，与对话/归因窗口一致 */
-    top: 15%; left: 20%; width: 600px;
-    background: #080d14;
-    border: 2px solid var(--color-scene);
-    border-radius: 6px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-    z-index: 100000;
-    flex-direction: column;
-    padding: 20px;
-    cursor: move;
+/* 卡牌槽位错误震动 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+.dialogue-slot.shake-error {
+    animation: shake 0.4s ease;
+    border-color: #ff3333 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5) !important;
+    background: rgba(255, 0, 0, 0.1) !important;
 }
 
-.exploration-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin: 15px 0;
-}
-
+/*  场景探索面板 */
 .exploration-slots {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .exploration-slot {
-    width: 120px;
-    height: 155px;
+    width: 110px;
+    height: 140px;
     border: 2px dashed #2a3f52;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.3);  /* 添加背景色，与对话/归因一致 */
+    background: rgba(0, 0, 0, 0.3);
     position: relative;
     transition: all 0.2s;
 }
 
 .exploration-slot.drag-over {
     border-color: var(--color-scene);
-    background: rgba(255, 136, 0, 0.15);  /* 拖拽时显示轻微高亮 */
+    background: rgba(255, 136, 0, 0.15);
 }
 
 .exploration-slot-placeholder {
@@ -563,7 +573,6 @@
     pointer-events: none;
 }
 
-/* 探索窗口中的卡牌样式 */
 .exploration-slot .card.embedded {
     transform: scale(0.98);
     box-shadow: 
@@ -576,8 +585,8 @@
     z-index: 10 !important;
     position: relative !important;
     margin: 0 !important;
-    left: auto !important;  /* 强制覆盖 */
-    top: auto !important;   /* 强制覆盖 */
+    left: auto !important;
+    top: auto !important;
 }
 
 .exploration-progress {
@@ -589,46 +598,46 @@
 
 .exploration-progress-bar {
     width: 100%;
-    height: 16px;  /* 增加高度 */
-    background: rgba(0, 0, 0, 0.7);  /* 更深的背景 */
-    border: 2px solid var(--color-scene);  /* 更粗的边框 */
+    height: 14px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--color-scene);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);  /* 内阴影增强层次感 */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .exploration-progress-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #ff8800, #ffaa33);  /* 渐变效果 */
-    box-shadow: 0 0 10px rgba(255, 136, 0, 0.6);  /* 发光效果 */
+    background: linear-gradient(90deg, #ff8800, #ffaa33);
+    box-shadow: 0 0 10px rgba(255, 136, 0, 0.6);
     transition: width linear;
 }
 
 .exploration-progress-text {
-    font-size: 13px;  /* 增大字体 */
-    color: #ffcc88;  /* 更亮的橙色 */
-    font-weight: bold;  /* 加粗 */
+    font-size: 12px;
+    color: #ffcc88;
+    font-weight: bold;
     text-align: center;
-    text-shadow: 0 0 8px rgba(255, 136, 0, 0.5);  /* 文字发光 */
+    text-shadow: 0 0 8px rgba(255, 136, 0, 0.5);
 }
 
 .exploration-info {
-    font-size: 13px;  /* 增大字体 */
-    color: #a8b8c8;  /* 更亮的文字 */
+    font-size: 12px;
+    color: #a8b8c8;
     text-align: center;
     line-height: 1.6;
     padding: 12px;
-    background: rgba(42, 63, 82, 0.2);  /* 稍微加深背景 */
+    background: rgba(42, 63, 82, 0.2);
     border-radius: 6px;
-    border: 1px solid rgba(42, 63, 82, 0.3);  /* 添加边框 */
+    border: 1px solid rgba(42, 63, 82, 0.3);
 }
 
 .exploration-btn {
-    padding: 12px 28px;  /* 增大按钮 */
-    background: linear-gradient(135deg, rgba(255, 136, 0, 0.2), rgba(255, 136, 0, 0.1));  /* 渐变背景 */
-    border: 2px solid #ff8800;  /* 更亮的边框 */
-    color: #ffcc88;  /* 更亮的文字 */
+    padding: 10px 22px;
+    background: linear-gradient(135deg, rgba(255, 136, 0, 0.2), rgba(255, 136, 0, 0.1));
+    border: 2px solid #ff8800;
+    color: #ffcc88;
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;  /* 增大字体 */
@@ -658,29 +667,7 @@
     transform: none;
 }
 
-/*  归因推演窗口 */
-#reasoning-modal {
-    display: none;
-    position: absolute;
-    top: 10%; left: 15%; width: 600px;
-    background: #080d14;
-    border: 2px solid var(--color-vision);
-    border-radius: 6px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-    z-index: 100000; /* 确保弹窗始终在所有卡牌之上 */
-    flex-direction: column;
-    padding: 20px;
-    cursor: move;
-}
-
-.reasoning-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin: 15px 0;
-}
-
+/*  归因推演面板 */
 .reasoning-slots {
     display: flex;
     gap: 10px;

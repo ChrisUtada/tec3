@@ -53,13 +53,13 @@
             <div id="query-content">点击桌面卡牌查看详细信息。<br><span style="color:var(--color-vision)">提示：将卡牌堆叠触发组合，双击【场景】卡牌进行探索，或双击【逻辑归因】卡牌进行推演！</span></div>
         </div>
 
-        <!-- 人物对话窗口 -->
-        <div id="dialogue-modal">
-            <div class="modal-header">
-                <div class="modal-title" id="dialogue-title">人物对话</div>
-                <div class="modal-close" id="dialogue-modal-close">[ X ]</div>
+        <!-- 右侧面板 - 对话系统 -->
+        <div id="dialogue-panel" class="right-panel">
+            <div class="panel-header">
+                <div class="panel-title" id="dialogue-title">人物对话</div>
+                <div class="panel-close" id="dialogue-modal-close">[ X ]</div>
             </div>
-            <div class="dialogue-content">
+            <div class="panel-body">
                 <div class="dialogue-slot" id="dialogue-slot">
                     <div class="dialogue-slot-placeholder">将卡牌拖入此处</div>
                 </div>
@@ -67,19 +67,20 @@
                     双击人物卡牌开启对话。将物品、场景或线索拖入上方槽位，查看对应对话内容。
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="panel-footer">
+                <button class="dialogue-btn" id="dialogue-confirm-btn" style="display:none;">确认对话</button>
                 <button class="dialogue-btn" id="dialogue-next-btn" style="display:none;">继续</button>
                 <button class="dialogue-btn" id="dialogue-end-btn" style="display:none;">结束对话</button>
             </div>
         </div>
 
-        <!-- 场景探索窗口 -->
-        <div id="exploration-modal">
-            <div class="modal-header">
-                <div class="modal-title" id="exploration-title">场景探索</div>
-                <div class="modal-close" id="exploration-modal-close">[ X ]</div>
+        <!-- 场景探索面板 -->
+        <div id="exploration-panel" class="right-panel">
+            <div class="panel-header">
+                <div class="panel-title" id="exploration-title">场景探索</div>
+                <div class="panel-close" id="exploration-modal-close">[ X ]</div>
             </div>
-            <div class="exploration-content">
+            <div class="panel-body">
                 <div class="exploration-slots" id="exploration-slots">
                     <!-- 动态生成3个槽位 -->
                 </div>
@@ -93,19 +94,19 @@
                     将人物、物品或线索拖入上方槽位，然后点击"探索"按钮。
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="panel-footer">
                 <button class="exploration-btn" id="exploration-start-btn">开始探索</button>
                 <button class="exploration-btn" id="exploration-close-btn" style="display:none;">关闭</button>
             </div>
         </div>
 
-        <!-- 归因推演窗口 -->
-        <div id="reasoning-modal">
-            <div class="modal-header">
-                <div class="modal-title" id="reasoning-title">逻辑归因 // 归因推演仪</div>
-                <div class="modal-close" id="reasoning-modal-close">[ X ]</div>
+        <!-- 归因推演面板 -->
+        <div id="reasoning-panel" class="right-panel">
+            <div class="panel-header">
+                <div class="panel-title" id="reasoning-title">逻辑归因 // 归因推演仪</div>
+                <div class="panel-close" id="reasoning-modal-close">[ X ]</div>
             </div>
-            <div class="reasoning-content">
+            <div class="panel-body">
                 <div class="reasoning-slots" id="reasoning-slots">
                     <div class="reasoning-slot" id="slot-0">
                         <div class="slot-placeholder">线索槽位 1</div>
@@ -124,7 +125,6 @@
                     </div>
                 </div>
                 
-                <!-- 归因推演进度条 -->
                 <div class="reasoning-progress-container" id="reasoning-progress-container" style="display: none;">
                     <div class="reasoning-progress-label">正在进行因果链推演...</div>
                     <div class="reasoning-progress-bar">
@@ -137,7 +137,7 @@
                     将线索卡牌拖入上方槽位（至少 1 条），然后点击【归因推演】按钮推导真相。
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="panel-footer">
                 <button class="reasoning-btn" id="reasoning-execute-btn" disabled>归因推演</button>
                 <button class="reasoning-btn" id="reasoning-close-btn">关闭</button>
             </div>

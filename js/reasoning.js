@@ -2,9 +2,9 @@
 import { REASONING_ENDINGS, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showEndingReport } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, initModalDrag, isCardType, setupCardDragOut } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels } from './shared.js';
 
-let reasoningModal = null;
+let reasoningPanel = null;
 let reasoningSlots = [];
 let slotContents = [null, null, null, null, null]; // 记录每个槽位的卡牌
 
@@ -13,8 +13,8 @@ let reasoningTimeoutId = null;
 
 // 初始化 DOM 元素
 function initReasoningElements() {
-    if (!reasoningModal) {
-        reasoningModal = document.getElementById('reasoning-modal');
+    if (!reasoningPanel) {
+        reasoningPanel = document.getElementById('reasoning-panel');
         reasoningSlots = [
             document.getElementById('slot-0'),
             document.getElementById('slot-1'),
@@ -22,6 +22,26 @@ function initReasoningElements() {
             document.getElementById('slot-3'),
             document.getElementById('slot-4')
         ];
+    }
+    if (!reasoningPanel._cleanupAttached) {
+        reasoningPanel.addEventListener('panelclosed', () => {
+            if (reasoningTimeoutId) {
+                clearTimeout(reasoningTimeoutId);
+                reasoningTimeoutId = null;
+                hideProgressBar();
+                const executeBtn = document.getElementById('reasoning-execute-btn');
+                const closeBtn = document.getElementById('reasoning-close-btn');
+                if (executeBtn) executeBtn.disabled = false;
+                if (closeBtn) closeBtn.disabled = false;
+            }
+            slotContents.forEach(cd => { if (cd) restoreCardToBoard(cd); });
+            slotContents = [null, null, null, null, null];
+            reasoningSlots.forEach((slot, i) => {
+                slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${i + 1}</div>`;
+                slot.classList.remove('drag-over');
+            });
+        });
+        reasoningPanel._cleanupAttached = true;
     }
 }
 
@@ -42,11 +62,10 @@ export function openReasoningModal() {
         executeBtn.disabled = true;
     }
     
-    // 显示弹窗
-    reasoningModal.style.display = 'flex';
-    
-    // 初始化弹窗拖动
-    initReasoningDrag();
+    // 关闭其他面板后显示
+    closeOtherPanels('reasoning-panel');
+    reasoningPanel.classList.remove('panel-closing');
+    reasoningPanel.style.display = 'flex';
     
     log(`🔮 [归因推演] 开启了归因推演仪`, "success");
 }
@@ -86,7 +105,11 @@ export function closeReasoningModal() {
         slot.classList.remove('drag-over');
     });
     
-    reasoningModal.style.display = 'none';
+    reasoningPanel.classList.add('panel-closing');
+    setTimeout(() => {
+        reasoningPanel.style.display = 'none';
+        reasoningPanel.classList.remove('panel-closing');
+    }, 300);
     log(`🔮 [归因推演] 关闭了归因推演仪`, "normal");
 }
 
@@ -247,7 +270,4 @@ function hideProgressBar() {
     }
 }
 
-// 初始化弹窗拖动功能
-function initReasoningDrag() {
-    initModalDrag(reasoningModal);
-}
+// 右侧面板固定定位，无需拖动

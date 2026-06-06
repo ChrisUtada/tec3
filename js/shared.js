@@ -255,3 +255,21 @@ export function resetSlotDisplay(slotElement, placeholderText = '将卡牌拖入
     slotElement.innerHTML = `<div class="slot-placeholder">${placeholderText}</div>`;
     slotElement.classList.remove('drag-over');
 }
+
+/**
+ * 关闭除当前面板外的所有右侧面板（面板互斥）
+ * @param {string} excludeId - 不关闭的面板 ID
+ */
+export function closeOtherPanels(excludeId) {
+    document.querySelectorAll('.right-panel').forEach(panel => {
+        if (panel.id !== excludeId && panel.style.display === 'flex') {
+            panel.classList.add('panel-closing');
+            setTimeout(() => {
+                panel.style.display = 'none';
+                panel.classList.remove('panel-closing');
+                // 触发自定义事件，让对应模块清理状态
+                panel.dispatchEvent(new CustomEvent('panelclosed'));
+            }, 300);
+        }
+    });
+}

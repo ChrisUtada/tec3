@@ -187,9 +187,9 @@ export class DragSystem {
     _checkDialogueSlot(e, mainCard) {
         const d = this._deps;
         const dialogueSlot = document.getElementById('dialogue-slot');
-        const dialogueModal = document.getElementById('dialogue-modal');
+        const dialoguePanel = document.getElementById('dialogue-panel');
 
-        if (dialogueSlot && dialogueModal.style.display === 'flex') {
+        if (dialogueSlot && dialoguePanel.style.display === 'flex') {
             const slotRect = dialogueSlot.getBoundingClientRect();
             const mouseX = e.clientX;
             const mouseY = e.clientY;
@@ -211,9 +211,9 @@ export class DragSystem {
      */
     _checkReasoningSlot(e, mainCard) {
         const d = this._deps;
-        const reasoningModal = document.getElementById('reasoning-modal');
+        const reasoningPanel = document.getElementById('reasoning-panel');
 
-        if (reasoningModal && reasoningModal.style.display === 'flex') {
+        if (reasoningPanel && reasoningPanel.style.display === 'flex') {
             for (let i = 0; i < 5; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if (!slot) continue;
@@ -240,9 +240,9 @@ export class DragSystem {
      */
     _checkExplorationSlot(e, mainCard) {
         const d = this._deps;
-        const explorationModal = document.getElementById('exploration-modal');
+        const explorationPanel = document.getElementById('exploration-panel');
 
-        if (explorationModal && (explorationModal.style.display === 'flex' || explorationModal.style.display === 'block')) {
+        if (explorationPanel && (explorationPanel.style.display === 'flex' || explorationPanel.style.display === 'block')) {
             const explorationSlotsContainer = document.getElementById('exploration-slots');
             if (explorationSlotsContainer) {
                 const slots = explorationSlotsContainer.querySelectorAll('.exploration-slot');

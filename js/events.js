@@ -1,7 +1,7 @@
 // 🎯 事件绑定模块 - 统一管理所有 UI 事件
 // 替代 HTML onclick 和 window.xxx 全局函数
 
-import { closeDialogueModal, nextDialogue } from './dialogue.js';
+import { closeDialogueModal, nextDialogue, confirmDialogueCard } from './dialogue.js';
 import { closeReasoningModal, executeReasoning } from './reasoning.js';
 import { closeExplorationModal, startExploration } from './exploration.js';
 import { toggleEndingPanel, closeTrueNameModal } from './ui.js';
@@ -56,6 +56,11 @@ export function initUIEvents() {
     const dialogueEndBtn = document.getElementById('dialogue-end-btn');
     if (dialogueEndBtn) {
         dialogueEndBtn.addEventListener('click', closeDialogueModal);
+    }
+
+    const dialogueConfirmBtn = document.getElementById('dialogue-confirm-btn');
+    if (dialogueConfirmBtn) {
+        dialogueConfirmBtn.addEventListener('click', confirmDialogueCard);
     }
     
     // === 探索弹窗 ===

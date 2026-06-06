@@ -2,7 +2,7 @@
 import { SCENE_EXPLORATION, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar } from './logic.js';
-import { embedCardInSlot, restoreCardToBoard, initModalDrag, setupCardDragOut } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels } from './shared.js';
 import { CARD } from './consts.js';
 
 // 从 engine.js 获取 spawnUnboundCard 函数
@@ -25,11 +25,11 @@ let highlightedCards = new Set();  // 高亮卡牌的 ID 集合
 let explorationTimeoutId = null;
 
 // 延迟获取 DOM 元素
-let explorationModal, explorationTitle, explorationSlotsContainer, explorationProgress, explorationProgressFill, explorationProgressText, explorationInfo, startBtn, closeBtn;
+let explorationPanel, explorationTitle, explorationSlotsContainer, explorationProgress, explorationProgressFill, explorationProgressText, explorationInfo, startBtn, closeBtn;
 
 function initExplorationElements() {
-    if (!explorationModal) {
-        explorationModal = document.getElementById('exploration-modal');
+    if (!explorationPanel) {
+        explorationPanel = document.getElementById('exploration-panel');
         explorationTitle = document.getElementById('exploration-title');
         explorationSlotsContainer = document.getElementById('exploration-slots');
         explorationProgress = document.getElementById('exploration-progress');
@@ -38,6 +38,24 @@ function initExplorationElements() {
         explorationInfo = document.getElementById('exploration-info');
         startBtn = document.getElementById('exploration-start-btn');
         closeBtn = document.getElementById('exploration-close-btn');
+    }
+    // 监听从外部关闭
+    if (!explorationPanel._cleanupAttached) {
+        explorationPanel.addEventListener('panelclosed', () => {
+            if (explorationTimeoutId) {
+                clearTimeout(explorationTimeoutId);
+                explorationTimeoutId = null;
+                isExploring = false;
+                if (explorationProgress) explorationProgress.style.display = 'none';
+                if (startBtn) startBtn.disabled = false;
+            }
+            explorationSlots.forEach(cd => { if (cd) restoreCardToBoard(cd); });
+            if (draggedCardData) { restoreCardToBoard(draggedCardData); draggedCardData = null; }
+            currentScene = null;
+            explorationSlots = [];
+            isExploring = false;
+        });
+        explorationPanel._cleanupAttached = true;
     }
 }
 
@@ -89,11 +107,10 @@ export function openExploration(sceneId) {
     startBtn.disabled = false;
     closeBtn.style.display = 'none';
 
-    // 显示弹窗
-    explorationModal.style.display = 'flex';
-    
-    // 初始化弹窗拖动
-    initExplorationDrag();
+    // 关闭其他面板后显示
+    closeOtherPanels('exploration-panel');
+    explorationPanel.classList.remove('panel-closing');
+    explorationPanel.style.display = 'flex';
     
     log(`🌍 [探索系统] 开启了【${sceneData.name}】的探索`, "success");
 }
@@ -117,7 +134,12 @@ export function closeExplorationModal() {
         log(`⚠️ [探索中断] 探索已取消`, "normal");
     }
     
-    explorationModal.style.display = 'none';
+    // 滑出动画
+    explorationPanel.classList.add('panel-closing');
+    setTimeout(() => {
+        explorationPanel.style.display = 'none';
+        explorationPanel.classList.remove('panel-closing');
+    }, 300);
     
     // 恢复桌面上的卡牌
     explorationSlots.forEach((cardData) => {
@@ -565,12 +587,6 @@ function calculateDrops(sceneData) {
     }
     
     return results;
-}
-
-// 初始化弹窗拖动功能
-function initExplorationDrag() {
-    // 探索中不允许拖动
-    initModalDrag(explorationModal, () => isExploring);
 }
 
 // 🌟 高亮掉落卡牌（固定 1 秒后自动取消）
