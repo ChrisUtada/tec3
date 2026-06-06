@@ -1,7 +1,7 @@
 //  人物对话系统
 import { DIALOGUE_DATA, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels, closePanelForReopen } from './shared.js';
 
 let currentDialogue = null;  // 当前人物 templateId
 let currentCardType = null;  // 当前槽位中的卡牌类型
@@ -33,9 +33,9 @@ export function openDialogue(characterId) {
         return;
     }
 
-    const charData = DIALOGUE_DATA[characterId];
+    closePanelForReopen(dialoguePanel, () => {
+        const charData = DIALOGUE_DATA[characterId];
 
-    const doOpen = () => {
         currentDialogue = characterId;
         currentCardType = null;
         dialogueIndex = 0;
@@ -43,69 +43,41 @@ export function openDialogue(characterId) {
 
         dialogueTitle.innerText = `与【${charData.name}】对话`;
         
-        dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
-        dialogueText.innerText = '将物品、场景或线索拖入上方槽位，查看对应对话内容。';
+        if (!draggedCardData) {
+            dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
+            dialogueText.innerText = '将物品、场景或线索拖入上方槽位，查看对应对话内容。';
+        }
         
         nextBtn.style.display = 'none';
         endBtn.style.display = 'none';
-    if (confirmBtn) confirmBtn.style.display = 'none';
-    // 监听从外部关闭
-    if (!dialoguePanel._cleanupAttached) {
-        dialoguePanel.addEventListener('panelclosed', () => {
-            if (draggedCardData) {
-                const panelWidth = 420;
-                const cardWidth = 115;
-                const visibleRightBound = window.innerWidth - panelWidth - cardWidth - 20;
-                if (draggedCardData.x > visibleRightBound) {
-                    draggedCardData.x = visibleRightBound;
-                }
-                restoreCardToBoard(draggedCardData, 'board-canvas', true);
-                draggedCardData = null;
-            }
-            currentDialogue = null;
-            currentCardType = null;
-            dialogueIndex = 0;
-            currentDialogueList = [];
-            if (dialogueSlot) {
-                dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
-                dialogueSlot.classList.remove('drag-over', 'shake-error');
-            }
-        });
-        dialoguePanel._cleanupAttached = true;
-    }
+        if (confirmBtn) {
+            confirmBtn.style.display = draggedCardData ? 'block' : 'none';
+        }
+        
+        if (!dialoguePanel._cleanupAttached) {
+            dialoguePanel.addEventListener('panelclosed', () => closeDialogueModal(true));
+            dialoguePanel._cleanupAttached = true;
+        }
 
         dialoguePanel.classList.remove('panel-closing');
         dialoguePanel.style.display = 'flex';
+
+        closeOtherPanels('dialogue-panel');
+        dialoguePanel.classList.add('show');
         
         log(`️ [对话系统] 开启了与【${charData.name}】的对话`, "success");
-    };
-
-    // 关闭其他面板，然后显示
-    closeOtherPanels('dialogue-panel');
-    
-    // 执行初始化逻辑
-    doOpen();
-    
-    // 淡入动画
-    dialoguePanel.classList.add('show');
+    });
 }
 
-// 关闭对话窗口
-export function closeDialogueModal() {
+// 关闭对话窗口（弹出卡牌回桌面）
+export function closeDialogueModal(skipHide = false) {
+    if (typeof skipHide !== 'boolean') skipHide = false;
     initDialogueElements();
     
-    // 淡出动画
-    dialoguePanel.classList.remove('show');
-    
-    // 恢复桌面上的卡牌
     if (draggedCardData) {
-        // 将卡牌恢复到面板左侧可见区域
-        const panelWidth = 420;
-        const cardWidth = 115;
+        const panelWidth = 420, cardWidth = 115;
         const visibleRightBound = window.innerWidth - panelWidth - cardWidth - 20;
-        if (draggedCardData.x > visibleRightBound) {
-            draggedCardData.x = visibleRightBound;
-        }
+        if (draggedCardData.x > visibleRightBound) draggedCardData.x = visibleRightBound;
         restoreCardToBoard(draggedCardData, 'board-canvas', true);
         draggedCardData = null;
     }
@@ -115,13 +87,28 @@ export function closeDialogueModal() {
     dialogueIndex = 0;
     currentDialogueList = [];
     
-    // 重置槽位
     if (dialogueSlot) {
         dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
         dialogueSlot.classList.remove('drag-over', 'shake-error');
     }
     
+    if (!skipHide) dialoguePanel.classList.remove('show');
+    
     log(`️ [对话系统] 结束了对话`, "normal");
+}
+
+// 结束对话（复位状态，卡牌留在槽位）
+export function endDialogue() {
+    initDialogueElements();
+    
+    currentCardType = null;
+    dialogueIndex = 0;
+    currentDialogueList = [];
+    
+    confirmBtn.style.display = 'inline-block';
+    nextBtn.style.display = 'none';
+    endBtn.style.display = 'none';
+    dialogueText.innerText = '请确认要使用的卡牌。';
 }
 
 // 将卡牌放入槽位
@@ -149,6 +136,9 @@ export function placeCardInSlot(cardData) {
 
     draggedCardData = cardData;
 
+    // 清除之前的错误提示
+    dialogueSlot.classList.remove('shake-error');
+
     // 将卡牌移动到槽位中
     const cardEl = document.getElementById(cardData.instanceId);
     if (cardEl) {
@@ -158,6 +148,7 @@ export function placeCardInSlot(cardData) {
             slotsArray: null,
             slotElement: dialogueSlot,
             placeholderText: '将卡牌拖入此处',
+            placeholderClass: 'dialogue-slot-placeholder',
             onRemove: () => {
                 const pW = 420, cW = 115;
                 const rightBound = window.innerWidth - pW - cW - 20;

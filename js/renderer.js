@@ -155,11 +155,22 @@ export function createCardElement(card, { startDrag, updateQueryDisplay, openDia
                 return; 
             } 
         }
+        // 检查卡牌是否在槽位中，如果是则不触发全局拖拽系统
+        if (cardEl.dataset.embedded === 'true') {
+            return;
+        }
+        
         startDrag(e, card);
     });
     
     cardEl.addEventListener('dblclick', (e) => {
         e.stopPropagation();
+        
+        // 检查卡牌是否在槽位中，如果是则不触发双击事件
+        if (cardEl.dataset.embedded === 'true') {
+            return;
+        }
+        
         const cardType = CARD_TEMPLATES[card.templateId].type;
         
         if (cardType === 'char') {

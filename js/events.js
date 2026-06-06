@@ -1,7 +1,7 @@
 // 🎯 事件绑定模块 - 统一管理所有 UI 事件
 // 替代 HTML onclick 和 window.xxx 全局函数
 
-import { closeDialogueModal, nextDialogue, confirmDialogueCard } from './dialogue.js';
+import { closeDialogueModal, nextDialogue, confirmDialogueCard, endDialogue } from './dialogue.js';
 import { closeReasoningModal, executeReasoning } from './reasoning.js';
 import { closeExplorationModal, startExploration } from './exploration.js';
 import { toggleEndingPanel, closeTrueNameModal } from './ui.js';
@@ -43,9 +43,9 @@ export function initUIEvents() {
     }
     
     // === 对话弹窗 ===
-    const dialogueModalClose = document.getElementById('dialogue-modal-close');
-    if (dialogueModalClose) {
-        dialogueModalClose.addEventListener('click', closeDialogueModal);
+    const dialogueCloseBtn = document.getElementById('dialogue-close-btn');
+    if (dialogueCloseBtn) {
+        dialogueCloseBtn.addEventListener('click', closeDialogueModal);
     }
     
     const dialogueNextBtn = document.getElementById('dialogue-next-btn');
@@ -55,7 +55,7 @@ export function initUIEvents() {
     
     const dialogueEndBtn = document.getElementById('dialogue-end-btn');
     if (dialogueEndBtn) {
-        dialogueEndBtn.addEventListener('click', closeDialogueModal);
+        dialogueEndBtn.addEventListener('click', endDialogue);
     }
 
     const dialogueConfirmBtn = document.getElementById('dialogue-confirm-btn');
@@ -64,10 +64,6 @@ export function initUIEvents() {
     }
     
     // === 探索弹窗 ===
-    const explorationModalClose = document.getElementById('exploration-modal-close');
-    if (explorationModalClose) {
-        explorationModalClose.addEventListener('click', closeExplorationModal);
-    }
     
     const explorationStartBtn = document.getElementById('exploration-start-btn');
     if (explorationStartBtn) {

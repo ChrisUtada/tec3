@@ -247,6 +247,11 @@ export function renderAllCards() {
             }
             
             cardEl.addEventListener('mousedown', (e) => {
+                // 检查卡牌是否在槽位中，如果是则不触发全局拖拽系统
+                if (cardEl.dataset.embedded === 'true') {
+                    return;
+                }
+                
                 updateQueryDisplay(card, t);
                 if (!card.isCaptured) { 
                     if (tryCapture(card, cardEl)) { 
@@ -258,6 +263,12 @@ export function renderAllCards() {
             });
             cardEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
+                
+                // 检查卡牌是否在槽位中，如果是则不触发双击事件
+                if (cardEl.dataset.embedded === 'true') {
+                    return;
+                }
+                
                 // 根据卡牌类型打开不同的弹窗
                 const cardType = CARD_TEMPLATES[card.templateId].type;
                 

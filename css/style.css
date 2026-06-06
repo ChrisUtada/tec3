@@ -1,26 +1,25 @@
 :root {
-    --bg-color: #05070a;
-    --grid-line: #0b1017;
-    --panel-bg: rgba(9, 14, 20, 0.95);
-    --panel-border: #162233;
-    --text-muted: #52607a;
-    --text-main: #a9b2c3;
+    --bg-color: #f8f5ef;           /* 浅米灰白纸张色 - 更亮 */
+    --grid-line: #e8e0d8;          /* 浅灰网格线 */
+    --panel-bg: rgba(253, 250, 245, 0.98);  /* 面板背景 - 更亮 */
+    --panel-border: #4a3a2a;       /* 深灰棕边框 - 加深 */
+    --text-muted: #5a4a3a;         /* 次要文字 - 加深 */
+    --text-main: #2a1a0a;          /* 主要文字 - 深棕色 - 加深 */
     
-    --color-vision: #4ecca3;    /* 前往/空间/展现 体系 */
-    --color-hearing: #61afef;   /* 出示/对话 体系 */
-    --color-taste: #ff79c6;     /* 捕获/具现/品尝 体系 */
-    --color-touch: #fdcb6e;     /* 触觉 体系 */
-    --color-smell: #74b9ff;     /* 嗅觉 体系 */
+    --color-vision: #7a5f3a;       /* 深土黄色 - 加深 */
+    --color-hearing: #6a6a8a;      /* 灰紫色 - 加深 */
+    --color-taste: #a84a3a;        /* 橙红色强调色 - 加深 */
+    --color-touch: #b99217;        /* 低调金色 - 加深 */
+    --color-smell: #5a7a5a;        /* 复古灰绿 - 加深 */
     
-    --color-item: #1e222a;
-    --color-scene: #161220;
-    --color-char: #2c1f14;
+    --color-item: #f0e8e0;
+    --color-scene: #e8e0d8;
+    --color-char: #e0d8d0;
+    --color-function: #d8d0c8;     /* 功能卡配色 */
     
     /* 卡牌尺寸变量 - 与 consts.js 同步 */
     --card-width: 115px;
     --card-height: 150px;
-    --card-embed-width: 106px;
-    --card-embed-height: 136px;
     --card-stack-offset: 24px;
 }
 
@@ -32,7 +31,7 @@ body {
                       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 40px 40px;
     color: var(--text-main);
-    font-family: 'Courier New', Courier, monospace, "Microsoft YaHei";
+    font-family: 'Times New Roman', Times, Georgia, serif, "Microsoft YaHei";
     height: 100vh;
     width: 100vw;
     overflow: hidden;
@@ -53,15 +52,15 @@ header {
     z-index: 10;
 }
 
-header h1 { font-size: 14px; color: #fff; letter-spacing: 1px; }
-header .system-status { font-size: 11px; color: var(--color-vision); }
+header h1 { font-size: 14px; color: #1a0a0a; letter-spacing: 1px; font-weight: bold; }
+header .system-status { font-size: 11px; color: #5a4a3a; }
 
 .header-controls { display: flex; gap: 8px; align-items: center; }
-.tidy-btn { background: #1c2a3a; border: 1px solid #3a4a5e; color: var(--text-main); padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 11px; font-family: inherit; }
-.tidy-btn:hover { background: #2a3a4e; border-color: var(--color-vision); color: #fff; }
+.tidy-btn { background: #e0d8d0; border: 1px solid #5a4a3a; color: #2a1a0a; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 11px; font-family: inherit; }
+.tidy-btn:hover { background: #5a4a3a; border-color: #5a4a3a; color: #fff; }
 
 #board-canvas { 
-    background: rgba(6, 9, 13, 0.4); 
+    background: rgba(253, 250, 245, 0.9); 
     border: 1px solid var(--panel-border); 
     border-radius: 4px; 
     position: relative; 

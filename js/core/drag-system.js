@@ -1,6 +1,8 @@
 // 拖拽管理系统 - 处理卡牌的拖拽、移动、吸附、特殊系统检测完整流程
 // 依赖注入设计：所有外部依赖通过 init() 注入，不直接 import 业务模块
 
+import { dragEventManager } from './drag-event-manager.js';
+
 export class DragSystem {
     constructor() {
         this._activeDragId = null;
@@ -83,8 +85,10 @@ export class DragSystem {
         const canvasRect = d.boardCanvas.getBoundingClientRect();
         this._dragOffsetX = (e.clientX - canvasRect.left) - card.x;
         this._dragOffsetY = (e.clientY - canvasRect.top) - card.y;
-        document.addEventListener('mousemove', this._boundProcessDrag);
-        document.addEventListener('mouseup', this._boundEndDrag);
+        dragEventManager.startDrag(card.instanceId, {
+            onDrag: this._boundProcessDrag,
+            onDragEnd: this._boundEndDrag
+        });
         e.stopPropagation();
     }
 
@@ -146,9 +150,6 @@ export class DragSystem {
      */
     _endDrag(e) {
         const d = this._deps;
-
-        document.removeEventListener('mousemove', this._boundProcessDrag);
-        document.removeEventListener('mouseup', this._boundEndDrag);
 
         if (!this._activeDragId) {
             return;

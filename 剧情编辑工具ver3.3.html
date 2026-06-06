@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>CAUSAL-OS 剧情编辑器 v3.0</title>
+<style>
+:root {
+    --accent:        #bf9a6a;
+    --accent-soft:   #d4b68a;
+    --accent-dim:    rgba(191,154,106,0.12);
+    --accent-dim2:   rgba(191,154,106,0.06);
+    --surface0:      #21201d;
+    --surface1:      #282724;
+    --surface2:      #302e2a;
+    --bg:            #1e1d1a;
+    --panel:         #242320;
+    --border:        #3a3832;
+    --border-light:  #45433d;
+    --text-body:     #c4bfb6;
+    --text-soft:     #8a8680;
+    --text-muted:    #6b6762;
+    --text-title:    #ddd8cf;
+    --input-bg:      #292824;
+    --danger:        #d9706a;
+    --danger-dim:    rgba(217,112,106,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, 'Segoe UI', system-ui, 'PingFang SC', 'Microsoft YaHei', 'Cascadia Code', monospace;
+    background: var(--bg); color: var(--text-body);
+    height: 100vh; display: flex; flex-direction: column;
+    overflow: hidden; user-select: none;
+    font-size: 15px;
+}
+.topbar {
+    height: 48px; background: var(--surface0);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 16px; gap: 12px;
+    flex-shrink: 0; z-index: 10;
+}
+.topbar-title {
+    font-weight: 700; color: var(--accent-soft);
+    font-size: 14px; letter-spacing: 0.3px; white-space: nowrap;
+}
+.topbar-title span { font-size: 11px; opacity: 0.4; }
+.topbar-spacer { flex: 1; }
+.btn {
+    padding: 7px 16px; border: 1px solid var(--border);
+    border-radius: 4px; cursor: pointer; font-family: inherit;
+    font-size: 13px; background: transparent; color: var(--text-soft);
+    transition: all 0.15s; white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent-soft); background: var(--accent-dim2); }
+.btn-primary { background: var(--accent); color: #1e1d1a; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-soft); color: #1e1d1a; opacity: 1; }
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger-dim); }
+.btn-small { padding: 4px 10px; font-size: 12px; }
+
+.main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+.panel-left {
+    width: 260px; min-width: 180px; max-width: 500px;
+    background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.panel-center {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg); min-width: 300px;
+}
+.panel-right {
+    width: 280px; min-width: 200px; max-width: 500px;
+    background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+
+.resize-handle {
+    width: 4px; cursor: col-resize; background: transparent;
+    flex-shrink: 0; position: relative; z-index: 5; transition: background 0.2s;
+}
+.resize-handle:hover, .resize-handle.active { background: var(--accent-dim); }
+.resize-handle::after {
+    content: ''; position: absolute; top: 0; left: -3px; right: -3px; bottom: 0;
+}
+
+.panel-header {
+    padding: 12px 16px; font-size: 12px; color: var(--text-soft);
+    text-transform: none; letter-spacing: 0.3px; font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.panel-header .count {
+    font-size: 11px; background: var(--surface2); padding: 3px 9px;
+    border-radius: 10px; color: var(--accent-soft); font-weight: 500;
+}
+
+.panel-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0; }
+.panel-scroll::-webkit-scrollbar { width: 4px; }
+.panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.tree-group { margin-bottom: 2px; }
+.tree-group-header {
+    padding: 9px 16px; cursor: pointer; display: flex; align-items: center;
+    gap: 8px; font-size: 13px; color: var(--text-soft); font-weight: 500;
+    transition: all 0.15s;
+}
+.tree-group-header:hover { background: rgba(255,255,255,0.02); }
+.tree-group-header .arrow { font-size: 10px; width: 12px; transition: transform 0.2s; display: inline-block; }
+.tree-group-header.collapsed .arrow { transform: rotate(-90deg); }
+.tree-group-header .group-count { font-size: 11px; color: var(--text-muted); }
+
+#tree-filter { background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); outline: none; }
+#tree-filter:focus { border-color: var(--accent); }
+
+.tree-children { overflow: hidden; }
+.tree-children.collapsed { display: none; }
+
+.tree-item {
+    padding: 8px 16px 8px 28px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+    border-left: 2px solid transparent; transition: all 0.12s;
+    color: var(--text-soft);
+}
+.tree-item:hover { background: rgba(255,255,255,0.02); color: var(--text-body); }
+.tree-item.active {
+    background: var(--accent-dim); border-left-color: var(--accent);
+    color: var(--accent-soft); font-weight: 600;
+}
+.tree-item .item-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-item .item-id { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+
+.empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; color: var(--text-muted); gap: 12px;
+}
+.empty-state .big-icon { font-size: 36px; opacity: 0.2; }
+.empty-state .msg { font-size: 16px; color: var(--text-soft); }
+.empty-state .sub { font-size: 12px; opacity: 0.5; }
+
+.editor-header { padding: 24px 32px 0; flex-shrink: 0; }
+.editor-type-badge {
+    font-size: 11px; text-transform: none; letter-spacing: 0.3px;
+    padding: 4px 10px; border-radius: 4px; font-weight: 500;
+    background: var(--accent-dim2); color: var(--accent-soft);
+}
+.editor-id { font-size: 11px; color: var(--text-muted); }
+.editor-title-input {
+    font-size: 24px; font-weight: 600; background: transparent; border: none;
+    border-bottom: 1px solid transparent; color: var(--text-title);
+    font-family: inherit; width: 100%; padding: 8px 0; outline: none;
+    transition: border-color 0.2s;
+}
+.editor-title-input:focus { border-bottom-color: var(--accent); }
+
+.editor-scroll { flex: 1; overflow-y: auto; padding: 16px 32px 32px; }
+.editor-scroll::-webkit-scrollbar { width: 4px; }
+.editor-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.editor-label {
+    font-size: 12px; color: var(--accent-soft); text-transform: none;
+    letter-spacing: 0.3px; font-weight: 500;
+    margin-bottom: 8px; margin-top: 24px;
+}
+.editor-label:first-child { margin-top: 0; }
+
+.editor-textarea {
+    width: 100%; background: var(--surface1); border: 1px solid var(--border);
+    color: var(--text-body); font-family: inherit; font-size: 15px;
+    line-height: 1.85; padding: 16px; border-radius: 4px;
+    resize: vertical; min-height: 120px; outline: none; transition: border-color 0.2s;
+}
+.editor-textarea:focus { border-color: var(--accent); }
+.editor-textarea.large { min-height: 240px; font-size: 16px; line-height: 2; }
+
+.hl-editor-wrap {
+    position: relative; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--input-bg); transition: border-color 0.15s;
+}
+.hl-editor-wrap:focus-within { border-color: var(--accent); }
+.hl-textarea {
+    display: block; width: 100%; min-height: 72px; box-sizing: border-box;
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', 'PingFang SC', 'Microsoft YaHei', monospace;
+    font-size: 15px; line-height: 1.85; padding: 12px 16px;
+    color: var(--text-main); background: transparent; border: none; outline: none;
+    resize: none; overflow: hidden; caret-color: var(--accent);
+    white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;
+}
+.hl-textarea::selection { background: rgba(100,150,255,0.25); }
+.hl-editor-wrap.large .hl-textarea { min-height: 280px; font-size: 16px; line-height: 2; }
+
+.ac-menu {
+    position: fixed; z-index: 9999; background: var(--surface0);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25); max-height: 240px;
+    overflow-y: auto; min-width: 220px; padding: 4px 0; display: none;
+}
+.ac-menu.visible { display: block; }
+.ac-item { padding: 7px 14px; font-size: 13px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center; }
+.ac-item:hover, .ac-item.active { background: rgba(100,150,255,0.12); }
+.ac-item .ac-name { font-weight: 500; }
+.ac-item .ac-id { font-size: 10px; color: var(--text-muted); margin-left: 12px; }
+.ac-empty { padding: 10px 14px; font-size: 12px; color: var(--text-muted); }
+
+.config-section {
+    margin-top: 18px; padding: 16px; background: var(--surface0);
+    border: 1px solid var(--border); border-radius: 4px;
+}
+.config-section .section-title {
+    font-size: 12px; color: var(--text-muted); text-transform: none;
+    letter-spacing: 0.3px; margin-bottom: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; font-weight: 500;
+}
+.config-section .section-title:hover { color: var(--text-soft); }
+.config-section .section-body.collapsed { display: none; }
+.config-section .section-arrow { font-size: 10px; transition: transform 0.2s; width: 10px; }
+.config-section .section-arrow.collapsed { transform: rotate(-90deg); }
+
+.inline-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.inline-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+input[type="text"], select {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text-body); padding: 10px 12px; border-radius: 4px;
+    font-family: inherit; font-size: 13px; outline: none;
+}
+input[type="text"]:focus, select:focus { border-color: var(--accent); }
+textarea {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text-body); padding: 10px 12px; border-radius: 4px;
+    font-family: inherit; font-size: 13px; resize: vertical; outline: none; line-height: 1.7;
+}
+textarea:focus { border-color: var(--accent); }
+label {
+    display: block; font-size: 12px; color: var(--text-soft);
+    margin-bottom: 5px; text-transform: none; letter-spacing: 0.3px;
+}
+
+.check-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; }
+.check-row input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+.check-row span { font-size: 13px; color: var(--text-soft); }
+
+.gp-item {
+    background: rgba(0,0,0,0.18); padding: 12px; border-radius: 4px;
+    margin-bottom: 8px; border: 1px dashed var(--border);
+}
+.gp-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; }
+
+.pr-item {
+    background: rgba(212,192,140,0.04); padding: 12px; border-radius: 4px;
+    margin-bottom: 8px; border: 1px dashed rgba(212,192,140,0.12);
+}
+
+.ctx-section { margin-bottom: 16px; }
+.ctx-section-title {
+    font-size: 11px; color: var(--text-muted); text-transform: none;
+    letter-spacing: 0.3px; margin-bottom: 6px; padding: 0 6px; font-weight: 500;
+}
+.ctx-item {
+    padding: 7px 12px; cursor: pointer; font-size: 13px; border-radius: 3px;
+    color: var(--text-soft); border-left: 2px solid transparent;
+    transition: all 0.12s;
+}
+.ctx-item:hover { background: rgba(255,255,255,0.02); color: var(--text-body); }
+.ctx-item .ctx-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-item .ctx-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--surface2); color: var(--text-muted); }
+.ctx-item .ctx-id { font-size: 10px; color: var(--text-muted); margin-left: 8px; flex-shrink: 0; opacity: 0.7; }
+
+.fade-in { animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+#toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #1e1d1a; padding: 8px 24px;
+    border-radius: 20px; font-weight: 600; font-size: 13px;
+    display: none; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<div id="toast">已同步</div>
+<ul id="ac-menu" class="ac-menu"></ul>
+
+<div class="topbar">
+    <div class="topbar-title">CAUSAL_OS <span>EDITOR v3.0</span></div>
+    <input type="file" id="upload" accept=".html" style="display:none" onchange="loadHTML(this)">
+    <button class="btn" onclick="document.getElementById('upload').click()">读取 HTML</button>
+    <input type="file" id="upload-json" accept=".json" style="display:none" onchange="loadJSON(this)">
+    <button class="btn" onclick="document.getElementById('upload-json').click()">读取 JSON</button>
+    <span class="topbar-spacer"></span>
+    <button class="btn btn-primary" onclick="exportHTML()">下载 HTML</button>
+    <button class="btn btn-primary" onclick="exportJSON()">导出 JSON</button>
+</div>
+
+<div class="main-layout">
+    <div class="panel-left" id="panel-left">
+        <div class="panel-header">
+            <span>大纲</span>
+            <span class="count" id="tree-count">0</span>
+            <span style="flex:1;"></span>
+            <span title="新建实体" style="cursor:pointer;font-size:14px;opacity:0.6;" onclick="showAddMenu()">+</span>
+        </div>
+        <div class="tree-search" id="tree-search-wrap" style="display:none; padding:6px 10px; border-bottom:1px solid var(--border); flex-shrink:0;">
+            <input type="text" id="tree-filter" placeholder="搜索..." style="width:100%; font-size:12px; padding:7px 10px;">
+        </div>
+        <div class="panel-scroll" id="tree-container"></div>
+    </div>
+
+    <div class="resize-handle" id="handle-left" data-target="panel-left"></div>
+
+    <div class="panel-center" id="panel-center">
+        <div id="editor-empty" class="empty-state">
+            <div class="big-icon">~</div>
+            <div class="msg">选择左侧实体开始编辑</div>
+            <div class="sub">CAUSAL-OS 剧情编辑器</div>
+        </div>
+        <div id="editor-content" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+            <div class="editor-header" id="editor-header"></div>
+            <div id="editor-actions" style="display:none;padding:8px 32px 0;flex-shrink:0;">
+                <button class="btn btn-primary" onclick="manualSave()" style="font-size:12px;padding:6px 18px;">保存</button>
+                <span id="save-status" style="font-size:11px;color:var(--text-muted);margin-left:10px;"></span>
+            </div>
+            <div class="editor-scroll" id="editor-scroll"></div>
+        </div>
+    </div>
+
+    <div class="resize-handle" id="handle-right" data-target="panel-right"></div>
+
+    <div class="panel-right" id="panel-right">
+        <div class="panel-header">
+            <span>关联</span>
+        </div>
+        <div class="panel-scroll" id="context-container">
+            <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">
+                选择实体后<br>显示关联
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const APP_VERSION = 'v3.0.0';
+let projectData = null;
+let originalTemplate = '';
+let originalFileName = '';
+let selectedEntity = null;
+let treeCollapsed = {};
+let treeFilter = '';
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg || '已同步';
+    t.style.display = 'block';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.display = 'none'; }, 1500);
+}
+
+function escapeHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const clueTypeLabels = { vision:'视觉', hearing:'听觉', touch:'触觉', smell:'嗅觉', taste:'味觉' };
+
+function renderPreview(text) {
+    if (!projectData || !text) return '<span style="color:var(--text-muted);">预览...</span>';
+    let result = escapeHtml(text);
+    result = result.replace(/\[char:([^\]]+)\]/g, (m,id) => {
+        const c = projectData.chars?.[id];
+        return '<span class="ref-char">' + escapeHtml(c?.name || id) + '</span>';
+    });
+    result = result.replace(/\[item:([^\]]+)\]/g, (m,id) => {
+        const it = projectData.items?.[id];
+        return '<span class="ref-item">' + escapeHtml(it?.label || id) + '</span>';
+    });
+    result = result.replace(/\[loc:([^\]]+)\]/g, (m,id) => {
+        const sc = projectData.scenes?.[id];
+        return '<span class="ref-loc">' + escapeHtml(sc?.title || id) + '</span>';
+    });
+    result = result.replace(/\[clue:([^\]]+)\]/g, (m,id) => {
+        const cl = projectData.clues?.[id];
+        const typeLabel = cl ? (clueTypeLabels[cl.type] || '') : '';
+        const prefix = typeLabel ? '[' + typeLabel + '] ' : '';
+        return '<span class="ref-clue">' + prefix + escapeHtml(cl?.label || id) + '</span>';
+    });
+    result = result.replace(/\n/g, '<br>');
+    return result;
+}
+
+function extractRefs(text) {
+    if (!text) return { chars: new Set(), items: new Set(), locs: new Set(), clues: new Set() };
+    const refs = { chars: new Set(), items: new Set(), locs: new Set(), clues: new Set() };
+    const re = /\[(char|item|loc|clue):([^\]]+)\]/g;
+    let m;
+    while ((m = re.exec(text))) {
+        const type = m[1]; const id = m[2];
+        if (type === 'char') refs.chars.add(id);
+        else if (type === 'item') refs.items.add(id);
+        else if (type === 'loc') refs.locs.add(id);
+        else if (type === 'clue') refs.clues.add(id);
+    }
+    return refs;
+}
+
+function mergeRefs(base, add) {
+    add.chars.forEach(function(id) { base.chars.add(id); });
+    add.items.forEach(function(id) { base.items.add(id); });
+    add.locs.forEach(function(id) { base.locs.add(id); });
+    add.clues.forEach(function(id) { base.clues.add(id); });
+}
+
+function extractCommandRefs(commands) {
+    var refs = { chars: new Set(), items: new Set(), locs: new Set(), clues: new Set() };
+    if (!commands) return refs;
+    commands.forEach(function(cmd) {
+        mergeRefs(refs, extractRefs(cmd.value||''));
+        mergeRefs(refs, extractRefs(cmd.title||''));
+        mergeRefs(refs, extractRefs(cmd.prompt||''));
+        mergeRefs(refs, extractRefs(cmd.successMessage||''));
+        mergeRefs(refs, extractRefs(cmd.failMessage||''));
+        if (cmd.onSuccess) {
+            mergeRefs(refs, extractRefs(cmd.onSuccess.message||''));
+            if (cmd.onSuccess.scene) refs.locs.add(cmd.onSuccess.scene);
+            if (cmd.onSuccess.gotoScene) refs.locs.add(cmd.onSuccess.gotoScene);
+            if (cmd.onSuccess.items) cmd.onSuccess.items.forEach(function(iid) { refs.items.add(iid); });
+        }
+        if (cmd.results) {
+            mergeRefs(refs, extractRefs(cmd.results.message||''));
+            if (cmd.results.scene) refs.locs.add(cmd.results.scene);
+            if (cmd.results.items) cmd.results.items.forEach(function(iid) { refs.items.add(iid); });
+        }
+        if (cmd.requiredItem) refs.items.add(cmd.requiredItem);
+        if (cmd.options) cmd.options.forEach(function(o) {
+            mergeRefs(refs, extractRefs(o.message||''));
+            if (o.results && o.results.scene) refs.locs.add(o.results.scene);
+        });
+        if (cmd.conditions) cmd.conditions.forEach(function(c) {
+            mergeRefs(refs, extractRefs(c.failMessage||''));
+            if (c.clue) refs.clues.add(c.clue);
+        });
+    });
+    return refs;
+}
+
+function extractItemRefs(text) {
+    if (!text) return [];
+    const ids = [];
+    const re = /\[item:([^\]]+)\]/g;
+    let m;
+    while ((m = re.exec(text))) { ids.push(m[1]); }
+    return ids;
+}
+
+function formatItemRefs(ids) {
+    if (!ids || !ids.length) return '';
+    return ids.map(id => '[item:' + id + ']').join(' ');
+}
+
+// ─── Data Loading ─────────────────────────────────
+
+function jsToJson(jsStr) {
+    let result = jsStr.replace(/`([^`]*)`/g, (m, content) => {
+        let escaped = content.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\t/g,'\\t');
+        return '"' + escaped + '"';
+    });
+    result = result.replace(/([{,]\s*)([a-zA-Z_中文\u4e00-\u9fa5][a-zA-Z0-9_中文\u4e00-\u9fa5]*)\s*:/g, '$1"$2":');
+    return result;
+}
+
+function loadHTML(input) {
+    const file = input.files[0];
+    if (!file) return;
+    originalFileName = file.name.replace(/\.html$/i, '');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const startMarker = 'const initialProjectData = ';
+        const startIdx = content.indexOf(startMarker);
+        if (startIdx === -1) { alert('未找到数据节点'); return; }
+        const jsonStart = startIdx + startMarker.length;
+        let braceCount = 0, inString = false, escapeNext = false, jsonEnd = jsonStart;
+        for (let i = jsonStart; i < content.length; i++) {
+            const ch = content[i];
+            if (escapeNext) { escapeNext = false; continue; }
+            if (ch === '\\') { if (inString) escapeNext = true; continue; }
+            if (ch === '"') { inString = !inString; continue; }
+            if (!inString) {
+                if (ch === '{' || ch === '[') braceCount++;
+                if (ch === '}' || ch === ']') braceCount--;
+                if (braceCount === 0 && (ch === '}' || ch === ']')) { jsonEnd = i + 1; break; }
+            }
+        }
+        const jsStr = content.substring(jsonStart, jsonEnd);
+        try {
+            projectData = JSON.parse(jsToJson(jsStr));
+            originalTemplate = content;
+            selectedEntity = null;
+            renderTree();
+            renderEditor();
+            renderContext();
+            showToast('数据加载成功');
+        } catch (err) { alert('解析失败: ' + err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function loadJSON(input) {
+    const file = input.files[0];
+    if (!file) return;
+    originalFileName = file.name.replace(/\.json$/i, '');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            projectData = JSON.parse(e.target.result);
+            originalTemplate = e.target.result;
+            selectedEntity = null;
+            renderTree();
+            renderEditor();
+            renderContext();
+            showToast('JSON加载成功');
+        } catch (err) { alert('解析失败: ' + err.message); }
+    };
+    reader.readAsText(file);
+}
+
+function exportJSON() {
+    if (!projectData) return alert('请先载入数据');
+    saveCurrentEntity();
+    const dataStr = JSON.stringify(projectData, null, 4);
+    const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    a.download = (originalFileName || 'game') + '_edited_' + ts + '.json';
+    a.click(); URL.revokeObjectURL(url);
+    showToast('JSON导出成功');
+}
+
+function exportHTML() {
+    if (!projectData) return alert('请先载入数据');
+    saveCurrentEntity();
+    const dataStr = JSON.stringify(projectData, null, 4);
+    const startMarker = 'const initialProjectData = ';
+    const startIdx = originalTemplate.indexOf(startMarker);
+    if (startIdx === -1) return alert('模板格式错误');
+    const jsonStart = startIdx + startMarker.length;
+    let braceCount = 0, inString = false, escapeNext = false, jsonEnd = -1;
+    for (let i = jsonStart; i < originalTemplate.length; i++) {
+        const ch = originalTemplate[i];
+        if (escapeNext) { escapeNext = false; continue; }
+        if (ch === '\\') { if (inString) escapeNext = true; continue; }
+        if (ch === '"') { inString = !inString; continue; }
+        if (!inString) {
+            if (ch === '{' || ch === '[') braceCount++;
+            if (ch === '}' || ch === ']') braceCount--;
+            if (braceCount === 0 && (ch === '}' || ch === ']')) { jsonEnd = i + 1; break; }
+        }
+    }
+    if (jsonEnd === -1) return alert('无法解析数据边界');
+    const output = originalTemplate.substring(0, jsonStart) + dataStr + originalTemplate.substring(jsonEnd);
+    const blob = new Blob([output], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    a.download = (originalFileName || 'game') + '_edited_' + ts + '.html';
+    a.click(); URL.revokeObjectURL(url);
+}
+
+// ─── Tree (Left Panel) ────────────────────────────
+
+const treeIcons = { scenes:'', items:'', chars:'', clues:'', endings:'' };
+const treeColors = { scenes:'#c090b8', items:'#d4b068', chars:'#a8c8a0', clues:'#80b8cc', endings:'#d9706a' };
+
+function renderTree() {
+    const container = document.getElementById('tree-container');
+    const searchWrap = document.getElementById('tree-search-wrap');
+    if (!projectData) {
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">未加载数据</div>';
+        searchWrap.style.display = 'none';
+        return;
+    }
+    searchWrap.style.display = 'block';
+
+    const total = (Object.keys(projectData.scenes||{}).length + Object.keys(projectData.items||{}).length +
+        Object.keys(projectData.chars||{}).length + Object.keys(projectData.clues||{}).length + (projectData.endings||[]).length);
+    document.getElementById('tree-count').innerText = total;
+
+    const filter = (treeFilter || '').toLowerCase();
+
+    const groups = [
+        { key:'scenes', label:'场景', data: projectData.scenes || {}, nameField:'title' },
+        { key:'chars', label:'角色', data: projectData.chars || {}, nameField:'name' },
+        { key:'items', label:'物品', data: projectData.items || {}, nameField:'label' },
+        { key:'clues', label:'线索', data: projectData.clues || {}, nameField:'label' },
+    ];
+
+    let html = '';
+    groups.forEach(g => {
+        const ids = Object.keys(g.data);
+        const visibleIds = filter ? ids.filter(id => {
+            const entry = g.data[id];
+            const name = (entry[g.nameField] || '').toLowerCase();
+            return name.indexOf(filter) !== -1 || id.toLowerCase().indexOf(filter) !== -1;
+        }) : ids;
+        if (filter && visibleIds.length === 0) return;
+        const collapsed = treeCollapsed[g.key] !== false;
+        const autoOpen = !!filter;
+        html += '<div class="tree-group">';
+        html += '<div class="tree-group-header' + (collapsed && !autoOpen ? ' collapsed':'') + '" style="color:' + treeColors[g.key] + '">';
+        html += '<span class="arrow" onclick="event.stopPropagation();toggleTreeGroup(\'' + g.key + '\')">▼</span>';
+        html += '<span onclick="event.stopPropagation();toggleTreeGroup(\'' + g.key + '\')">' + g.label + '</span>';
+        html += '<span class="group-count">' + visibleIds.length + '</span>';
+        html += '<span style="flex:1;"></span>';
+        html += '<span title="新建' + g.label + '" style="cursor:pointer;font-size:14px;opacity:0.6;padding:0 4px;" onclick="event.stopPropagation();addNewEntity(\'' + g.key + '\')">+</span>';
+        html += '</div>';
+        html += '<div class="tree-children' + (collapsed && !autoOpen ? ' collapsed':'') + '" id="tree-group-' + g.key + '">';
+        visibleIds.forEach(id => {
+            const entry = g.data[id];
+            const name = entry[g.nameField] || id;
+            const activeClass = (selectedEntity && selectedEntity.type === g.key && selectedEntity.id === id) ? ' active' : '';
+            html += '<div class="tree-item' + activeClass + '" onclick="selectEntity(\'' + g.key + '\',\'' + id.replace(/'/g,"\\'") + '\')" data-type="' + g.key + '" data-id="' + escapeHtml(id) + '">';
+            html += '<span class="item-label">' + escapeHtml(name) + '</span>';
+            html += '<span class="item-id">' + escapeHtml(id) + '</span>';
+            html += '</div>';
+        });
+        html += '</div></div>';
+    });
+
+    if (projectData.endings && projectData.endings.length > 0) {
+        const endingMatches = filter ? projectData.endings.filter(e => {
+            const n = (e.name || e.id || '').toLowerCase();
+            return n.indexOf(filter) !== -1;
+        }) : projectData.endings;
+        if (!filter || endingMatches.length > 0) {
+            const collapsed = treeCollapsed['endings'] !== false;
+            const autoOpen = !!filter;
+            html += '<div class="tree-group">';
+            html += '<div class="tree-group-header' + (collapsed && !autoOpen ? ' collapsed':'') + '" style="color:' + treeColors.endings + '">';
+            html += '<span class="arrow" onclick="event.stopPropagation();toggleTreeGroup(\'endings\')">▼</span>';
+            html += '<span onclick="event.stopPropagation();toggleTreeGroup(\'endings\')">结局</span><span class="group-count">' + endingMatches.length + '</span>';
+            html += '<span style="flex:1;"></span>';
+            html += '<span title="新建结局" style="cursor:pointer;font-size:14px;opacity:0.6;padding:0 4px;" onclick="event.stopPropagation();addNewEntity(\'endings\')">+</span>';
+            html += '</div>';
+            html += '<div class="tree-children' + (collapsed && !autoOpen ? ' collapsed':'') + '" id="tree-group-endings">';
+            endingMatches.forEach(e => {
+                const idx = projectData.endings.indexOf(e);
+                const activeClass = (selectedEntity && selectedEntity.type === 'endings' && selectedEntity.id === String(idx)) ? ' active' : '';
+                html += '<div class="tree-item' + activeClass + '" onclick="selectEntity(\'endings\',\'' + idx + '\')" data-type="endings" data-id="' + idx + '">';
+                html += '<span class="item-label">' + escapeHtml(e.name || e.id) + '</span>';
+                html += '<span class="item-id">' + escapeHtml(e.id || '') + '</span>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+        }
+    }
+
+    if (filter && html === '') {
+        html = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">无匹配结果</div>';
+    }
+
+    container.innerHTML = html;
+}
+
+function toggleTreeGroup(key) {
+    treeCollapsed[key] = treeCollapsed[key] === false ? true : false;
+    const children = document.getElementById('tree-group-' + key);
+    const header = children ? children.previousElementSibling : null;
+    if (children) children.classList.toggle('collapsed');
+    if (header) header.classList.toggle('collapsed');
+}
+
+function selectEntity(type, id) {
+    saveCurrentEntity();
+    selectedEntity = { type, id: String(id) };
+    renderTree();
+    renderEditor();
+    renderContext();
+}
+
+// ─── Editor (Center Panel) ─────────────────────────
+
+function saveCurrentEntity() {
+    if (!selectedEntity || !projectData) return;
+    const header = document.getElementById('editor-header');
+    if (!header || header.children.length === 0) return;
+
+    const type = selectedEntity.type, id = selectedEntity.id;
+
+    if (type === 'scenes') {
+        const entry = projectData.scenes[id];
+        const sceneIdEl = document.getElementById('ed-scene-id');
+        if (sceneIdEl && sceneIdEl.value.trim() && sceneIdEl.value.trim() !== id) {
+            if (renameKey('scenes', id, sceneIdEl.value.trim())) {
+                id = sceneIdEl.value.trim();
+                document.getElementById('ed-id-display').innerText = id;
+            }
+        }
+        const titleEl = document.getElementById('ed-title'); if (titleEl) entry.title = titleEl.value;
+        const descEl = document.getElementById('ed-desc'); if (descEl) entry.desc = descEl.value;
+        const contentEl = document.getElementById('ed-content'); if (contentEl) entry.content = contentEl.value;
+        const imgEl = document.getElementById('ed-image'); if (imgEl) entry.image = imgEl.value || undefined;
+        const audioEl = document.getElementById('ed-audio'); if (audioEl) entry.audio = audioEl.value || undefined;
+        const pickEl = document.getElementById('ed-canbepicked'); if (pickEl) entry.canBePicked = pickEl.checked;
+        const hcEl = document.getElementById('ed-hc-text'); if (hcEl && entry.hiddenClue) { entry.hiddenClue.text = hcEl.value; const clueMatches = hcEl.value.match(/\[clue:([^\]]+)\]/g); entry.hiddenClue.ids = clueMatches ? clueMatches.map(m => m.slice(6,-1)) : []; }
+        const hcOnEl = document.getElementById('ed-hc-on'); if (hcOnEl) {
+            if (hcOnEl.checked) { if (!entry.hiddenClue) entry.hiddenClue = { text:'', ids:[] }; }
+            else delete entry.hiddenClue;
+        }
+    } else if (type === 'items') {
+        const entry = projectData.items[id];
+        const itemIdEl = document.getElementById('ed-item-id');
+        if (itemIdEl && itemIdEl.value.trim() && itemIdEl.value.trim() !== id) {
+            if (renameKey('items', id, itemIdEl.value.trim())) {
+                id = itemIdEl.value.trim();
+                document.getElementById('ed-id-display').innerText = id;
+            }
+        }
+        const labelEl = document.getElementById('ed-label'); if (labelEl) entry.label = labelEl.value;
+        const descEl = document.getElementById('ed-desc'); if (descEl) entry.desc = descEl.value;
+        const imgEl = document.getElementById('ed-image'); if (imgEl) entry.image = imgEl.value || undefined;
+        const audioEl = document.getElementById('ed-audio'); if (audioEl) entry.audio = audioEl.value || undefined;
+        const pickEl = document.getElementById('ed-canbepicked'); if (pickEl) entry.canBePicked = pickEl.checked;
+        const hcEl2 = document.getElementById('ed-hc-text'); if (hcEl2 && entry.hiddenClue) { entry.hiddenClue.text = hcEl2.value; const clueMatches = hcEl2.value.match(/\[clue:([^\]]+)\]/g); entry.hiddenClue.ids = clueMatches ? clueMatches.map(m => m.slice(6,-1)) : []; }
+        const hcOnEl = document.getElementById('ed-hc-on'); if (hcOnEl) {
+            if (hcOnEl.checked) { if (!entry.hiddenClue) entry.hiddenClue = { text:'', ids:[] }; }
+            else delete entry.hiddenClue;
+        }
+        saveGameplay(id);
+        savePresentReactions(id);
+    } else if (type === 'chars') {
+        const entry = projectData.chars[id];
+        const charIdEl = document.getElementById('ed-char-id');
+        if (charIdEl && charIdEl.value.trim() && charIdEl.value.trim() !== id) {
+            if (renameKey('chars', id, charIdEl.value.trim())) {
+                id = charIdEl.value.trim();
+                document.getElementById('ed-id-display').innerText = id;
+            }
+        }
+        const nameEl = document.getElementById('ed-name'); if (nameEl) entry.name = nameEl.value;
+        const descEl = document.getElementById('ed-desc'); if (descEl) entry.desc = descEl.value;
+        const avatarEl = document.getElementById('ed-avatar'); if (avatarEl) entry.avatar = avatarEl.value || undefined;
+        const imgEl = document.getElementById('ed-image'); if (imgEl) entry.image = imgEl.value || undefined;
+        const audioEl = document.getElementById('ed-audio'); if (audioEl) entry.audio = audioEl.value || undefined;
+        const defaultTalksEl = document.getElementById('ed-default-talks'); if (defaultTalksEl) {
+            const lines = defaultTalksEl.value.split('\n').filter(l=>l.trim()).map(t=>({text:t}));
+            entry.defaultTalks = lines;
+            entry.talkQueue = lines;
+            entry.lines = [...lines];
+        }
+        saveSceneTalks(id);
+        saveReactions(id, 'ed-reactions-container', 'reactions');
+        saveReactions(id, 'ed-item-reactions-container', 'itemReactions');
+        const hcEl = document.getElementById('ed-hc-text'); if (hcEl && entry.hiddenClue) { entry.hiddenClue.text = hcEl.value; const clueMatches = hcEl.value.match(/\[clue:([^\]]+)\]/g); entry.hiddenClue.ids = clueMatches ? clueMatches.map(m => m.slice(6,-1)) : []; }
+        const hcOnEl = document.getElementById('ed-hc-on'); if (hcOnEl) {
+            if (hcOnEl.checked) { if (!entry.hiddenClue) entry.hiddenClue = { text:'', ids:[] }; }
+            else delete entry.hiddenClue;
+        }
+    } else if (type === 'clues') {
+        const entry = projectData.clues[id];
+        const clueIdEl = document.getElementById('ed-clue-id');
+        if (clueIdEl && clueIdEl.value.trim() && clueIdEl.value.trim() !== id) {
+            if (renameKey('clues', id, clueIdEl.value.trim())) {
+                id = clueIdEl.value.trim();
+                document.getElementById('ed-id-display').innerText = id;
+            }
+        }
+        const labelEl = document.getElementById('ed-label'); if (labelEl) entry.label = labelEl.value;
+        const typeEl = document.getElementById('ed-ctype'); if (typeEl) entry.type = typeEl.value;
+        const descEl = document.getElementById('ed-desc'); if (descEl) entry.desc = descEl.value;
+        const imgEl = document.getElementById('ed-image'); if (imgEl) entry.image = imgEl.value || undefined;
+        const audioEl = document.getElementById('ed-audio'); if (audioEl) entry.audio = audioEl.value || undefined;
+    } else if (type === 'endings') {
+        const idx = parseInt(id);
+        const entry = projectData.endings[idx];
+        const idEl = document.getElementById('ed-eid'); if (idEl) entry.id = idEl.value;
+        const nameEl = document.getElementById('ed-name'); if (nameEl) entry.name = nameEl.value;
+        const recipeEl = document.getElementById('ed-recipe'); if (recipeEl) entry.recipe = recipeEl.value.split(',').map(s=>s.trim()).filter(s=>s);
+        const msgEl = document.getElementById('ed-message'); if (msgEl) entry.message = msgEl.value;
+    }
+}
+
+function saveGameplay(itemId) {
+    const container = document.getElementById('ed-gameplay');
+    if (!container || !projectData.items[itemId]) return;
+    const gpItems = container.querySelectorAll('.gp-item');
+    if (gpItems.length === 0) { delete projectData.items[itemId].commands; return; }
+    projectData.items[itemId].commands = [];
+    gpItems.forEach(gp => {
+        const type = gp.querySelector('.gp-type')?.value;
+        const label = gp.querySelector('.gp-label')?.value || '';
+        if (!type) return;
+        const cmd = { type, label };
+        if (type === 'password') {
+            cmd.title = gp.querySelector('.gp-title')?.value || undefined;
+            cmd.prompt = gp.querySelector('.gp-prompt')?.value || undefined;
+            cmd.requiredItem = gp.querySelector('.gp-required')?.value || undefined;
+            cmd.value = gp.querySelector('.gp-value')?.value || '';
+            const digits = parseInt(gp.querySelector('.gp-digits')?.value);
+            if (digits > 0) cmd.digits = digits;
+            const flags = (gp.querySelector('.gp-flags')?.value || '').split(',').map(s=>s.trim()).filter(s=>s);
+            const msg = gp.querySelector('.gp-message')?.value || '';
+            const items = extractItemRefs(gp.querySelector('.gp-items')?.value||'');
+            if (flags.length || msg || items.length) { cmd.onSuccess = {}; if (flags.length) cmd.onSuccess.flags = flags; if (msg) cmd.onSuccess.message = msg; if (items.length) cmd.onSuccess.items = items; }
+        } else if (type === 'text') {
+            cmd.value = gp.querySelector('.gp-text')?.value || '';
+            const flags = (gp.querySelector('.gp-flags')?.value || '').split(',').map(s=>s.trim()).filter(s=>s);
+            if (flags.length) cmd.results = { flags };
+        } else if (type === 'choice') {
+            cmd.title = gp.querySelector('.gp-title')?.value || '';
+            cmd.prompt = gp.querySelector('.gp-prompt')?.value || '';
+            const optsTxt = gp.querySelector('.gp-options')?.value || '';
+            cmd.options = optsTxt.split('\n').filter(l=>l.trim()).map(line => {
+                const p = line.split('|').map(s=>s.trim());
+                return { label: p[0]||'', results: p[1]?{scene:p[1]}:{}, message: p[2]||'' };
+            });
+        } else if (type === 'useItem') {
+            cmd.requiredItem = gp.querySelector('.gp-required')?.value || '';
+            cmd.successMessage = gp.querySelector('.gp-message')?.value || '';
+            cmd.failMessage = gp.querySelector('.gp-fail-message')?.value || '';
+            const flags = (gp.querySelector('.gp-flags')?.value || '').split(',').map(s=>s.trim()).filter(s=>s);
+            const gotoScene = gp.querySelector('.gp-goto-scene')?.value || '';
+            const items = extractItemRefs(gp.querySelector('.gp-items')?.value||'');
+            if (flags.length || gotoScene || items.length) { cmd.onSuccess = {}; if (flags.length) cmd.onSuccess.flags = flags; if (gotoScene) cmd.onSuccess.scene = gotoScene; if (items.length) cmd.onSuccess.items = items; }
+        } else if (type === 'conditional') {
+            cmd.successMessage = gp.querySelector('.gp-message')?.value || '';
+            const condText = gp.querySelector('.gp-conditions')?.value || '';
+            cmd.conditions = condText.split('\n').filter(l=>l.trim()).map(line => {
+                const p = line.split('|').map(s=>s.trim());
+                const cp = p[0]||''; const fm = p[1]||'';
+                if (cp.startsWith('flag:')) return { flag: cp.replace('flag:',''), failMessage: fm };
+                if (cp.startsWith('clue:')) return { clue: cp.replace('clue:',''), failMessage: fm };
+                return null;
+            }).filter(c=>c);
+            const flags = (gp.querySelector('.gp-flags')?.value || '').split(',').map(s=>s.trim()).filter(s=>s);
+            const osm = gp.querySelector('.gp-onsuccess-msg')?.value || '';
+            const gotoScene = gp.querySelector('.gp-goto-scene')?.value || '';
+            const items = extractItemRefs(gp.querySelector('.gp-items')?.value||'');
+            if (flags.length || osm || gotoScene || items.length) { cmd.onSuccess = {}; if (flags.length) cmd.onSuccess.flags = flags; if (osm) cmd.onSuccess.message = osm; if (gotoScene) cmd.onSuccess.gotoScene = gotoScene; if (items.length) cmd.onSuccess.items = items; }
+        }
+        projectData.items[itemId].commands.push(cmd);
+    });
+}
+
+function savePresentReactions(itemId) {
+    const container = document.getElementById('ed-present-reactions');
+    const entry = projectData.items[itemId];
+    if (!container || !entry) return;
+    const prItems = container.querySelectorAll('.pr-item');
+    if (prItems.length === 0) { delete entry.presentReactions; delete entry.conditionFlags; return; }
+    entry.presentReactions = {};
+    prItems.forEach(pr => {
+        const keyItem = pr.querySelector('.pr-key-item')?.value?.trim();
+        const text = pr.querySelector('.pr-text')?.value || '';
+        if (!keyItem) return;
+        const reaction = { text };
+        const flags = (pr.querySelector('.pr-flags')?.value || '').split(',').map(s=>s.trim()).filter(s=>s);
+        const scene = pr.querySelector('.pr-scene')?.value || '';
+        const msg = pr.querySelector('.pr-message')?.value || '';
+        const items = extractItemRefs(pr.querySelector('.pr-items')?.value||'');
+        if (flags.length || scene || msg || items.length) {
+            reaction.results = {};
+            if (flags.length) reaction.results.flags = flags;
+            if (scene) reaction.results.scene = scene;
+            if (msg) reaction.results.message = msg;
+            if (items.length) reaction.results.items = items;
+        }
+        entry.presentReactions[keyItem] = reaction;
+
+        const cfFlag = pr.querySelector('.cf-flag')?.value?.trim();
+        if (cfFlag) {
+            if (!entry.conditionFlags) entry.conditionFlags = {};
+            const cfData = { flag: cfFlag, text: pr.querySelector('.cf-text')?.value || '' };
+            const cfScene = pr.querySelector('.cf-scene')?.value || '';
+            if (cfScene) cfData.scene = cfScene;
+            entry.conditionFlags[keyItem] = cfData;
+        }
+    });
+}
+
+function saveSceneTalks(charId) {
+    const container = document.getElementById('ed-scene-talks');
+    const entry = projectData.chars[charId];
+    if (!container || !entry) return;
+    const rows = container.querySelectorAll('.scene-talk-row');
+    if (rows.length === 0) { delete entry.sceneTalks; return; }
+    const newSceneTalks = {};
+    rows.forEach(row => {
+        const sceneId = row.querySelector('.scene-talk-key')?.value?.trim();
+        const val = row.querySelector('.scene-talk-val')?.value || '';
+        if (sceneId) newSceneTalks[sceneId] = val.split('\n').filter(l=>l.trim()).map(t=>({text:t}));
+    });
+    entry.sceneTalks = newSceneTalks;
+}
+
+function saveReactions(charId, containerId, field) {
+    const container = document.getElementById(containerId);
+    const entry = projectData.chars[charId];
+    if (!container || !entry) return;
+    const rows = container.querySelectorAll('.reaction-row');
+    const newObj = {};
+    rows.forEach(row => {
+        const key = row.querySelector('.react-key')?.value?.trim();
+        const val = row.querySelector('.react-val')?.value || '';
+        if (key) newObj[key] = { text: val };
+    });
+    if (Object.keys(newObj).length === 0) { delete entry[field]; if (field === 'reactions') delete entry.logicResponse; return; }
+    entry[field] = newObj;
+    if (field === 'reactions') entry.logicResponse = { ...newObj };
+}
+
+function renderEditor() {
+    const empty = document.getElementById('editor-empty');
+    const content = document.getElementById('editor-content');
+    const header = document.getElementById('editor-header');
+    const scroll = document.getElementById('editor-scroll');
+
+    if (!projectData || !selectedEntity) {
+        empty.style.display = 'flex';
+        content.style.display = 'none';
+        return;
+    }
+
+    empty.style.display = 'none';
+    content.style.display = 'flex';
+    document.getElementById('editor-actions').style.display = 'block';
+
+    const type = selectedEntity.type, id = selectedEntity.id;
+
+    if (type === 'scenes') renderSceneEditor(id, header, scroll);
+    else if (type === 'items') renderItemEditor(id, header, scroll);
+    else if (type === 'chars') renderCharEditor(id, header, scroll);
+    else if (type === 'clues') renderClueEditor(id, header, scroll);
+    else if (type === 'endings') renderEndingEditor(id, header, scroll);
+}
+
+function renderSceneEditor(id, header, scroll) {
+    const s = projectData.scenes[id];
+    header.innerHTML = '<div class="editor-type-badge">场景 SCENE</div><div class="editor-id" id="ed-id-display">' + escapeHtml(id) + '</div>';
+    scroll.innerHTML = `
+        <div class="inline-grid" style="grid-template-columns:1fr 2fr;">
+            <div>
+                <div class="editor-label">场景 ID</div>
+                <input type="text" id="ed-scene-id" value="${escapeHtml(id)}" placeholder="如: SCENE_GARDEN">
+            </div>
+            <div>
+                <div class="editor-label">标题</div>
+                <input type="text" id="ed-title" class="editor-title-input" value="${escapeHtml(s.title||'')}">
+            </div>
+        </div>
+        <div class="editor-label">场景描述（查询/观察时显示）</div>
+        <div class="hl-editor-wrap" id="wrap-ed-desc"><textarea class="hl-textarea" id="ed-desc"></textarea></div>
+        <div class="editor-label">场景内容（进入场景时显示的富文本）</div>
+        <div class="hl-editor-wrap large" id="wrap-ed-content"><textarea class="hl-textarea" id="ed-content"></textarea></div>
+        ${renderMediaConfig('scenes', id, s)}
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-opts')"><span class="section-arrow">▼</span>属性设置</div>
+            <div class="section-body" id="sec-opts">
+                <div class="check-row"><input type="checkbox" id="ed-canbepicked" ${s.canBePicked?'checked':''}><span>可记录（玩家可将此场景记录到档案）</span></div>
+                <div class="check-row"><input type="checkbox" id="ed-hc-on" ${s.hiddenClue?'checked':''} onchange="toggleHC(this,'hc-block')"><span>启用隐藏因果</span></div>
+                <div id="hc-block" style="margin-top:8px;${s.hiddenClue?'':'display:none'}">
+                    <div class="hl-editor-wrap" id="wrap-ed-hc-text" style="min-height:60px;"><textarea class="hl-textarea" id="ed-hc-text"></textarea></div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top:16px;" onclick="deleteCurrentEntity()">删除此场景</button>
+    `;
+    setTimeout(() => {
+        initHighlightEditor('ed-desc', s.desc||'');
+        initHighlightEditor('ed-content', s.content||'');
+        initHighlightEditor('ed-hc-text', s.hiddenClue?.text||'');
+    }, 0);
+}
+
+function renderItemEditor(id, header, scroll) {
+    const it = projectData.items[id];
+    header.innerHTML = '<div class="editor-type-badge" style="background:rgba(212,176,104,0.08);color:#d4b068;">物品 ITEM</div><div class="editor-id" id="ed-id-display">' + escapeHtml(id) + '</div>';
+    const commands = it.commands || [];
+    const prs = it.presentReactions || {};
+    const prKeys = Object.keys(prs);
+    scroll.innerHTML = `
+        <div class="inline-grid" style="grid-template-columns:1fr 2fr;">
+            <div>
+                <div class="editor-label">物品 ID</div>
+                <input type="text" id="ed-item-id" value="${escapeHtml(id)}" placeholder="如: ITEM_KEY">
+            </div>
+            <div>
+                <div class="editor-label">名称</div>
+                <input type="text" id="ed-label" class="editor-title-input" value="${escapeHtml(it.label||'')}">
+            </div>
+        </div>
+        <div class="editor-label">物品描述（查询/观察时显示）</div>
+        <div class="hl-editor-wrap" id="wrap-ed-desc"><textarea class="hl-textarea" id="ed-desc"></textarea></div>
+        ${renderMediaConfig('items', id, it)}
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-opts')"><span class="section-arrow">▼</span>属性设置</div>
+            <div class="section-body" id="sec-opts">
+                <div class="check-row"><input type="checkbox" id="ed-canbepicked" ${it.canBePicked?'checked':''}><span>可记录</span></div>
+                <div class="check-row"><input type="checkbox" id="ed-hc-on" ${it.hiddenClue?'checked':''} onchange="toggleHC(this,'hc-block')"><span>启用隐藏因果</span></div>
+                <div id="hc-block" style="margin-top:8px;${it.hiddenClue?'':'display:none'}">
+                    <div class="hl-editor-wrap" id="wrap-ed-hc-text" style="min-height:60px;"><textarea class="hl-textarea" id="ed-hc-text"></textarea></div>
+                </div>
+            </div>
+        </div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-gp')"><span class="section-arrow">▼</span>玩法配置 (${commands.length})</div>
+            <div class="section-body" id="sec-gp">
+                <div id="ed-gameplay">${commands.map((cmd,i) => renderGameplayItem(id, i, cmd)).join('')}</div>
+                <button class="btn btn-small" style="width:100%;margin-top:8px;" onclick="addGameplayItem('${id}')">+ 添加玩法</button>
+            </div>
+        </div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-pr')"><span class="section-arrow">▼</span>出示反应配置 (${prKeys.length})</div>
+            <div class="section-body" id="sec-pr">
+                <div id="ed-present-reactions">${prKeys.map((keyItemId, i) => renderPresentReactionItem(id, i, keyItemId, prs[keyItemId], it.conditionFlags?.[keyItemId])).join('')}</div>
+                <button class="btn btn-small" style="width:100%;margin-top:8px;" onclick="addPresentReactionItem('${id}')">+ 添加出示反应</button>
+            </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top:16px;" onclick="deleteCurrentEntity()">删除此物品</button>
+    `;
+    setTimeout(() => {
+        initHighlightEditor('ed-desc', it.desc||'');
+        initHighlightEditor('ed-hc-text', it.hiddenClue?.text||'');
+        ['ed-gameplay','ed-present-reactions'].forEach(function(containerId) {
+            var container = document.getElementById(containerId);
+            if (container) {
+                container.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.btn-danger');
+                    if (!btn) return;
+                    var row = btn.closest('.gp-item, .pr-item');
+                    if (row) {
+                        row.remove();
+                        if (selectedEntity && selectedEntity.type === 'items') {
+                            if (containerId === 'ed-gameplay') {
+                                saveGameplay(selectedEntity.id);
+                            } else if (containerId === 'ed-present-reactions') {
+                                savePresentReactions(selectedEntity.id);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }, 0);
+    setTimeout(() => bindGameplayPreviews('ed-gameplay'), 50);
+    setTimeout(() => bindPRPreviews('ed-present-reactions'), 50);
+}
+
+function renderCharEditor(id, header, scroll) {
+    const c = projectData.chars[id];
+    header.innerHTML = '<div class="editor-type-badge" style="background:rgba(168,200,160,0.08);">角色 CHAR</div><div class="editor-id" id="ed-id-display">' + escapeHtml(id) + '</div>';
+    const st = c.sceneTalks || {};
+    const stKeys = Object.keys(st);
+    const reactions = c.reactions || c.logicResponse || {};
+    const rxKeys = Object.keys(reactions);
+    const ir = c.itemReactions || {};
+    const irKeys = Object.keys(ir);
+    scroll.innerHTML = `
+        <div class="inline-grid" style="grid-template-columns:80px 1fr 1fr;">
+            <div>
+                <div class="editor-label">头像</div>
+                <div style="width:70px;height:70px;border:2px dashed var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--input-bg);margin-bottom:4px;">
+                    ${c.avatar ? '<img src="'+escapeHtml(c.avatar)+'" style="width:100%;height:100%;object-fit:cover;">' : '<span style="color:var(--text-muted);">+</span>'}
+                </div>
+                <input type="text" id="ed-avatar" value="${escapeHtml(c.avatar||'')}" placeholder="路径" style="font-size:10px;padding:4px;">
+            </div>
+            <div><div class="editor-label">名称</div><input type="text" id="ed-name" class="editor-title-input" value="${escapeHtml(c.name||'')}"></div>
+            <div><div class="editor-label">角色ID</div><input type="text" id="ed-char-id" value="${escapeHtml(id)}" placeholder="如: CHAR_HERO"></div>
+        </div>
+        <div class="editor-label">简介</div>
+        <div class="hl-editor-wrap" id="wrap-ed-desc" style="min-height:60px;"><textarea class="hl-textarea" id="ed-desc"></textarea></div>
+        ${renderMediaConfig('chars', id, c)}
+        <div class="editor-label">默认对话（每行一条）</div>
+        <div class="hl-editor-wrap" id="wrap-ed-default-talks" style="min-height:80px;"><textarea class="hl-textarea" id="ed-default-talks"></textarea></div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-stalks')"><span class="section-arrow">▼</span>场景绑定对话 (${stKeys.length})</div>
+            <div class="section-body" id="sec-stalks">
+                <div id="ed-scene-talks">
+                    ${stKeys.map(sid => `<div class="scene-talk-row" style="display:flex;gap:8px;margin-bottom:6px;">
+                        <input type="text" class="scene-talk-key" value="${escapeHtml(sid)}" style="flex:0.3" placeholder="场景ID">
+                        <textarea class="scene-talk-val" rows="2" style="flex:1;" placeholder="该场景下的对话...">${(st[sid]||[]).map(t=>typeof t==='object'?t.text:t).join('\n')}</textarea>
+                        <button class="btn btn-small btn-danger">×</button>
+                    </div>`).join('')}
+                </div>
+                <button class="btn btn-small" style="width:100%;margin-top:6px;" onclick="addSceneTalkRow()">+ 添加场景对话</button>
+            </div>
+        </div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-react')"><span class="section-arrow">▼</span>线索反应 (${rxKeys.length})</div>
+            <div class="section-body" id="sec-react">
+                <div id="ed-reactions-container">
+                    ${rxKeys.map(k => `<div class="reaction-row" style="display:flex;gap:8px;margin-bottom:6px;">
+                        <input type="text" class="react-key" value="${escapeHtml(k)}" style="flex:0.3" placeholder="线索ID">
+                        <textarea class="react-val" rows="2" style="flex:1;" placeholder="反应文本...">${escapeHtml(typeof reactions[k]==='object'?reactions[k].text:reactions[k])}</textarea>
+                        <button class="btn btn-small btn-danger">×</button>
+                    </div>`).join('')}
+                </div>
+                <button class="btn btn-small" style="width:100%;margin-top:6px;" onclick="addReactionRow('ed-reactions-container')">+ 添加反应</button>
+            </div>
+        </div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-ireact')"><span class="section-arrow">▼</span>物品反应 (${irKeys.length})</div>
+            <div class="section-body" id="sec-ireact">
+                <div id="ed-item-reactions-container">
+                    ${irKeys.map(k => `<div class="reaction-row" style="display:flex;gap:8px;margin-bottom:6px;">
+                        <input type="text" class="react-key" value="${escapeHtml(k)}" style="flex:0.3" placeholder="物品ID">
+                        <textarea class="react-val" rows="2" style="flex:1;" placeholder="反应文本...">${escapeHtml(typeof ir[k]==='object'?ir[k].text:ir[k])}</textarea>
+                        <button class="btn btn-small btn-danger">×</button>
+                    </div>`).join('')}
+                </div>
+                <button class="btn btn-small" style="width:100%;margin-top:6px;" onclick="addReactionRow('ed-item-reactions-container')">+ 添加反应</button>
+            </div>
+        </div>
+        <div class="config-section">
+            <div class="section-title" onclick="toggleSection(this,'sec-opts')"><span class="section-arrow">▼</span>属性设置</div>
+            <div class="section-body" id="sec-opts">
+                <div class="check-row"><input type="checkbox" id="ed-hc-on" ${c.hiddenClue?'checked':''} onchange="toggleHC(this,'hc-block')"><span>启用隐藏因果</span></div>
+                <div id="hc-block" style="margin-top:8px;${c.hiddenClue?'':'display:none'}">
+                    <div class="hl-editor-wrap" id="wrap-ed-hc-text" style="min-height:60px;"><textarea class="hl-textarea" id="ed-hc-text"></textarea></div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top:16px;" onclick="deleteCurrentEntity()">删除此角色</button>
+    `;
+    setTimeout(() => {
+        initHighlightEditor('ed-desc', c.desc||'');
+        initHighlightEditor('ed-default-talks', (c.defaultTalks||c.talkQueue||[]).map(t=>typeof t==='object'?t.text:t).join('\n'));
+        initHighlightEditor('ed-hc-text', c.hiddenClue?.text||'');
+        // 使用事件委托处理反应行/场景对话行的删除
+        ['ed-reactions-container','ed-item-reactions-container','ed-scene-talks'].forEach(function(containerId) {
+            var container = document.getElementById(containerId);
+            if (container) {
+                container.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.btn-danger');
+                    if (!btn) return;
+                    var row = btn.closest('.reaction-row, .scene-talk-row');
+                    if (row) {
+                        row.remove();
+                        if (selectedEntity && selectedEntity.type === 'chars') {
+                            if (containerId === 'ed-reactions-container') {
+                                saveReactions(selectedEntity.id, 'ed-reactions-container', 'reactions');
+                            } else if (containerId === 'ed-item-reactions-container') {
+                                saveReactions(selectedEntity.id, 'ed-item-reactions-container', 'itemReactions');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }, 0);
+}
+
+function renderClueEditor(id, header, scroll) {
+    const c = projectData.clues[id];
+    header.innerHTML = '<div class="editor-type-badge" style="background:rgba(128,184,204,0.08);color:#80b8cc;">线索 CLUE</div><div class="editor-id" id="ed-id-display">' + escapeHtml(id) + '</div>';
+    scroll.innerHTML = `
+        <div class="inline-grid3">
+            <div>
+                <div class="editor-label">线索 ID</div>
+                <input type="text" id="ed-clue-id" value="${escapeHtml(id)}" placeholder="如: CLUE_LETTER">
+            </div>
+            <div><div class="editor-label">名称</div><input type="text" id="ed-label" class="editor-title-input" value="${escapeHtml(c.label||'')}"></div>
+            <div>
+                <div class="editor-label">感官类型</div>
+                <select id="ed-ctype">
+                    <option value="vision" ${c.type==='vision'?'selected':''}>视觉</option>
+                    <option value="hearing" ${c.type==='hearing'?'selected':''}>听觉</option>
+                    <option value="touch" ${c.type==='touch'?'selected':''}>触觉</option>
+                    <option value="smell" ${c.type==='smell'?'selected':''}>嗅觉</option>
+                    <option value="taste" ${c.type==='taste'?'selected':''}>味觉</option>
+                </select>
+            </div>
+        </div>
+        <div class="editor-label">扫描描述</div>
+        <div class="hl-editor-wrap" id="wrap-ed-desc" style="min-height:80px;"><textarea class="hl-textarea" id="ed-desc"></textarea></div>
+        ${renderMediaConfig('clues', id, c)}
+        <button class="btn btn-danger" style="margin-top:16px;" onclick="deleteCurrentEntity()">删除此线索</button>
+    `;
+    setTimeout(() => {
+        initHighlightEditor('ed-desc', c.desc||'');
+    }, 0);
+}
+
+function renderEndingEditor(id, header, scroll) {
+    const idx = parseInt(id);
+    const e = projectData.endings[idx];
+    header.innerHTML = '<div class="editor-type-badge" style="background:rgba(217,112,106,0.08);color:#d9706a;">结局 ENDING</div><div class="editor-id" id="ed-id-display">' + escapeHtml(e.id||'') + '</div>';
+    scroll.innerHTML = `
+        <div class="inline-grid">
+            <div><div class="editor-label">结局ID</div><input type="text" id="ed-eid" value="${escapeHtml(e.id||'')}"></div>
+            <div><div class="editor-label">名称</div><input type="text" id="ed-name" class="editor-title-input" value="${escapeHtml(e.name||'')}"></div>
+        </div>
+        <div class="editor-label">因果配方（线索ID逗号分隔）</div>
+        <input type="text" id="ed-recipe" value="${escapeHtml((e.recipe||[]).join(','))}">
+        <div class="editor-label">结局叙事</div>
+        <div class="hl-editor-wrap large" id="wrap-ed-message"><textarea class="hl-textarea" id="ed-message"></textarea></div>
+        <button class="btn btn-danger" style="margin-top:16px;" onclick="deleteCurrentEntity()">删除此结局</button>
+    `;
+    setTimeout(() => {
+        initHighlightEditor('ed-message', e.message||'');
+    }, 0);
+}
+
+function renderMediaConfig(cat, id, entry) {
+    return `
+    <div class="config-section">
+        <div class="section-title" onclick="toggleSection(this,'sec-media-${cat}-${id}')"><span class="section-arrow">▼</span>媒体配置</div>
+        <div class="section-body" id="sec-media-${cat}-${id}">
+            <div class="inline-grid">
+                <div>
+                    <div class="editor-label" style="color:#80b8cc;">配图路径</div>
+                    <input type="text" id="ed-image" value="${escapeHtml(entry.image||'')}" placeholder="images/xxx.png">
+                </div>
+                <div>
+                    <div class="editor-label" style="color:#88c8a0;">音频路径</div>
+                    <input type="text" id="ed-audio" value="${escapeHtml(entry.audio||'')}" placeholder="audio/xxx.mp3">
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function toggleSection(header, bodyId) {
+    const body = document.getElementById(bodyId);
+    const arrow = header.querySelector('.section-arrow');
+    if (body) body.classList.toggle('collapsed');
+    if (arrow) arrow.classList.toggle('collapsed');
+}
+
+function toggleHC(checkbox, blockId) {
+    document.getElementById(blockId).style.display = checkbox.checked ? 'block' : 'none';
+}
+
+function initHighlightEditor(textareaId, initialText) {
+    const ta = document.getElementById(textareaId);
+    if (!ta) return;
+    ta.value = initialText || '';
+    function autoGrow() {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+    }
+    ta.addEventListener('input', function() {
+        autoGrow();
+        if (acActive) updateAutocomplete(ta);
+    });
+    ta.addEventListener('keydown', function(e) { handleAcKeydown(ta, e); });
+    ta.addEventListener('blur', function() { setTimeout(closeAutocomplete, 150); });
+    autoGrow();
+}
+
+function handleAcKeydown(ta, e) {
+    if (acActive) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); navigateAc(1); return; }
+        if (e.key === 'ArrowUp') { e.preventDefault(); navigateAc(-1); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); confirmAc(ta); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closeAutocomplete(); return; }
+        return;
+    }
+    if (e.key === 'Escape') { closeAutocomplete(); return; }
+    setTimeout(() => detectAcTrigger(ta), 10);
+}
+
+function detectAcTrigger(ta) {
+    var pos = ta.selectionStart;
+    var text = ta.value.substring(0, pos);
+    var m = text.match(/\[(char|item|loc|clue):([^\]]*)$/);
+    if (m) {
+        var type = m[1];
+        var filter = m[2].toLowerCase();
+        showAutocomplete(ta, type, filter);
+    } else {
+        closeAutocomplete();
+    }
+}
+
+var acActive = false, acAnchor = null, acType = '', acIndex = 0, acItems = [];
+
+function showAutocomplete(ta, type, filter) {
+    var menu = document.getElementById('ac-menu');
+    var dataMap = {
+        char:  { key:'chars',  nameField:'name',  color:'#a8c8a0' },
+        item:  { key:'items',  nameField:'label', color:'#d4b068' },
+        loc:   { key:'scenes', nameField:'title', color:'#c090b8' },
+        clue:  { key:'clues',  nameField:'label', color:'#80b8cc' }
+    };
+    var cfg = dataMap[type];
+    if (!cfg || !projectData) { closeAutocomplete(); return; }
+    var pool = projectData[cfg.key] || {};
+    acItems = [];
+    for (var id in pool) {
+        var name = pool[id][cfg.nameField] || '';
+        if (filter && name.toLowerCase().indexOf(filter) === -1 && id.toLowerCase().indexOf(filter) === -1) continue;
+        acItems.push({ id: id, name: name, color: cfg.color });
+    }
+    if (acItems.length === 0) {
+        menu.innerHTML = '<div class="ac-empty">无匹配项</div>';
+        menu.classList.add('visible');
+        acActive = true; acAnchor = ta; acType = type; acIndex = -1;
+        positionAcMenu(ta);
+        return;
+    }
+    acIndex = 0;
+    acActive = true;
+    acAnchor = ta;
+    acType = type;
+    renderAcMenu();
+    menu.classList.add('visible');
+    positionAcMenu(ta);
+}
+
+function updateAutocomplete(ta) {
+    if (!acActive || acAnchor !== ta) return;
+    var pos = ta.selectionStart;
+    var text = ta.value.substring(0, pos);
+    var m = text.match(/\[(char|item|loc|clue):([^\]]*)$/);
+    if (!m) { closeAutocomplete(); return; }
+    var filter = m[2].toLowerCase();
+    var dataMap = {
+        char:{key:'chars',nameField:'name'}, item:{key:'items',nameField:'label'},
+        loc:{key:'scenes',nameField:'title'}, clue:{key:'clues',nameField:'label'}
+    };
+    var cfg = dataMap[acType];
+    var pool = projectData[cfg.key] || {};
+    acItems = [];
+    for (var id in pool) {
+        var name = pool[id][cfg.nameField] || '';
+        if (filter && name.toLowerCase().indexOf(filter) === -1 && id.toLowerCase().indexOf(filter) === -1) continue;
+        acItems.push({ id: id, name: name });
+    }
+    acIndex = Math.min(acIndex, acItems.length - 1);
+    if (acIndex < 0) acIndex = 0;
+    renderAcMenu();
+    positionAcMenu(ta);
+}
+
+function renderAcMenu() {
+    var menu = document.getElementById('ac-menu');
+    var html = '';
+    for (var i = 0; i < acItems.length; i++) {
+        var it = acItems[i];
+        html += '<div class="ac-item' + (i === acIndex ? ' active' : '') + '" data-idx="' + i + '" onmousedown="event.preventDefault();selectAcItem(' + i + ')">';
+        html += '<span class="ac-name">' + escapeHtml(it.name) + '</span>';
+        html += '<span class="ac-id">' + escapeHtml(it.id) + '</span></div>';
+    }
+    menu.innerHTML = html;
+}
+
+function positionAcMenu(ta) {
+    var menu = document.getElementById('ac-menu');
+    var rect = ta.getBoundingClientRect();
+    var lineH = 28;
+    var pos = ta.selectionStart;
+    var text = ta.value.substring(0, pos);
+    var lines = text.split('\n');
+    var lineIdx = lines.length - 1;
+    var colChars = lines[lineIdx].length;
+    var top = rect.top + (lineIdx + 1) * lineH + 4;
+    var left = rect.left + colChars * 9 + 8;
+    if (top + 240 > window.innerHeight) top = rect.top - 240;
+    if (left + 240 > window.innerWidth) left = window.innerWidth - 250;
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
+}
+
+function navigateAc(delta) {
+    if (acItems.length === 0) return;
+    acIndex += delta;
+    if (acIndex < 0) acIndex = acItems.length - 1;
+    if (acIndex >= acItems.length) acIndex = 0;
+    renderAcMenu();
+}
+
+function confirmAc(ta) {
+    if (acItems.length === 0) return;
+    selectAcItem(acIndex);
+}
+
+function selectAcItem(idx) {
+    if (!acAnchor || idx < 0 || idx >= acItems.length) return;
+    var item = acItems[idx];
+    var ta = acAnchor;
+    var pos = ta.selectionStart;
+    var text = ta.value.substring(0, pos);
+    var m = text.match(/\[(char|item|loc|clue):[^\]]*$/);
+    if (!m) { closeAutocomplete(); return; }
+    var prefix = text.substring(0, m.index);
+    var replacement = '[' + m[1] + ':' + item.id + ']';
+    ta.value = prefix + replacement + ta.value.substring(pos);
+    var newPos = prefix.length + replacement.length;
+    ta.selectionStart = ta.selectionEnd = newPos;
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+    closeAutocomplete();
+    ta.focus();
+}
+
+function closeAutocomplete() {
+    acActive = false; acAnchor = null; acIndex = 0; acItems = [];
+    var menu = document.getElementById('ac-menu');
+    if (menu) { menu.classList.remove('visible'); menu.innerHTML = ''; }
+}
+
+document.addEventListener('click', function(e) {
+    if (acActive && !e.target.closest('#ac-menu') && e.target !== acAnchor) closeAutocomplete();
+});
+
+// ─── Gameplay Items ────────────────────────────────
+
+function sceneOptsHtml(selectedId) {
+    const ids = Object.keys(projectData.scenes||{});
+    return ids.map(id => '<option value="' + escapeHtml(id) + '" ' + (selectedId===id?'selected':'') + '>' + escapeHtml(id) + ' (' + escapeHtml((projectData.scenes[id]?.title||'')) + ')</option>').join('');
+}
+
+function sceneSelectHtml(className, selectedId, placeholder) {
+    return '<select class="' + className + '" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text-body);padding:8px;border-radius:3px;font-family:inherit;"><option value="">' + (placeholder||'不跳转') + '</option>' + sceneOptsHtml(selectedId) + '</select>';
+}
+
+function itemOptsHtml(selected, filterPickable) {
+    const items = projectData.items||{};
+    const ids = filterPickable ? Object.keys(items).filter(id => items[id]?.canBePicked) : Object.keys(items);
+    const selSet = Array.isArray(selected) ? new Set(selected) : new Set(selected ? [selected] : []);
+    return ids.map(id => '<option value="' + escapeHtml(id) + '" ' + (selSet.has(id)?'selected':'') + '>' + escapeHtml(id) + ' (' + escapeHtml(items[id]?.label||'') + ')</option>').join('');
+}
+
+function itemSelectHtml(className, selected, placeholder, filterPickable, multiple) {
+    const multiAttr = multiple ? ' multiple size="4"' : '';
+    return '<select class="' + className + '" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text-body);padding:8px;border-radius:3px;font-family:inherit;"' + multiAttr + '><option value="">' + (placeholder||'请选择物品') + '</option>' + itemOptsHtml(selected, filterPickable) + '</select>';
+}
+
+function renderGameplayItem(itemId, idx, cmd) {
+    const options = [
+        { value:'text', label:'文本显示' },
+        { value:'password', label:'密码/组合解锁' },
+        { value:'choice', label:'选项分支' },
+        { value:'useItem', label:'物品使用' },
+        { value:'conditional', label:'条件判断' },
+    ];
+    const typeSelect = options.map(o => `<option value="${o.value}" ${cmd.type===o.value?'selected':''}>${o.label}</option>`).join('');
+
+    let extra = renderGameplayExtra(cmd.type, cmd);
+    return '<div class="gp-item"><div class="gp-row"><select class="gp-type" style="flex:1;" onchange="switchGameplayType(this)">' + typeSelect + '</select><input type="text" class="gp-label" style="flex:1;" value="' + escapeHtml(cmd.label||'') + '" placeholder="按钮文本"><button class="btn btn-small btn-danger">×</button></div><div class="gp-extra">' + extra + '</div></div>';
+}
+
+function bindGameplayPreviews(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('.gp-item').forEach(gp => {
+        const textAreas = gp.querySelectorAll('textarea');
+        textAreas.forEach(ta => { ta.addEventListener('input', () => {}); });
+    });
+}
+
+function switchGameplayType(selectEl) {
+    const gp = selectEl.closest('.gp-item');
+    const extra = gp.querySelector('.gp-extra');
+    if (!extra) return;
+    const type = selectEl.value;
+    extra.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px;">加载中...</div>';
+    setTimeout(function() {
+        var cmd = {};
+        extra.innerHTML = renderGameplayExtra(type, cmd);
+    }, 0);
+}
+
+function renderGameplayExtra(type, cmd) {
+    if (type === 'text') {
+        return `<textarea class="gp-text" rows="2" style="width:100%" placeholder="文本内容...">${escapeHtml(cmd.value||'')}</textarea>
+        <div class="inline-grid" style="margin-top:6px;"><div><label>设置标记</label><input type="text" class="gp-flags" value="${(cmd.results?.flags||[]).join(',')}" placeholder="逗号分隔"></div></div>`;
+    } else if (type === 'password') {
+        return `<div class="inline-grid" style="margin-bottom:6px;"><div><label>标题（可选）</label><input type="text" class="gp-title" value="${escapeHtml(cmd.title||'')}" placeholder="留空使用默认标题"></div><div><label>描述（可选）</label><input type="text" class="gp-prompt" value="${escapeHtml(cmd.prompt||'')}" placeholder="留空使用默认描述"></div></div>
+        <div class="inline-grid" style="margin-bottom:6px;"><div><label>所需物品（可选）</label>${itemSelectHtml('gp-required', cmd.requiredItem||'', '不需要物品', false, false)}</div><div><label>正确答案</label><input type="text" class="gp-value" value="${escapeHtml(cmd.value||'')}" placeholder="支持中文"></div></div>
+        <div style="margin-bottom:6px;"><label>位数(可选，组合锁用)</label><input type="number" class="gp-digits" value="${cmd.digits||''}" min="0" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text-body);padding:8px;border-radius:3px;font-family:inherit;"></div>
+        <div class="inline-grid" style="margin-top:6px;"><div><label>成功标记</label><input type="text" class="gp-flags" value="${(cmd.onSuccess?.flags||[]).join(',')}" placeholder="逗号分隔"></div><div><label>成功消息</label><input type="text" class="gp-message" value="${escapeHtml(cmd.onSuccess?.message||'')}"></div></div>
+        <div style="margin-top:6px;"><label>获得物品</label><input type="text" class="gp-items" value="${escapeHtml(formatItemRefs(cmd.onSuccess?.items||[]))}" placeholder="[item:物品ID] ..."></div>`;
+    } else if (type === 'choice') {
+        return `<div class="inline-grid" style="margin-bottom:6px;"><div><label>标题</label><input type="text" class="gp-title" value="${escapeHtml(cmd.title||'')}"></div><div><label>提示</label><input type="text" class="gp-prompt" value="${escapeHtml(cmd.prompt||'')}"></div></div>
+        <label>选项（每行：标签|场景ID|消息）</label><textarea class="gp-options" rows="3">${escapeHtml((cmd.options||[]).map(o=>[o.label,o.results?.scene||'',o.message||''].join('|')).join('\n'))}</textarea>`;
+    } else if (type === 'useItem') {
+        return `<div class="inline-grid3" style="margin-bottom:6px;"><div><label>所需物品</label>${itemSelectHtml('gp-required', cmd.requiredItem||'', '选择物品...', false, false)}</div><div><label>成功消息</label><input type="text" class="gp-message" value="${escapeHtml(cmd.successMessage||'')}"></div><div><label>失败消息</label><input type="text" class="gp-fail-message" value="${escapeHtml(cmd.failMessage||'')}"></div></div>
+        <div class="inline-grid" style="margin-top:6px;"><div><label>成功标记</label><input type="text" class="gp-flags" value="${(cmd.onSuccess?.flags||[]).join(',')}"></div><div><label>跳转场景</label>${sceneSelectHtml('gp-goto-scene', cmd.onSuccess?.scene||'')}</div></div>
+        <div style="margin-top:6px;"><label>获得物品</label><input type="text" class="gp-items" value="${escapeHtml(formatItemRefs(cmd.onSuccess?.items||[]))}" placeholder="[item:物品ID] ..."></div>`;
+    } else if (type === 'conditional') {
+        return `<div style="margin-bottom:6px;"><label>条件满足消息</label><input type="text" class="gp-message" value="${escapeHtml(cmd.successMessage||'')}"></div>
+        <label>条件（每行：flag:标记名|失败消息 或 clue:线索ID|失败消息）</label><textarea class="gp-conditions" rows="3">${(cmd.conditions||[]).map(c=>{const prefix=c.flag?'flag:':'clue:'; return prefix+(c.flag||c.clue||'')+'|'+(c.failMessage||'');}).join('\n')}</textarea>
+        <div class="inline-grid" style="margin-top:6px;"><div><label>成功标记</label><input type="text" class="gp-flags" value="${(cmd.onSuccess?.flags||[]).join(',')}"></div><div><label>成功消息</label><input type="text" class="gp-onsuccess-msg" value="${escapeHtml(cmd.onSuccess?.message||'')}"></div></div>
+        <div style="margin-top:6px;"><label>跳转场景</label>${sceneSelectHtml('gp-goto-scene', cmd.onSuccess?.gotoScene||'')}</div>
+        <div style="margin-top:6px;"><label>获得物品</label><input type="text" class="gp-items" value="${escapeHtml(formatItemRefs(cmd.onSuccess?.items||[]))}" placeholder="[item:物品ID] ..."></div>`;
+    }
+    return '';
+}
+
+function addGameplayItem(itemId) {
+    if (!projectData.items[itemId].commands) projectData.items[itemId].commands = [];
+    projectData.items[itemId].commands.push({ type:'text', label:'新玩法', value:'' });
+    renderEditor();
+}
+
+// ─── Present Reactions ────────────────────────────
+
+function renderPresentReactionItem(itemId, idx, keyItemId, reaction, condition) {
+    const items = projectData.items || {};
+    const pickableItems = Object.keys(items).filter(id => items[id]?.canBePicked);
+    const itemOpts = pickableItems.map(id => '<option value="' + escapeHtml(id) + '" ' + (keyItemId===id?'selected':'') + '>' + escapeHtml(id) + ' (' + escapeHtml(items[id].label||'') + ')</option>').join('');
+    const sceneIds = Object.keys(projectData.scenes || {});
+    const sceneOpts = sceneIds.map(id => '<option value="' + escapeHtml(id) + '" ' + (reaction.results?.scene===id?'selected':'') + '>' + escapeHtml(id) + ' (' + escapeHtml((projectData.scenes[id]?.title||'')) + ')</option>').join('');
+    const hasCondition = condition && condition.flag;
+    const cfSceneOpts = sceneIds.map(id => '<option value="' + escapeHtml(id) + '" ' + (condition?.scene===id?'selected':'') + '>' + escapeHtml(id) + ' (' + escapeHtml((projectData.scenes[id]?.title||'')) + ')</option>').join('');
+    return '<div class="pr-item"><div class="gp-row"><select class="pr-key-item" style="flex:1;"><option value="">选择出示的物品...</option>' + itemOpts + '</select><button class="btn btn-small btn-danger">×</button></div><div style="margin-top:6px;"><label>反应文本（默认）</label><textarea class="pr-text" rows="2">' + escapeHtml(reaction.text||'') + '</textarea></div><div class="inline-grid" style="margin-top:6px;"><div><label>触发标记</label><input type="text" class="pr-flags" value="' + escapeHtml((reaction.results?.flags||[]).join(',')) + '" placeholder="逗号分隔"></div><div><label>跳转场景</label><select class="pr-scene"><option value="">无跳转</option>' + sceneOpts + '</select></div></div><div style="margin-top:6px;"><label>额外消息</label><input type="text" class="pr-message" value="' + escapeHtml(reaction.results?.message||'') + '"></div><div style="margin-top:6px;"><label>获得物品</label><input type="text" class="pr-items" value="' + escapeHtml(formatItemRefs(reaction.results?.items||[])) + '" placeholder="[item:物品ID] ..."></div><div style="margin-top:8px;padding:8px;background:rgba(128,184,204,0.05);border-radius:3px;"><div style="font-size:10px;color:#80b8cc;cursor:pointer;margin-bottom:4px;" onclick="const b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'block\':\'none\'">▸ 条件触发配置 ' + (hasCondition?'(已配置)':'') + '</div><div style="display:none;"><div class="inline-grid"><div><label>需要满足的标记</label><input type="text" class="cf-flag" value="' + escapeHtml(condition?.flag||'') + '" placeholder="如: doorHasTongue"></div><div><label>条件满足时的特殊文本</label><textarea class="cf-text" rows="2">' + escapeHtml(condition?.text||'') + '</textarea></div></div><div style="margin-top:6px;"><label>跳转场景</label><select class="cf-scene"><option value="">不跳转</option>' + cfSceneOpts + '</select></div></div></div></div>';
+}
+
+function bindPRPreviews(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+}
+
+function addPresentReactionItem(itemId) {
+    if (!projectData.items[itemId].presentReactions) projectData.items[itemId].presentReactions = {};
+    projectData.items[itemId].presentReactions['TEMP_' + Date.now()] = { text:'', results:{} };
+    renderEditor();
+}
+
+function addSceneTalkRow() {
+    const container = document.getElementById('ed-scene-talks');
+    const row = document.createElement('div');
+    row.className = 'scene-talk-row';
+    row.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;';
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'scene-talk-key';
+    keyInput.style.cssText = 'flex:0.3';
+    keyInput.placeholder = '场景ID';
+    const valTextarea = document.createElement('textarea');
+    valTextarea.className = 'scene-talk-val';
+    valTextarea.rows = 2;
+    valTextarea.style.cssText = 'flex:1;';
+    valTextarea.placeholder = '该场景下的对话...';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-small btn-danger';
+    delBtn.textContent = '\u00d7';
+    delBtn.addEventListener('click', function() { row.remove(); });
+    row.appendChild(keyInput);
+    row.appendChild(valTextarea);
+    row.appendChild(delBtn);
+    container.appendChild(row);
+}
+
+function addReactionRow(containerId) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'reaction-row';
+    row.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;';
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'react-key';
+    keyInput.style.cssText = 'flex:0.3';
+    keyInput.placeholder = '线索/物品ID';
+    const valTextarea = document.createElement('textarea');
+    valTextarea.className = 'react-val';
+    valTextarea.rows = 2;
+    valTextarea.style.cssText = 'flex:1;';
+    valTextarea.placeholder = '反应文本...';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-small btn-danger';
+    delBtn.textContent = '\u00d7';
+    delBtn.addEventListener('click', function() { row.remove(); });
+    row.appendChild(keyInput);
+    row.appendChild(valTextarea);
+    row.appendChild(delBtn);
+    container.appendChild(row);
+}
+
+// ─── Context Panel (Right) ────────────────────────
+
+function renderContext() {
+    const container = document.getElementById('context-container');
+    if (!projectData || !selectedEntity) {
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:11px;">选择实体后<br>显示关联</div>';
+        return;
+    }
+    const type = selectedEntity.type, id = selectedEntity.id;
+    let html = '';
+
+    if (type === 'scenes') {
+        const s = projectData.scenes[id];
+        const refs = extractRefs((s.content||'') + ' ' + (s.desc||'') + ' ' + (s.hiddenClue?.text||''));
+        html += renderCtxSection('场景', refs.locs, 'scenes', 'title', 'scenes', '#c090b8');
+        html += renderCtxSection('角色', refs.chars, 'chars', 'name', 'chars', '#a8c8a0');
+        html += renderCtxSection('物品', refs.items, 'items', 'label', 'items', '#d4b068');
+        html += renderCtxSection('线索', refs.clues, 'clues', 'label', 'clues', '#80b8cc');
+    } else if (type === 'items') {
+        const it = projectData.items[id];
+        const refs = extractRefs((it.desc||'') + ' ' + (it.hiddenClue?.text||''));
+        if (it.commands) mergeRefs(refs, extractCommandRefs(it.commands));
+        if (it.presentReactions) {
+            for (var prk in it.presentReactions) {
+                var pr = it.presentReactions[prk];
+                mergeRefs(refs, extractRefs(pr.text||''));
+                mergeRefs(refs, extractRefs(pr.results?.message||''));
+                if (pr.results?.scene) refs.locs.add(pr.results.scene);
+                if (pr.results?.items) pr.results.items.forEach(function(iid) { refs.items.add(iid); });
+            }
+        }
+        if (it.conditionFlags) {
+            for (var cfk in it.conditionFlags) {
+                var cf = it.conditionFlags[cfk];
+                mergeRefs(refs, extractRefs(cf.text||''));
+                if (cf.scene) refs.locs.add(cf.scene);
+            }
+        }
+        html += renderCtxSection('角色', refs.chars, 'chars', 'name', 'chars', '#a8c8a0');
+        html += renderCtxSection('场景', refs.locs, 'scenes', 'title', 'scenes', '#c090b8');
+        html += renderCtxSection('线索', refs.clues, 'clues', 'label', 'clues', '#80b8cc');
+        html += renderCtxSection('引用物品', refs.items, 'items', 'label', 'items', '#d4b068');
+        const prKeys = Object.keys(it.presentReactions||{});
+        if (prKeys.length) {
+            html += '<div class="ctx-section"><div class="ctx-section-title">出示反应 (' + prKeys.length + ')</div>';
+            prKeys.forEach(k => { html += '<div class="ctx-item" style="color:#d4b068;" onclick="selectEntity(\'items\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(projectData.items[k]?.label||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>'; });
+            html += '</div>';
+        }
+    } else if (type === 'chars') {
+        const c = projectData.chars[id];
+        const refs = extractRefs((c.desc||'') + ' ' + (c.hiddenClue?.text||''));
+        html += renderCtxSection('线索', refs.clues, 'clues', 'label', 'clues', '#80b8cc');
+        html += renderCtxSection('场景', refs.locs, 'scenes', 'title', 'scenes', '#c090b8');
+        html += renderCtxSection('角色', refs.chars, 'chars', 'name', 'chars', '#a8c8a0');
+        const stKeys = Object.keys(c.sceneTalks||{});
+        if (stKeys.length) {
+            html += '<div class="ctx-section"><div class="ctx-section-title">绑定场景 (' + stKeys.length + ')</div>';
+            stKeys.forEach(k => { html += '<div class="ctx-item" style="color:#c090b8;" onclick="selectEntity(\'scenes\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(projectData.scenes[k]?.title||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>'; });
+            html += '</div>';
+        }
+        const rxKeys = Object.keys(c.reactions||c.logicResponse||{});
+        if (rxKeys.length) {
+            html += '<div class="ctx-section"><div class="ctx-section-title">线索反应 (' + rxKeys.length + ')</div>';
+            rxKeys.forEach(k => { const clue = projectData.clues[k]; html += '<div class="ctx-item" style="color:#80b8cc;" onclick="selectEntity(\'clues\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(clue?.label||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>'; });
+            html += '</div>';
+        }
+        const irKeys = Object.keys(c.itemReactions||{});
+        if (irKeys.length) {
+            html += '<div class="ctx-section"><div class="ctx-section-title">物品反应 (' + irKeys.length + ')</div>';
+            irKeys.forEach(k => { html += '<div class="ctx-item" style="color:#d4b068;" onclick="selectEntity(\'items\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(projectData.items[k]?.label||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>'; });
+            html += '</div>';
+        }
+    } else if (type === 'clues') {
+        const c = projectData.clues[id];
+        html += '<div class="ctx-section"><div class="ctx-section-title">基本信息</div>';
+        html += '<div style="padding:4px 10px;font-size:11px;color:var(--text-soft);">类型：' + (clueTypeLabels[c.type]||c.type||'未知') + '</div>';
+        html += '<div style="padding:4px 10px;font-size:11px;color:var(--text-soft);">描述：' + escapeHtml((c.desc||'').substring(0,80)) + '</div>';
+        html += '</div>';
+        html += renderCtxSection('引用角色', findCharsReferencing('clue', id), 'chars', 'name', 'chars', '#a8c8a0');
+    } else if (type === 'endings') {
+        const idx = parseInt(id);
+        const e = projectData.endings[idx];
+        if (e.recipe && e.recipe.length) {
+            html += '<div class="ctx-section"><div class="ctx-section-title">因果配方 (' + e.recipe.length + ')</div>';
+            e.recipe.forEach(k => { html += '<div class="ctx-item" style="color:#80b8cc;" onclick="selectEntity(\'clues\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(projectData.clues[k]?.label||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>'; });
+            html += '</div>';
+        }
+    }
+
+    if (!html) html = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无关联</div>';
+    container.innerHTML = html;
+}
+
+function renderCtxSection(title, idSet, dataKey, nameField, entityType, color) {
+    if (!idSet || idSet.size === 0) return '';
+    const data = projectData[dataKey] || {};
+    let h = '<div class="ctx-section"><div class="ctx-section-title">' + title + ' (' + idSet.size + ')</div>';
+    idSet.forEach(k => {
+        const entry = data[k];
+        if (entry) h += '<div class="ctx-item" style="color:' + color + ';" onclick="selectEntity(\'' + entityType + '\',\'' + k.replace(/'/g,"\\'") + '\')"><span class="ctx-label">' + escapeHtml(entry[nameField]||k) + '</span><span class="ctx-id">' + escapeHtml(k) + '</span></div>';
+    });
+    h += '</div>';
+    return h;
+}
+
+function findCharsReferencing(refType, refId) {
+    const result = new Set();
+    if (refType === 'clue') {
+        const chars = projectData.chars || {};
+        for (const cid in chars) {
+            const c = chars[cid];
+            if ((c.reactions||c.logicResponse||{})[refId]) result.add(cid);
+        }
+    }
+    return result;
+}
+
+function manualSave() {
+    if (!selectedEntity || !projectData) return;
+    const oldId = selectedEntity.id;
+    saveCurrentEntity();
+    const newId = selectedEntity.id;
+    if (oldId !== newId) {
+        showToast('已保存 (ID 已更新)');
+        renderTree();
+    } else {
+        showToast('已保存');
+    }
+    document.getElementById('save-status').innerText = '已保存 ' + new Date().toLocaleTimeString();
+}
+
+function renameKey(cat, oldKey, newKey) {
+    if (oldKey === newKey || !newKey || !projectData[cat]) return;
+    if (projectData[cat][newKey]) { alert('ID "' + newKey + '" 已存在，请换一个。'); return; }
+    projectData[cat][newKey] = projectData[cat][oldKey];
+    delete projectData[cat][oldKey];
+    selectedEntity.id = newKey;
+
+    if (confirm('是否同步更新所有引用 "' + oldKey + '" → "' + newKey + '"？\n\n选"取消"将跳过引用更新，可能导致死链。')) {
+        replaceAllRefs(oldKey, newKey, cat);
+    }
+    return true;
+}
+
+function replaceAllRefs(oldId, newId, entityType) {
+    if (!projectData) return;
+    const refSyntax = { scenes:'loc', items:'item', chars:'char', clues:'clue' };
+    const tag = refSyntax[entityType];
+    if (!tag) return;
+    const oldRef = '[' + tag + ':' + oldId + ']';
+    const newRef = '[' + tag + ':' + newId + ']';
+    let count = 0;
+
+    function replacer(text) {
+        if (typeof text !== 'string') return text;
+        const parts = text.split(oldRef);
+        if (parts.length === 1) return text;
+        count += parts.length - 1;
+        return parts.join(newRef);
+    }
+
+    const items = projectData.items || {};
+    for (const iid in items) {
+        const it = items[iid];
+        if (it.desc) it.desc = replacer(it.desc);
+        if (it.hiddenClue && it.hiddenClue.text) it.hiddenClue.text = replacer(it.hiddenClue.text);
+        if (it.commands) it.commands.forEach(cmd => {
+            if (cmd.value) cmd.value = replacer(cmd.value);
+            if (cmd.title) cmd.title = replacer(cmd.title);
+            if (cmd.prompt) cmd.prompt = replacer(cmd.prompt);
+            if (cmd.successMessage) cmd.successMessage = replacer(cmd.successMessage);
+            if (cmd.failMessage) cmd.failMessage = replacer(cmd.failMessage);
+            if (cmd.label) cmd.label = replacer(cmd.label);
+            if (cmd.onSuccess && cmd.onSuccess.message) cmd.onSuccess.message = replacer(cmd.onSuccess.message);
+            if (cmd.requiredItem && cmd.requiredItem === oldId) cmd.requiredItem = newId;
+            if (cmd.onSuccess && cmd.onSuccess.scene && cmd.onSuccess.scene === oldId) cmd.onSuccess.scene = newId;
+            if (cmd.onSuccess && cmd.onSuccess.gotoScene && cmd.onSuccess.gotoScene === oldId) cmd.onSuccess.gotoScene = newId;
+            if (cmd.results && cmd.results.scene && cmd.results.scene === oldId) cmd.results.scene = newId;
+            if (cmd.results && cmd.results.message) cmd.results.message = replacer(cmd.results.message);
+            if (entityType === 'items') {
+                if (cmd.onSuccess && cmd.onSuccess.items) cmd.onSuccess.items = cmd.onSuccess.items.map(iid => iid === oldId ? newId : iid);
+                if (cmd.results && cmd.results.items) cmd.results.items = cmd.results.items.map(iid => iid === oldId ? newId : iid);
+            }
+            if (cmd.options) cmd.options.forEach(opt => {
+                if (opt.message) opt.message = replacer(opt.message);
+                if (opt.results && opt.results.scene && opt.results.scene === oldId) opt.results.scene = newId;
+                if (entityType === 'items' && opt.results && opt.results.items) opt.results.items = opt.results.items.map(iid => iid === oldId ? newId : iid);
+            });
+            if (cmd.conditions) cmd.conditions.forEach(c => {
+                if (c.failMessage) c.failMessage = replacer(c.failMessage);
+                if (entityType === 'clues' && c.clue === oldId) c.clue = newId;
+            });
+        });
+
+        if (it.presentReactions) {
+            const newPR = {};
+            for (const k in it.presentReactions) {
+                const r = it.presentReactions[k];
+                if (r.text) r.text = replacer(r.text);
+                if (r.results && r.results.scene === oldId) r.results.scene = newId;
+                if (r.results && r.results.message) r.results.message = replacer(r.results.message);
+                if (entityType === 'items' && r.results && r.results.items) r.results.items = r.results.items.map(iid => iid === oldId ? newId : iid);
+                const newK = (entityType === 'items' && k === oldId) ? newId : k;
+                newPR[newK] = r;
+            }
+            it.presentReactions = newPR;
+        }
+
+        if (it.conditionFlags) {
+            const newCF = {};
+            for (const k in it.conditionFlags) {
+                const cf = it.conditionFlags[k];
+                if (cf.text) cf.text = replacer(cf.text);
+                if (cf.scene === oldId) cf.scene = newId;
+                const newK = (entityType === 'items' && k === oldId) ? newId : k;
+                newCF[newK] = cf;
+            }
+            it.conditionFlags = newCF;
+        }
+    }
+
+    const scenes = projectData.scenes || {};
+    for (const sid in scenes) {
+        const s = scenes[sid];
+        if (s.content) s.content = replacer(s.content);
+        if (s.desc) s.desc = replacer(s.desc);
+        if (s.hiddenClue && s.hiddenClue.text) s.hiddenClue.text = replacer(s.hiddenClue.text);
+    }
+
+    const chars = projectData.chars || {};
+    for (const cid in chars) {
+        const c = chars[cid];
+        if (c.desc) c.desc = replacer(c.desc);
+        if (c.hiddenClue && c.hiddenClue.text) c.hiddenClue.text = replacer(c.hiddenClue.text);
+        if (c.sceneTalks) {
+            const newST = {};
+            for (const k in c.sceneTalks) {
+                const talks = c.sceneTalks[k];
+                if (Array.isArray(talks)) talks.forEach(t => { if (t.text) t.text = replacer(t.text); });
+                const newK = (entityType === 'scenes' && k === oldId) ? newId : k;
+                newST[newK] = talks;
+            }
+            c.sceneTalks = newST;
+        }
+        [c.reactions, c.logicResponse, c.itemReactions].forEach(fieldObj => {
+            if (!fieldObj) return;
+            const newObj = {};
+            for (const k in fieldObj) {
+                const v = fieldObj[k];
+                if (typeof v === 'object' && v.text) v.text = replacer(v.text);
+                else if (typeof v === 'string') fieldObj[k] = replacer(v);
+                const matches = entityType === 'items' ? ('item' === refSyntax.items) : (entityType === 'clues' ? ('clue' === refSyntax.clues) : false);
+                const newK = (k === oldId && (
+                    (entityType === 'clues' && (fieldObj === c.reactions || fieldObj === c.logicResponse)) ||
+                    (entityType === 'items' && fieldObj === c.itemReactions)
+                )) ? newId : k;
+                newObj[newK] = v;
+            }
+            for (const k in fieldObj) delete fieldObj[k];
+            Object.assign(fieldObj, newObj);
+        });
+    }
+
+    const clues = projectData.clues || {};
+    for (const cid in clues) {
+        const cl = clues[cid];
+        if (cl.desc) cl.desc = replacer(cl.desc);
+    }
+
+    if (projectData.endings) projectData.endings.forEach(e => {
+        if (e.message) e.message = replacer(e.message);
+        if (e.recipe) e.recipe = e.recipe.map(r => entityType === 'clues' && r === oldId ? newId : r);
+    });
+
+    if (projectData.config) {
+        if (projectData.config.startScene && projectData.config.startScene === oldId) {
+            projectData.config.startScene = newId;
+        }
+    }
+
+    if (count > 0 || entityType === 'clues' || entityType === 'items') {
+        showToast('已更新 ' + count + ' 处引用');
+    }
+}
+
+// ─── CRUD Operations ──────────────────────────────
+
+function addNewEntity(type) {
+    if (!projectData) return;
+    let id;
+    const prefixes = { scenes:'SCENE_', items:'ITEM_', chars:'CHAR_', clues:'CLUE_' };
+    const prefix = prefixes[type] || type.toUpperCase() + '_';
+    let attempts = 0;
+    do { id = prefix + Date.now().toString().slice(-4) + (attempts>0?'_'+attempts:''); attempts++; }
+    while (projectData[type]?.[id] && attempts < 100);
+    if (type === 'endings') {
+        projectData.endings.push({ id:'END_'+Date.now(), name:'新结局', recipe:[], message:'' });
+        const idx = projectData.endings.length - 1;
+        selectEntity('endings', String(idx));
+    } else {
+        const templates = { scenes:{ title:'新场景', content:'', desc:'' }, items:{ label:'新物品', desc:'' }, chars:{ name:'新角色', desc:'', talkQueue:[], reactions:{} }, clues:{ label:'新线索', type:'vision', desc:'' } };
+        projectData[type] = projectData[type] || {};
+        projectData[type][id] = templates[type];
+        selectEntity(type, id);
+    }
+}
+
+function showAddMenu() {
+    if (!projectData) return;
+    const types = [
+        { key:'scenes', label:'场景' },
+        { key:'items', label:'物品' },
+        { key:'chars', label:'角色' },
+        { key:'clues', label:'线索' },
+        { key:'endings', label:'结局' },
+    ];
+    const choice = prompt('新建实体类型：\n' + types.map((t,i) => (i+1) + '. ' + t.label).join('\n') + '\n\n输入数字选择：');
+    const idx = parseInt(choice) - 1;
+    if (idx >= 0 && idx < types.length) addNewEntity(types[idx].key);
+}
+
+function deleteCurrentEntity() {
+    if (!selectedEntity || !projectData) return;
+    if (!confirm('确定删除？此操作不可撤销。')) return;
+    const type = selectedEntity.type, id = selectedEntity.id;
+    if (type === 'endings') {
+        projectData.endings.splice(parseInt(id), 1);
+    } else {
+        delete projectData[type][id];
+    }
+    selectedEntity = null;
+    renderTree();
+    renderEditor();
+    renderContext();
+    showToast('已删除');
+}
+
+// ─── Resize Panels ────────────────────────────────
+
+(function initResize() {
+    document.querySelectorAll('.resize-handle').forEach(handle => {
+        let startX, startW, targetPanel;
+        handle.addEventListener('mousedown', e => {
+            e.preventDefault();
+            targetPanel = document.getElementById(handle.dataset.target);
+            startX = e.clientX;
+            startW = targetPanel.offsetWidth;
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+        function onMove(e) {
+            const dx = e.clientX - startX;
+            let newW;
+            if (handle.dataset.target === 'panel-left') {
+                newW = Math.max(180, Math.min(500, startW + dx));
+            } else {
+                newW = Math.max(200, Math.min(500, startW - dx));
+            }
+            targetPanel.style.width = newW + 'px';
+        }
+        function onUp() {
+            handle.classList.remove('active');
+            document.body.style.cursor = '';
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+    });
+})();
+
+// ─── Init ─────────────────────────────────────────
+
+document.getElementById('tree-filter').addEventListener('input', function(e) {
+    treeFilter = e.target.value;
+    renderTree();
+});
+
+document.getElementById('tree-container').addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    const item = e.target.closest('.tree-item');
+    if (!item) return;
+    const type = item.dataset.type, id = item.dataset.id;
+    if (!projectData || !type) return;
+    if (confirm('在 ' + type + ' 中新建？')) addNewEntity(type);
+});
+
+showToast('就绪 — 请载入数据开始编辑');
+</script>
+</body>
+</html>

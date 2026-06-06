@@ -8,8 +8,6 @@ export const CARD = {
     WIDTH: 115,          // 卡牌宽度（px）
     HEIGHT: 150,         // 卡牌高度（px）
     HALF_WIDTH: 57.5,    // 卡牌半宽（用于居中计算）
-    EMBED_WIDTH: 106,    // 嵌入槽位时的宽度
-    EMBED_HEIGHT: 136,   // 嵌入槽位时的高度
     STACK_OFFSET_Y: 24,  // 堆叠时的 Y 偏移
     DROP_OFFSET_Y: 160,  // 进度条显示位置（卡牌高度 + 间距10）
     SNAP_DISTANCE: 80    // 拖拽吸附距离

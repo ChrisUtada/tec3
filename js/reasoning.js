@@ -2,7 +2,7 @@
 import { REASONING_ENDINGS, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showEndingReport } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen } from './shared.js';
 
 let reasoningPanel = null;
 let reasoningSlots = [];
@@ -22,6 +22,10 @@ function initReasoningElements() {
             document.getElementById('slot-3'),
             document.getElementById('slot-4')
         ];
+        // 设置槽位索引属性
+        reasoningSlots.forEach((slot, index) => {
+            if (slot) slot.dataset.slotIndex = index;
+        });
     }
     if (!reasoningPanel._cleanupAttached) {
         reasoningPanel.addEventListener('panelclosed', () => {
@@ -34,8 +38,7 @@ function initReasoningElements() {
                 if (executeBtn) executeBtn.disabled = false;
                 if (closeBtn) closeBtn.disabled = false;
             }
-            slotContents.forEach(cd => { if (cd) restoreCardToBoard(cd, 'board-canvas', true); });
-            slotContents = [null, null, null, null, null];
+            clearSlotCards(slotContents);
             reasoningSlots.forEach((slot, i) => {
                 slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${i + 1}</div>`;
                 slot.classList.remove('drag-over');
@@ -49,24 +52,21 @@ function initReasoningElements() {
 export function openReasoningModal() {
     initReasoningElements();
     
-    // 重置槽位
-    slotContents = [null, null, null, null, null];
-    reasoningSlots.forEach((slot, index) => {
-        slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${index + 1}</div>`;
-        slot.classList.remove('drag-over');
+    closePanelForReopen(reasoningPanel, () => {
+        slotContents.fill(null);
+        reasoningSlots.forEach((slot, index) => {
+            slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${index + 1}</div>`;
+            slot.classList.remove('drag-over');
+        });
+
+        const executeBtn = document.getElementById('reasoning-execute-btn');
+        if (executeBtn) executeBtn.disabled = true;
+
+        closeOtherPanels('reasoning-panel');
+        reasoningPanel.classList.add('show');
+
+        log(`🔮 [归因推演] 开启了归因推演仪`, "success");
     });
-    
-    // 禁用推演按钮
-    const executeBtn = document.getElementById('reasoning-execute-btn');
-    if (executeBtn) {
-        executeBtn.disabled = true;
-    }
-    
-    // 关闭其他面板后显示
-    closeOtherPanels('reasoning-panel');
-    reasoningPanel.classList.add('show');
-    
-    log(`🔮 [归因推演] 开启了归因推演仪`, "success");
 }
 
 // 关闭归因推演窗口
@@ -90,15 +90,8 @@ export function closeReasoningModal() {
         log(`⚠️ [归因推演中断] 推演已取消`, "normal");
     }
     
-    // 恢复所有卡牌到桌面
-    slotContents.forEach((cardData) => {
-        if (cardData) {
-            restoreCardToBoard(cardData, 'board-canvas', true);
-        }
-    });
-    
-    // 重置槽位
-    slotContents = [null, null, null, null, null];
+    // 恢复所有卡牌到桌面并重置槽位
+    clearSlotCards(slotContents);
     reasoningSlots.forEach((slot, index) => {
         slot.innerHTML = `<div class="slot-placeholder">线索槽位 ${index + 1}</div>`;
         slot.classList.remove('drag-over');
@@ -149,6 +142,15 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
     // 保存新卡牌数据
     slotContents[slotIndex] = cardData;
     
+    // 清除之前的错误提示
+    reasoningSlots.forEach(slot => {
+        if (slot) slot.classList.remove('shake-error');
+    });
+    const hint = document.getElementById('reasoning-hint');
+    if (hint) {
+        hint.innerText = '';
+    }
+
     // 将卡牌移动到槽位中
     const cardEl = document.getElementById(cardData.instanceId);
     if (cardEl) {
