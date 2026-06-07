@@ -2,6 +2,7 @@
 // 依赖注入设计：所有外部依赖通过 init() 注入，不直接 import 业务模块
 
 import { dragEventManager } from './drag-event-manager.js';
+import { CARD } from '../consts.js';
 
 export class DragSystem {
     constructor() {
@@ -79,13 +80,26 @@ export class DragSystem {
                 d.taskManager.skipCurrentTask(functionCard.instanceId);
             }
 
+            // 更新数据坐标到实际渲染位置（渲染引擎使用根卡牌的 x/y + depth*24，
+            // 而不是子卡牌自身的 x/y，所以直接加上 depth*24 可能是错的）
+            let rootCard = d.cardsMap.get(card.parent);
+            while (rootCard && rootCard.parent) {
+                rootCard = d.cardsMap.get(rootCard.parent);
+            }
+            if (rootCard) {
+                let depth = 0;
+                let _c = d.cardsMap.get(card.parent);
+                while (_c) { depth++; _c = _c.parent ? d.cardsMap.get(_c.parent) : null; }
+                card.x = rootCard.x;
+                card.y = rootCard.y + (depth * CARD.STACK_OFFSET_Y);
+            }
+
             // 解除堆叠关系
-            const p = d.cardsMap.get(card.parent);
-            if (p) p.next = null;
+            const p2 = d.cardsMap.get(card.parent);
+            if (p2) p2.next = null;
             card.parent = null;
         }
 
-        // 用数据坐标计算偏移，避开 getBoundingClientRect 在复杂卡牌上的 reflow 误差
         const canvasRect = d.boardCanvas.getBoundingClientRect();
         this._dragOffsetX = (e.clientX - canvasRect.left) - card.x;
         this._dragOffsetY = (e.clientY - canvasRect.top) - card.y;
@@ -174,7 +188,12 @@ export class DragSystem {
         if (this._checkSpecialSystems(mainCard)) return;
 
         // ===== 5. 原有堆叠逻辑 =====
-        this._doStandardStacking(mainCard);
+        const didStack = this._doStandardStacking(mainCard);
+
+        if (!didStack) {
+            // 未吸附：如果卡牌落在激活的探索面板下方，拉回可见区域
+            this._constrainCardToBoard(mainCard);
+        }
 
         // ===== 6. 清理未粘合卡牌的待处理任务 =====
         this._cleanupPendingTasks(mainCard);
@@ -307,19 +326,23 @@ export class DragSystem {
             }
 
             // 计算链尾卡牌的渲染位置
+            let tailRenderX = chainTail.x;
             let tailRenderY = chainTail.y;
             if (chainTail.parent) {
                 let depth = 0;
                 let p = d.cardsMap.get(chainTail.parent);
+                let root = chainTail;
                 while (p) {
                     depth++;
+                    root = p;
                     p = p.parent ? d.cardsMap.get(p.parent) : null;
                 }
-                tailRenderY = chainTail.y + (depth * 24);
+                tailRenderX = root.x;
+                tailRenderY = root.y + (depth * CARD.STACK_OFFSET_Y);
             }
 
-            // 检测吸附
-            if (Math.abs(mainCard.x - chainTail.x) < 80 && Math.abs(mainCard.y - tailRenderY) < 100) {
+            // 检测吸附（与标准堆叠使用相同阈值）
+            if (Math.abs(mainCard.x - tailRenderX) < CARD.SNAP_DISTANCE && Math.abs(mainCard.y - tailRenderY) < CARD.SNAP_DISTANCE_Y) {
                 // 献祭系统
                 if (d.sacrificeSystem.canProcess(mainCard, target)) {
                     d.sacrificeSystem.processSacrifice(mainCard, target);
@@ -364,20 +387,24 @@ export class DragSystem {
                 chainTail = nextCard;
             }
 
-            // 计算链尾卡牌的渲染位置
+            // 计算链尾卡牌的渲染位置（渲染引擎使用根卡牌坐标，而非链尾自身 data 坐标）
+            let tailRenderX = chainTail.x;
             let tailRenderY = chainTail.y;
             if (chainTail.parent) {
                 let depth = 0;
                 let p = d.cardsMap.get(chainTail.parent);
+                let root = chainTail;
                 while (p) {
                     depth++;
+                    root = p;
                     p = p.parent ? d.cardsMap.get(p.parent) : null;
                 }
-                tailRenderY = chainTail.y + (depth * 24);
+                tailRenderX = root.x;
+                tailRenderY = root.y + (depth * CARD.STACK_OFFSET_Y);
             }
 
             // 使用链尾卡牌的渲染位置进行吸附检测
-            if (Math.abs(mainCard.x - chainTail.x) < 80 && Math.abs(mainCard.y - tailRenderY) < 100) {
+            if (Math.abs(mainCard.x - tailRenderX) < CARD.SNAP_DISTANCE && Math.abs(mainCard.y - tailRenderY) < CARD.SNAP_DISTANCE_Y) {
 
                 // 追加到链尾
                 chainTail.next = mainCard.instanceId;
@@ -392,13 +419,14 @@ export class DragSystem {
                     // 堆叠成功，清理临时标记
                     delete mainCard._pendingTaskToCancel;
                     delete mainCard._parentCardForTask;
-                    return;
+                    return true;
                 }
 
-                if (d.gameState.isGameOver) break;
-                break;
+                if (d.gameState.isGameOver) return true;
+                return true;
             }
         }
+        return false;
     }
 
     // ---------- 清理待处理任务 ----------
@@ -417,10 +445,25 @@ export class DragSystem {
 
             d.hideStackProgressBar(mainCard._parentCardForTask.instanceId);
 
-            d.taskManager.clearProcessingFlag();
+            d.taskManager.clearProcessingFlagGlobal();
 
             d.log(`⚠️ [组合中断] 卡牌已分离，任务取消`, "normal");
             delete mainCard._parentCardForTask;
+        }
+    }
+
+    /**
+     * 释放位置修正：如果探索面板激活且卡牌落在面板区域，自动拉回可见区
+     */
+    _constrainCardToBoard(card) {
+        const explorationPanel = document.getElementById('exploration-panel');
+        if (!explorationPanel || !explorationPanel.classList.contains('exploration-active')) return;
+
+        const panelWidth = 420;
+        const padding = 20;
+        const maxX = window.innerWidth - panelWidth - CARD.WIDTH - padding;
+        if (card.x > maxX) {
+            card.x = maxX;
         }
     }
 }

@@ -156,6 +156,11 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
         return;
     }
 
+    // 每次放入（无论成功/失败）先清除所有槽位的错误状态，防止红框残留
+    explorationSlotsContainer.querySelectorAll('.exploration-slot').forEach(slot => {
+        slot.classList.remove('shake-error');
+    });
+
     if (slotIndex === undefined || slotIndex === null) {
         // 自动找到第一个空槽位
         slotIndex = explorationSlots.findIndex(slot => slot === null || slot === undefined);
@@ -172,10 +177,6 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     // 传入 cardData.instanceId 以排除该卡（允许卡牌在槽位之间自由移动）
     if (!isCardAllowedInSlot(templateId, cardData.instanceId)) {
         log(`❌ [探索系统] ${template.name} 不能放入此槽位`, "normal");
-        // 先清除所有槽位的错误状态
-        explorationSlotsContainer.querySelectorAll('.exploration-slot').forEach(slot => {
-            slot.classList.remove('shake-error');
-        });
         // 只对当前槽位震动
         const slotElement = explorationSlotsContainer.children[slotIndex];
         if (slotElement) {

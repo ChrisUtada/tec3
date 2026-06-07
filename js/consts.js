@@ -10,7 +10,8 @@ export const CARD = {
     HALF_WIDTH: 57.5,    // 卡牌半宽（用于居中计算）
     STACK_OFFSET_Y: 24,  // 堆叠时的 Y 偏移
     DROP_OFFSET_Y: 160,  // 进度条显示位置（卡牌高度 + 间距10）
-    SNAP_DISTANCE: 80    // 拖拽吸附距离
+    SNAP_DISTANCE: 90,   // 水平吸附距离（已修复渲染坐标偏差，无需过大阈值）
+    SNAP_DISTANCE_Y: 120, // 垂直吸附距离（Y轴有24px堆叠偏移，稍宽）
 };
 
 /**
