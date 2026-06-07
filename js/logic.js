@@ -1,5 +1,5 @@
 // 🎮 核心游戏逻辑：合成、捕获与结局判定
-import { CARD_TEMPLATES, CARD_COMBINATIONS, OBSERVATION_TEXTS } from './config.js';
+import { CARD_TEMPLATES, CARD_COMBINATIONS, OBSERVATION_TEXTS, SCENE_EXPLORATION } from './config.js';
 import { gameState, updateState } from './state.js';
 import { log, showEndingReport, setSystemStatus, updateModalContent, toggleSceneModal, showObservationModal } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar, showSpeechBubble, hideSpeechBubble } from './renderer.js';
@@ -78,6 +78,29 @@ export function triggerEnding(title, story) {
     log(`🏁 【因果宣告成功】达成：${title}。你可以点击按钮收起报告，继续玩并解谜其他结局。`, "success");
 }
 
+// 构建观测掉落情报
+function buildDropInfo(templateId) {
+    const typeNames = { 'scene': '场景', 'char': '人物', 'item': '物品', 'clue': '线索' };
+    const types = new Set();
+
+    // 如果观测的是场景，收集其掉落的卡牌类型
+    const sceneData = SCENE_EXPLORATION[templateId];
+    if (sceneData) {
+        for (const d of (sceneData.drops || [])) {
+            const t = CARD_TEMPLATES[d.templateId];
+            if (t && typeNames[t.type]) types.add(typeNames[t.type]);
+        }
+        for (const g of (sceneData.dropGroups || [])) {
+            for (const d of (g.drops || [])) {
+                const t = CARD_TEMPLATES[d.templateId];
+                if (t && typeNames[t.type]) types.add(typeNames[t.type]);
+            }
+        }
+    }
+
+    return types.size ? `─── 潜在关联 ───\n可掉落：${[...types].join('、')}` : '';
+}
+
 export function checkReaction(moved, target, destroyCard, spawnUnboundCard, directSpawnCard) {
     if (gameState.isGameOver) return false;
 
@@ -101,11 +124,14 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
         const observeDelay = 2500;
         showStackProgressBar(observed.instanceId, observeDelay);
         isAnyTaskProcessing = true;
+
+        // 构建掉落情报
+        const dropInfo = buildDropInfo(observed.templateId);
         
         const timeoutId = setTimeout(() => {
             delete observed.pendingTimeoutId;
             hideStackProgressBar(observed.instanceId);
-            showObservationModal(cardName, text);
+            showObservationModal(cardName, text, dropInfo);
             isAnyTaskProcessing = false;
         }, observeDelay);
         

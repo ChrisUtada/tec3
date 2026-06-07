@@ -63,14 +63,6 @@
 .sync-btn { background: var(--color-vision); border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; color: #fff; }
 .sync-btn:disabled { background: #c8c0b0; color: #5a4a3a; cursor: not-allowed; }
 
-/* 状态监视器 */
-#query-inspector {
-    position: absolute; bottom: 10px; right: 10px; width: 400px; background: rgba(253, 250, 245, 0.98);
-    border: 1px solid #5a4a3a; border-radius: 4px; padding: 15px; pointer-events: auto; z-index: 100;
-}
-#query-inspector h4 { font-size: 13px; color: #2a1a0a; margin-bottom: 8px; border-bottom: 1px solid #5a4a3a; padding-bottom: 4px; }
-#query-content { font-size: 12px; color: #2a1a0a; line-height: 1.6; }
-
 /* 卡牌基础样式 */
 .card {
     width: var(--card-width); height: var(--card-height); border-radius: 3px; padding: 10px; box-sizing: border-box;
@@ -969,8 +961,8 @@
 
 /* 观测卡 */
 .card.observe-card {
-    background: var(--color-item);
-    border-color: #e0b830;
+    background: linear-gradient(135deg, #fdfaf5 0%, #f5f0e8 100%);
+    border-top: 3px solid #e0b830;
 }
 
 /* 观测叙事弹窗 */
@@ -994,49 +986,78 @@
 }
 
 .observation-content {
-    background: #f8f2e8;
+    background: #fdfaf5;
     border: 1px solid #e0b830;
     border-radius: 6px;
-    padding: 30px;
-    max-width: 450px;
+    padding: 24px 28px;
+    max-width: 520px;
     width: 90%;
-    box-shadow: 0 0 40px rgba(224, 184, 48, 0.15);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(224, 184, 48, 0.15);
     cursor: default;
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.92) translateY(-10px);
     transition: opacity 0.25s ease 0.1s, transform 0.25s ease 0.1s;
 }
 
 #observation-modal.show .observation-content {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
+}
+
+.observation-header {
+    border-bottom: 2px double #4a3a2a;
+    padding-bottom: 10px;
+    text-align: center;
 }
 
 .observation-card-name {
     font-size: 14px;
-    color: #e0b830;
-    text-align: center;
-    margin-bottom: 12px;
+    font-weight: bold;
+    color: #1a0a0a;
+    text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .observation-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, #e0b830, transparent);
-    margin-bottom: 16px;
+    margin: 16px 0;
 }
 
 .observation-text {
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.8;
-    color: var(--text-main);
+    color: #2a1a0a;
     text-align: justify;
     padding: 4px 8px;
+    white-space: pre-wrap;
+    min-height: 60px;
 }
 
-.observation-hint {
-    font-size: 10px;
-    color: #6b5f54;
+.observation-close-btn {
+    display: block;
+    margin: 20px auto 4px;
+    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
+    border: 1px solid #5a4a3a;
+    color: #2a1a0a;
+    padding: 8px 24px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+}
+.observation-close-btn:hover {
+    background: linear-gradient(135deg, #d8d0c8, #c8c0b8);
+}
+
+.observation-drop-info {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #5a4a3a;
+    padding: 0 8px;
+    white-space: pre-wrap;
     text-align: center;
-    margin-top: 16px;
 }

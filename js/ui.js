@@ -2,7 +2,6 @@
 import { gameState } from './state.js';
 
 const logPanel = document.getElementById('log-panel'); // 已移除，保留引用以防报错
-const queryContent = document.getElementById('query-content');
 const systemStatus = document.getElementById('system-status-indicator');
 const endingPanel = document.getElementById('ending-report-panel');
 const sceneModal = document.getElementById('scene-modal');
@@ -21,20 +20,6 @@ export function log(message, type = 'normal') {
         logPanel.scrollTop = logPanel.scrollHeight;
     }
     */
-}
-
-export function updateQueryDisplay(card, template) {
-    if (!card || !template) return;
-    const status = card.isCaptured 
-        ? "<span style='color:var(--color-vision)'>[Datanodes 固化就绪]</span>" 
-        : "<span style='color:var(--color-taste);font-weight:bold'>[未存入 Datanodes - 请单击卡面执行捕获]</span>";
-    
-    queryContent.innerHTML = `
-        <strong>标识符:</strong> ${card.templateId}<br>
-        <strong>因果形态:</strong> ${template.type.toUpperCase()}<br>
-        <strong>状态判定:</strong> ${status}<br>
-        <strong>底层描述:</strong><br>${template.desc}
-    `;
 }
 
 export function setSystemStatus(text, color) {
@@ -105,10 +90,21 @@ export function closeTrueNameModal() {
 // 观测叙事弹窗
 const observationModal = document.getElementById('observation-modal');
 
-export function showObservationModal(cardName, text) {
+export function showObservationModal(cardName, text, dropInfo) {
     if (!observationModal) return;
     document.getElementById('observation-card-name').innerText = `「${cardName}」`;
     document.getElementById('observation-text').innerText = text;
+    const dropDiv = document.getElementById('observation-drop-info');
+    const dropSep = document.getElementById('observation-drop-divider');
+    if (dropInfo) {
+        dropDiv.innerText = dropInfo;
+        dropDiv.style.display = '';
+        dropSep.style.display = '';
+    } else {
+        dropDiv.innerText = '';
+        dropDiv.style.display = 'none';
+        dropSep.style.display = 'none';
+    }
     observationModal.classList.add('show');
 }
 
@@ -125,4 +121,10 @@ if (observationModal) {
             hideObservationModal();
         }
     });
+}
+
+// 底部关闭按钮
+const observationCloseBtn = document.getElementById('observation-close-btn');
+if (observationCloseBtn) {
+    observationCloseBtn.addEventListener('click', hideObservationModal);
 }

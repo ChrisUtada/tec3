@@ -123,11 +123,10 @@ export function placeCardInSlot(cardData) {
     // 放入前验证：检查是否有对应的对话配置
     const charData = DIALOGUE_DATA[currentDialogue];
     if (!charData?.dialogues?.[cardData.templateId]) {
-        // 不匹配：显示错误提示
+        // 不匹配：震动提示
         dialogueSlot.classList.remove('shake-error');
         void dialogueSlot.offsetWidth;
         dialogueSlot.classList.add('shake-error');
-        dialogueText.innerText = `❌ 【${CARD_TEMPLATES[cardData.templateId]?.name || cardData.templateId}】无法与当前角色进行对话。`;
         log(`❌ [对话系统] ${charData.name} 对「${cardData.templateId}」没有对话配置`, "normal");
         // 将卡牌放回桌面（强制随机位置）
         restoreCardToBoard(cardData, 'board-canvas', true);
@@ -195,7 +194,6 @@ export function confirmDialogueCard() {
         dialogueSlot.classList.remove('shake-error');
         void dialogueSlot.offsetWidth;
         dialogueSlot.classList.add('shake-error');
-        dialogueText.innerText = '这张卡牌无法与当前角色进行对话。';
         log(`❌ [对话系统] ${charData.name} 对「${draggedCardData.templateId}」没有对话配置`, "normal");
         return;
     }

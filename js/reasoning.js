@@ -125,10 +125,6 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
             void slotElement.offsetWidth;
             slotElement.classList.add('shake-error');
         }
-        const hint = document.getElementById('reasoning-hint');
-        if (hint) {
-            hint.innerText = '❌ 只能放入线索卡牌！';
-        }
         // 将卡牌放回桌面（强制随机位置）
         restoreCardToBoard(cardData, 'board-canvas', true);
         return false;  // 返回失败状态

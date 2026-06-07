@@ -345,7 +345,6 @@ function showCard(id) {
     
     // Special fields
     const sf = [];
-    if (t.corruptionTime!==undefined) sf.push({k:'corruptionTime',l:'腐化时间(ms)',v:t.corruptionTime});
     if (t.senseType) sf.push({k:'senseType',l:'感官类型',v:t.senseType});
     if (t.recycleValue!==undefined) sf.push({k:'recycleValue',l:'献祭价值',v:t.recycleValue});
     if (t.value!==undefined) sf.push({k:'value',l:'价值',v:t.value});
@@ -358,7 +357,15 @@ function showCard(id) {
         sf.push({k:'class',l:'额外CSS类',v:t.class});
     }
     
-    // ═══ Combo section ═══
+    // ═══ Corruption section ═══
+    let corruptionHtml = `<div class="sec"><div class="sec-hd">腐化</div>
+        <div class="ck">
+            <label><input type="checkbox" id="f_cpt_ck" ${t.corruptionTime!==undefined?'checked':''} onchange="document.getElementById('f_cpt_wrap').style.display=this.checked?'':'none'"> 启用腐化</label>
+        </div>
+        <div class="fg" id="f_cpt_wrap" style="${t.corruptionTime===undefined?'display:none':''}">
+            <label>腐化时间 (分钟)</label>
+            <input type="number" id="f_cpt" value="${(t.corruptionTime||60000)/60000}" min="0.1" step="0.5">
+        </div></div>`;
     let comboHtml = '';
     if (D.CARD_COMBINATIONS) {
         const combos = Object.entries(D.CARD_COMBINATIONS).filter(([k])=>k.split('+').includes(id));
@@ -389,6 +396,7 @@ function showCard(id) {
     if (D.SCENE_EXPLORATION && D.SCENE_EXPLORATION[id]) {
         const s = D.SCENE_EXPLORATION[id];
         sceneHtml += `<div class="sec"><div class="sec-hd">场景配置</div>
+            <div class="fg"><label>场景名</label><input id="s_name" value="${esc(s.name||'')}"></div>
             <div class="fr"><div class="fg"><label>槽位数</label><input id="s_slots" type="number" value="${s.slots}"></div>
             <div class="fg"><label>探索时间(ms)</label><input id="s_time" type="number" value="${s.exploreTime}"></div></div>
             <div class="fg"><label>探索消息</label><textarea id="s_msg">${esc(s.message||'')}</textarea></div>
@@ -401,7 +409,7 @@ function showCard(id) {
             <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">掉落</span></div>
             <div id="s_dr">`;
         for (const d of (s.drops||[])) {
-            sceneHtml += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.01" value="${d.chance}" style="width:60px"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+            sceneHtml += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:70px"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
         }
         sceneHtml += `<button class="btn btn-sm" onclick="addSDrop()">＋ 掉落</button></div>
             <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">分支掉落组</span></div>
@@ -414,7 +422,7 @@ function showCard(id) {
             }
             sceneHtml += `<div style="font-size:9px;color:var(--dim);">掉落：</div>`;
             for (const d of (g.drops||[])) {
-                sceneHtml += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.01" value="${d.chance}" style="width:60px"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+                sceneHtml += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:70px"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
             }
             sceneHtml += `<button class="btn btn-sm" onclick="addSGDrop(this)">＋ 组掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">删除组</button></div>`;
         }
@@ -451,7 +459,7 @@ function showCard(id) {
     }
     
     // ═══ Save button ═══
-    h += comboHtml + sceneHtml + diaHtml + obsHtml;
+    h += corruptionHtml + comboHtml + sceneHtml + diaHtml + obsHtml;
     h += `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-p" onclick="saveCard('${id}')">💾 应用修改</button>
         <button class="btn btn-d" onclick="delCard('${id}')">🗑 删除卡牌</button>
@@ -483,7 +491,7 @@ function showPreview(id) {
     else if (ty==='item') ex='border-top:3px solid #7a5a8a;';
     else if (ty==='logic') ex='border-top:3px solid #5a6a7a;';
     if (t.class?.includes('true-name')) ex+='border-color:#c9a227;box-shadow:0 0 15px rgba(201,162,39,0.3);';
-    document.getElementById('pv').innerHTML = `<div class="card-pv pv-${ty}" style="${ex}"><div class="pn">${esc(t.name)}</div><div class="pt">${t.type}${t.consumable?' •消耗':''}</div></div>`;
+    document.getElementById('pv').innerHTML = `<div class="card-pv pv-${ty}" style="${ex}"><div class="pn">${esc(t.name)}</div><div class="pt">${t.type}${t.consumable?' •消耗':''}${t.corruptionTime?' •腐化':''}</div></div>`;
 }
 
 function showRelations(id) {
@@ -503,8 +511,13 @@ function showRelations(id) {
         }
     }
     if (D.SCENE_EXPLORATION) {
-        for (const [sid] of Object.entries(D.SCENE_EXPLORATION)) {
+        for (const [sid, s] of Object.entries(D.SCENE_EXPLORATION)) {
             if (sid===id) h += `<div class="rl"><span class="rt rt-s">场景</span>已配置此场景</div>`;
+            // 反向：此卡出现在哪些场景的掉落中
+            if ((s.drops||[]).some(d => d.templateId === id) || (s.dropGroups||[]).some(g => (g.drops||[]).some(d => d.templateId === id))) {
+                const sn = D.CARD_TEMPLATES?.[sid]?.name || s.name || sid;
+                h += `<div class="rl"><span class="rt rt-s">掉落</span>${esc(sn)}</div>`;
+            }
         }
     }
     if (D.DIALOGUE_DATA) {
@@ -527,8 +540,19 @@ window.saveCard = function(id) {
     t.desc = document.getElementById('f_desc')?.value || '';
     t.consumable = document.getElementById('f_csm')?.checked || false;
     t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
-    // Auto-set class based on type
-    t.class = baseClass(t.type);
+    // corruption
+    const cptCk = document.getElementById('f_cpt_ck');
+    if (cptCk?.checked) {
+        const val = parseFloat(document.getElementById('f_cpt')?.value);
+        if (val > 0) t.corruptionTime = Math.round(val * 60000);
+        else delete t.corruptionTime;
+    } else {
+        delete t.corruptionTime;
+    }
+    // Auto-set class based on type, preserving extra classes (observe-card, true-name-card, etc.)
+    const base = baseClass(t.type);
+    const extras = (t.class || base).split(/\s+/).filter(c => c && c !== base);
+    t.class = extras.length ? base + ' ' + extras.join(' ') : base;
     
     // Save combos
     if (D.CARD_COMBINATIONS) {
@@ -552,6 +576,7 @@ window.saveCard = function(id) {
     // Save scene
     if (D.SCENE_EXPLORATION && D.SCENE_EXPLORATION[id]) {
         const s = D.SCENE_EXPLORATION[id];
+        s.name = document.getElementById('s_name')?.value || '';
         s.slots = parseInt(document.getElementById('s_slots')?.value)||2;
         s.exploreTime = parseInt(document.getElementById('s_time')?.value)||5000;
         s.message = document.getElementById('s_msg')?.value||'';
@@ -611,7 +636,7 @@ window.addCard = function(type) {
     const id = `ITEM_new_${Date.now()}`;
     D.CARD_TEMPLATES[id] = { name: `新${TN[type]||type}`, desc: '', type: type||'item', class: baseClass(type||'item'), consumable: false };
     // If scene, add scene config
-    if ((type||'') === 'scene' && D.SCENE_EXPLORATION) D.SCENE_EXPLORATION[id] = { slots: 2, exploreTime: 5000, message: '', requiredCards: [], drops: [] };
+    if ((type||'') === 'scene' && D.SCENE_EXPLORATION) D.SCENE_EXPLORATION[id] = { name: `新${TN[type]||type}`, slots: 2, exploreTime: 5000, message: '', requiredCards: [], drops: [], dropGroups: [] };
     // If char, add dialogue config
     if ((type||'') === 'char' && D.DIALOGUE_DATA) D.DIALOGUE_DATA[id] = { name: `新${TN[type]||type}` };
     setStatus(`已创建: ${id}`);
@@ -655,7 +680,7 @@ window.addSReq = function() {
 window.addSDrop = function() {
     const c = document.getElementById('s_dr');
     const d = document.createElement('div'); d.className='fa-r';
-    d.innerHTML='<input class="sd-id" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.01" value="0.3" style="width:60px"><input class="sd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    d.innerHTML='<input class="sd-id" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.1" min="0" max="1" value="0.3" placeholder="概率" style="width:70px"><input class="sd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
     c.insertBefore(d, c.lastElementChild);
 };
 window.addSGroup = function() {
@@ -671,7 +696,7 @@ window.addSGRReq = function(btn) {
 };
 window.addSGDrop = function(btn) {
     const d = document.createElement('div'); d.className='fa-r';
-    d.innerHTML='<input class="sgd-id" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.01" value="0.3" style="width:60px"><input class="sgd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    d.innerHTML='<input class="sgd-id" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="0.3" placeholder="概率" style="width:70px"><input class="sgd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
     btn.parentElement.insertBefore(d, btn);
 };
 
@@ -734,7 +759,7 @@ function genCombos() {
 function genScenes() {
     let s = '// 场景配置\nexport const SCENE_EXPLORATION = {\n';
     for (const [id,v] of Object.entries(D.SCENE_EXPLORATION||{})) {
-        s += `    '${id}': { slots: ${v.slots||2}, exploreTime: ${v.exploreTime||5000}`;
+        s += `    '${id}': { name: '${escJs(v.name||'')}', slots: ${v.slots||2}, exploreTime: ${v.exploreTime||5000}`;
         if (v.message) s += `, message: '${escJs(v.message)}'`;
         if (v.requiredCards?.length) s += `, requiredCards: ${JSON.stringify(v.requiredCards)}`;
         if (v.drops?.length) s += `, drops: ${JSON.stringify(v.drops)}`;

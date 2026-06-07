@@ -89,7 +89,7 @@ export const CARD_TEMPLATES = {
     'ITEM_plant': { name: '物品：植物', desc: '【道具】花园中随处可见的植物，触碰时有微妙感觉。', type: 'item', class: 'item-card', consumable: false },
     'SCENE_desk': { name: '地点：书桌', desc: '【场景】植物学家的工作台，上面散落着研究笔记。', type: 'scene', class: 'scene-card', consumable: false },
     'ITEM_phonograph': { name: '物品：唱机', desc: '【道具】老式留声机，唱片在无人触碰时自己转动。', type: 'item', class: 'item-card', consumable: false },
-    'ITEM_shadow_figure': { name: '物品：黑影', desc: '【道具】一团无法聚焦的黑色人形虚影，似乎有自我意识。', type: 'clue', class: 'item-card', consumable: true, corruptionTime: 180000 },
+    'ITEM_shadow_figure': { name: '物品：黑影', desc: '【道具】一团无法聚焦的黑色人形虚影，似乎有自我意识。', type: 'item', class: 'item-card', consumable: true, corruptionTime: 180000 },
     'ITEM_syringe': { name: '物品：注射器', desc: '【道具】锈迹斑斑的医用注射器，内含不明液体。', type: 'item', class: 'item-card', consumable: false },
     
     // 书桌调查 - 产出物
@@ -112,5 +112,5 @@ export const CARD_TEMPLATES = {
     'ITEM_stylus': { name: '物品：唱针', desc: '【道具】一枚老式唱针，沾着暗红色的痕迹。将它装回唱机上，也许能播放出本不该被听到的声音。', type: 'item', class: 'item-card', consumable: false },
     
     // 观测卡（常驻功能卡）
-    'LOGIC_observe': { name: '🔍观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false }
+    'LOGIC_observe': { name: '观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false }
 };

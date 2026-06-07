@@ -111,7 +111,7 @@ export function hideStackProgressBar(cardId) {
 /**
  * 创建卡牌 DOM 元素
  */
-export function createCardElement(card, { startDrag, updateQueryDisplay, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard, openTrueNameModal }) {
+export function createCardElement(card, { startDrag, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard, openTrueNameModal }) {
     const cardEl = document.createElement('div');
     cardEl.id = card.instanceId;
     const t = CARD_TEMPLATES[card.templateId];
@@ -148,7 +148,6 @@ export function createCardElement(card, { startDrag, updateQueryDisplay, openDia
     }
     
     cardEl.addEventListener('mousedown', (e) => {
-        updateQueryDisplay(card, t);
         if (!card.isCaptured) { 
             if (tryCapture(card, cardEl)) { 
                 e.stopPropagation(); 

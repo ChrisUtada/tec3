@@ -48,11 +48,6 @@
             </div>
         </div>
 
-        <div id="query-inspector">
-            <h4>🔍 Datanodes 实时数据审计</h4>
-            <div id="query-content">点击桌面卡牌查看详细信息。<br><span style="color:var(--color-vision)">提示：将卡牌堆叠触发组合，双击【场景】卡牌进行探索，或双击【逻辑归因】卡牌进行推演！</span></div>
-        </div>
-
         <!-- 右侧面板 - 对话系统 -->
         <div id="dialogue-panel" class="right-panel">
             <div class="panel-header">
@@ -154,12 +149,16 @@
         </div>
         
         <!-- 观测叙事弹窗 -->
-        <div id="observation-modal" style="display: none;">
+        <div id="observation-modal">
             <div class="observation-content">
-                <div class="observation-card-name" id="observation-card-name">「卡牌名」</div>
+                <div class="observation-header">
+                    <div class="observation-card-name" id="observation-card-name">「卡牌名」</div>
+                </div>
                 <div class="observation-divider"></div>
                 <div class="observation-text" id="observation-text">观察文本...</div>
-                <div class="observation-hint">点击任意位置关闭</div>
+                <div class="observation-divider" id="observation-drop-divider" style="display:none;"></div>
+                <div class="observation-drop-info" id="observation-drop-info"></div>
+                <button class="observation-close-btn" id="observation-close-btn">关闭</button>
             </div>
         </div>
     </div>

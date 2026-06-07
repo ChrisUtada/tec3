@@ -1,7 +1,7 @@
 //  渲染引擎与拖拽逻辑
 import { CARD_TEMPLATES } from './config.js';
 import { gameState, updateState } from './state.js';
-import { log, updateQueryDisplay, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus, openTrueNameModal } from './ui.js';
+import { log, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus, openTrueNameModal } from './ui.js';
 import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding, getTaskProcessing, setTaskProcessing } from './logic.js';
 import { showStackProgressBar, hideStackProgressBar, updateProgressBarPosition, hideSpeechBubble } from './renderer.js';
 import { openDialogue, placeCardInSlot } from './dialogue.js';
@@ -252,7 +252,6 @@ export function renderAllCards() {
                     return;
                 }
                 
-                updateQueryDisplay(card, t);
                 if (!card.isCaptured) { 
                     if (tryCapture(card, cardEl)) { 
                         e.stopPropagation(); 

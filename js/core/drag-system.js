@@ -68,6 +68,10 @@ export class DragSystem {
             if (directParent && directParent.pendingTimeoutId) {
                 card._pendingTaskToCancel = directParent.pendingTimeoutId;
                 card._parentCardForTask = directParent;
+            } else if (card.pendingTimeoutId) {
+                // 自身有 pendingTimeoutId（被观测的卡牌叠放在父卡上时）
+                card._pendingTaskToCancel = card.pendingTimeoutId;
+                card._parentCardForTask = card;
             }
 
             // 找到功能卡时：跳过当前任务，立刻处理剩余堆叠卡牌
