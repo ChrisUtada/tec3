@@ -59,11 +59,11 @@
                 <div class="panel-title" id="dialogue-title">人物对话</div>
             </div>
             <div class="panel-body">
+                <div class="dialogue-text" id="dialogue-text">
+                    双击人物卡牌开启对话。将物品、场景或线索拖入下方槽位，查看对应对话内容。
+                </div>
                 <div class="dialogue-slot" id="dialogue-slot">
                     <div class="dialogue-slot-placeholder">将卡牌拖入此处</div>
-                </div>
-                <div class="dialogue-text" id="dialogue-text">
-                    双击人物卡牌开启对话。将物品、场景或线索拖入上方槽位，查看对应对话内容。
                 </div>
             </div>
             <div class="panel-footer">
@@ -80,17 +80,15 @@
                 <div class="panel-title" id="exploration-title">场景探索</div>
             </div>
             <div class="panel-body">
-                <div class="exploration-slots" id="exploration-slots">
-                    <!-- 动态生成3个槽位 -->
-                </div>
+                <div class="exploration-info" id="exploration-info">展开探索…</div>
                 <div class="exploration-progress" id="exploration-progress" style="display:none;">
                     <div class="exploration-progress-bar">
                         <div class="exploration-progress-fill" id="exploration-progress-fill"></div>
                     </div>
                     <div class="exploration-progress-text" id="exploration-progress-text">探索中...</div>
                 </div>
-                <div class="exploration-info" id="exploration-info">
-                    将人物、物品或线索拖入上方槽位，然后点击"探索"按钮。
+                <div class="exploration-slots" id="exploration-slots">
+                    <!-- 动态生成3个槽位 -->
                 </div>
             </div>
             <div class="panel-footer">
@@ -106,6 +104,10 @@
                 <div class="panel-close" id="reasoning-modal-close">[ X ]</div>
             </div>
             <div class="panel-body">
+                <div class="reasoning-hint" id="reasoning-hint">
+                    将线索卡牌拖入下方槽位（至少 1 条），然后点击【归因推演】按钮推导真相。
+                </div>
+                
                 <div class="reasoning-slots" id="reasoning-slots">
                     <div class="reasoning-slot" id="slot-0">
                         <div class="slot-placeholder">线索槽位 1</div>
@@ -132,9 +134,6 @@
                     <div class="reasoning-progress-text" id="reasoning-progress-text">0%</div>
                 </div>
                 
-                <div class="reasoning-hint" id="reasoning-hint">
-                    将线索卡牌拖入上方槽位（至少 1 条），然后点击【归因推演】按钮推导真相。
-                </div>
             </div>
             <div class="panel-footer">
                 <button class="reasoning-btn" id="reasoning-execute-btn" disabled>归因推演</button>

@@ -93,10 +93,9 @@ export function openExploration(sceneId) {
         explorationProgressFill.style.width = '0%';
 
         const conditionHint = getConditionHint();
+        explorationInfo.innerText = sceneData.message || '展开探索…';
         if (conditionHint) {
-            explorationInfo.innerText = `探索条件：${conditionHint}`;
-        } else {
-            explorationInfo.innerText = `将人物、物品或线索拖入上方 ${sceneData.slots} 个槽位，然后点击"探索"按钮。`;
+            explorationInfo.innerText += `\n\n—— 条件：${conditionHint}`;
         }
 
         startBtn.style.display = 'inline-block';
@@ -222,17 +221,10 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
         slot.classList.remove('shake-error');
     });
     if (explorationInfo.innerText.includes('❌')) {
-        // 只有当提示是错误提示时才清空
+        // 恢复场景描述
         const sceneData = SCENE_EXPLORATION[currentScene];
         if (sceneData) {
-            // 恢复正常的提示信息
-            const requiredCards = sceneData.requiredCards;
-            if (requiredCards && requiredCards.length > 0) {
-                const conditionHint = requiredCards.map(c => CARD_TEMPLATES[c.templateId]?.name || c.templateId).join(' + ');
-                explorationInfo.innerText = `探索条件：${conditionHint}`;
-            } else {
-                explorationInfo.innerText = `将人物、物品或线索拖入上方 ${sceneData.slots} 个槽位，然后点击"探索"按钮。`;
-            }
+            explorationInfo.innerText = sceneData.message || '展开探索…';
         } else {
             explorationInfo.innerText = '';
         }
@@ -476,10 +468,10 @@ export function startExploration() {
         const hint = getConditionHint();
         if (hint) {
             // 在弹窗中显示条件提示
-            explorationInfo.innerHTML = `<span style="color: #e74c3c;">❌ 探索条件未满足！</span><br>需要：${hint}`;
+            explorationInfo.innerText = `❌ 探索条件未满足！\n需要：${hint}`;
             log(`❌ [探索系统] 探索条件未满足！${hint}`, "normal");
         } else {
-            explorationInfo.innerHTML = `<span style="color: #e74c3c;">❌ 请放入符合条件的卡牌再开始探索</span>`;
+            explorationInfo.innerText = `❌ 请放入符合条件的卡牌再开始探索`;
             log(`❌ [探索系统] 请放入符合条件的卡牌再开始探索`, "normal");
         }
         return;
@@ -658,6 +650,9 @@ function resetExplorationState() {
     // 重置按钮状态
     startBtn.style.display = 'inline-block';
     startBtn.disabled = false;
+    
+    // 恢复场景描述
+    explorationInfo.innerText = sceneData.message || '展开探索…';
 }
 
 // 计算掉落

@@ -379,6 +379,8 @@ function showCard(id) {
                 </div>`;
             }
             comboHtml += `<button class="btn btn-sm" onclick="addCombo('${id}')">＋ 新增组合</button></div>`;
+        } else {
+            comboHtml += `<div class="sec"><div class="sec-hd">组合配方</div><button class="btn btn-sm" onclick="addCombo('${id}')">＋ 新增组合</button></div>`;
         }
     }
     
@@ -631,10 +633,10 @@ window.delCard = function(id) {
 
 // ═══ Combo helpers ═══
 window.addCombo = function(id) {
-    const other = Object.keys(D.CARD_TEMPLATES).find(k=>k!==id);
-    if (!other) return;
+    const other = Object.keys(D.CARD_TEMPLATES).find(k => k !== id && !D.CARD_COMBINATIONS[[id, k].sort().join('+')]);
+    if (!other) { setStatus('所有卡牌已有组合，先删除一个再创建'); return; }
     const key = [id, other].sort().join('+');
-    if (!D.CARD_COMBINATIONS[key]) D.CARD_COMBINATIONS[key] = { type:'interaction', result:[], message:'', delay:2000 };
+    D.CARD_COMBINATIONS[key] = { type:'interaction', result:[], message:'', delay:2000 };
     selectCard(id);
 };
 window.delCombo = function(key) {

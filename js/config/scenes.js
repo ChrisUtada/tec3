@@ -67,7 +67,7 @@ export const SCENE_EXPLORATION = {
     // TEC总部探索
     'SCENE_tec': {
         name: 'TEC总部',
-        slots: 2,
+        slots: 3,
         exploreTime: 5000,
         message: '在 TEC 总部中搜索，寻找有用的信息和资源...',
         requiredCards: [
@@ -82,7 +82,7 @@ export const SCENE_EXPLORATION = {
     // 书桌探索
     'SCENE_desk': {
         name: '书桌',
-        slots: 2,
+        slots: 3,
         exploreTime: 4000,
         message: '调查员翻查书桌，寻找有用的物品...',
         requiredCards: [
@@ -99,7 +99,7 @@ export const SCENE_EXPLORATION = {
     // 抽屉探索
     'SCENE_drawer': {
         name: '抽屉',
-        slots: 2,
+        slots: 3,
         exploreTime: 4000,
         message: '调查员打开抽屉，检查里面的物品...',
         requiredCards: [
