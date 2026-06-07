@@ -8,7 +8,7 @@ import { openDialogue, placeCardInSlot } from './dialogue.js';
 import { openReasoningModal, placeCardInReasoningSlot } from './reasoning.js';
 import { openExploration, initExplorationModule, placeCardInExplorationSlot } from './exploration.js';
 import { openRestPanel, initRestModule, placeCardInRestSlot, startRest } from './rest.js';
-import { restoreCardToBoard, initFatigueHelper, isOverfatigued } from './shared.js';
+import { restoreCardToBoard } from './shared.js';
 import { CARD } from './consts.js';
 import { sacrificeSystem } from './systems/sacrifice.js';
 import { trueNameSystem } from './systems/truename.js';
@@ -35,7 +35,6 @@ const Z_INDEX = {
 
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
 initExplorationModule(directSpawnCard, () => cardsData);
-initFatigueHelper(() => cardsData);
 initRestModule(destroyCard);
 
 export function findCardData(id) { 
@@ -276,15 +275,9 @@ export function renderAllCards() {
 
                 // 休息卡：始终打开休息面板
                 if (card.templateId === 'SCENE_rest') {
-                    openRestPanel();
-                    return;
-                }
-
-                // 过度疲劳：阻断探索/对话/归因
-                if (isOverfatigued()) {
-                    log(`⚠️ 过度疲劳，需要先休息`, "normal");
-                    return;
-                }
+    openRestPanel();
+    return;
+}
 
                 if (cardType === 'char') {
                     // 人物卡牌：打开对话窗口
@@ -415,7 +408,6 @@ function _initSystems() {
         placeCardInReasoningSlot,
         placeCardInExplorationSlot,
         placeCardInRestSlot,
-        isOverfatigued,
         cardsData,
         sacrificeSystem,
         trueNameSystem,

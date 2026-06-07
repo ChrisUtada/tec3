@@ -4,20 +4,6 @@ import { log } from './ui.js';
 import { CARD } from './consts.js';
 import { dragEventManager } from './core/drag-event-manager.js';
 
-//  疲劳卡计数（通过 initFatigueHelper 注入 cardsData 引用，避免循环依赖）
-let _getCardsData = () => [];
-export function initFatigueHelper(cardsDataFn) {
-    _getCardsData = cardsDataFn;
-}
-export function countFatigueCards() {
-    const data = _getCardsData();
-    if (!Array.isArray(data)) return 0;
-    return data.filter(c => c && c.templateId === 'DEBUFF_fatigue').length;
-}
-export function isOverfatigued() {
-    return countFatigueCards() >= 5;
-}
-
 /**
  * 创建惰性初始化的 DOM 元素获取函数
  * @param {Object} elementDefs - 元素定义，key 为变量名，value 为元素 ID
@@ -148,6 +134,7 @@ export function setupCardDragOut(cardEl, cardData, options = {}) {
         placeholderClass = 'slot-placeholder',
         onRemove = null,
         shouldBlock = null,
+        onPlaceCard = null,
         logMessage = '卡牌已从槽位取出'
     } = options;
     
@@ -247,7 +234,7 @@ export function setupCardDragOut(cardEl, cardData, options = {}) {
             if (currentSlotEl) {
                 const isDialogue = placeholderClass && placeholderClass.startsWith('dialogue');
                 const isExploration = placeholderClass && placeholderClass.startsWith('exploration');
-                const placeText = isDialogue ? '将卡牌拖入此处' : (isExploration ? `槽位 ${dragIdx + 1}` : `线索槽位 ${dragIdx + 1}`);
+                const placeText = isDialogue ? '将卡牌拖入此处' : (isExploration ? `槽位 ${dragIdx + 1}` : (placeholderText || `线索槽位 ${dragIdx + 1}`));
                 currentSlotEl.innerHTML = `<div class="${placeholderClass}">${placeText}</div>`;
                 currentSlotEl.classList.remove('drag-over');
             }
@@ -286,11 +273,14 @@ export function setupCardDragOut(cardEl, cardData, options = {}) {
                 const targetSlotIndex = findSlotAtPosition(e.clientX, e.clientY, currentSlotEl);
                 
                 if (targetSlotIndex !== null) {
-                    // 尝试放入目标槽位
-                    const success = tryPlaceCardInSlot(cardEl, cardData, targetSlotIndex, slotsArray, currentSlotEl, placeholderText, placeholderClass, onRemove, logMessage);
+                    let success;
+                    if (onPlaceCard) {
+                        success = onPlaceCard(cardData, targetSlotIndex);
+                    } else {
+                        success = tryPlaceCardInSlot(cardEl, cardData, targetSlotIndex, slotsArray, currentSlotEl, placeholderText, placeholderClass, onRemove, logMessage);
+                    }
                     
                     if (success) {
-                        // 放入成功，直接返回
                         return;
                     }
                 }

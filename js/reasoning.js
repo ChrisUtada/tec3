@@ -1,7 +1,7 @@
 //  逻辑归因推演系统
 import { REASONING_ENDINGS, CARD_TEMPLATES } from './config.js';
 import { log, showEndingReport } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen, isOverfatigued } from './shared.js';
+import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen } from './shared.js';
 import { playSound } from './sound.js';
 
 let reasoningPanel = null;
@@ -187,10 +187,6 @@ function updateExecuteButton() {
 export function executeReasoning() {
     initReasoningElements();
     
-    if (isOverfatigued()) {
-        log(`⚠️ 过度疲劳，无法进行归因推演`, "normal");
-        return;
-    }
     
     // 收集所有线索
     const clues = slotContents.filter(slot => slot !== null);

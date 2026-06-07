@@ -177,16 +177,8 @@ export class DragSystem {
 
         const mainCard = d.findCardData(this._activeDragId);
 
-        // ===== 0. 休息槽位检测（最高优先级，过度疲劳时只有此检测有效） =====
+        // ===== 0. 休息槽位检测（最高优先级） =====
         if (this._checkRestSlot(e, mainCard)) return;
-
-        // ===== 过度疲劳：跳过所有其他操作 =====
-        if (d.isOverfatigued()) {
-            this._constrainCardToBoard(mainCard);
-            this._activeDragId = null;
-            d.renderAllCards();
-            return;
-        }
 
         // ===== 1. 检查是否拖拽到对话槽 =====
         if (this._checkDialogueSlot(e, mainCard)) return;

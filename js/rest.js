@@ -122,6 +122,7 @@ export function placeCardInRestSlot(cardData, slotIndex) {
             placeholderClass: 'rest-slot-placeholder',
             shouldBlock: () => isResting,
             onRemove: () => {},
+            onPlaceCard: (data, idx) => placeCardInRestSlot(data, idx),
             logMessage: '休息处：卡牌已从槽位取出'
         });
     }

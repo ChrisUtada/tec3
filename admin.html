@@ -383,7 +383,7 @@ function showCard(id) {
                 comboHtml += `<div class="de">
                     <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><span class="rt rt-c">${v.type}</span></div>
                     <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID"><input class="combo-res" value="${esc(res)}" placeholder="产出ID(逗号分隔)" style="flex:1.5"></div>
-                    <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="触发文本" style="flex:2"><input class="combo-delay" type="number" value="${v.delay||2000}" placeholder="延迟" style="width:60px"></div>
+                    <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="触发文本" style="flex:2"><input class="combo-delay" type="number" step="0.5" min="0" value="${(v.delay||2000)/1000}" placeholder="延迟(秒)" style="width:70px"></div>
                     <div class="fa-r" style="gap:8px;">
                         <label style="font-size:11px;">概率 <input type="number" step="0.01" class="combo-ch" value="${v.chance||''}" style="width:60px;padding:2px 4px;"></label>
                         <button class="btn btn-sm btn-d" onclick="delCombo('${key}')">✕</button>
@@ -403,7 +403,7 @@ function showCard(id) {
         sceneHtml += `<div class="sec"><div class="sec-hd">场景配置</div>
             <div class="fg"><label>场景名</label><input id="s_name" value="${esc(s.name||'')}"></div>
             <div class="fr"><div class="fg"><label>槽位数</label><input id="s_slots" type="number" value="${s.slots}"></div>
-            <div class="fg"><label>探索时间(ms)</label><input id="s_time" type="number" value="${s.exploreTime}"></div>
+            <div class="fg"><label>探索时间(秒)</label><input id="s_time" type="number" step="0.5" min="0.5" value="${(s.exploreTime||5000)/1000}"></div>
             <div class="fg"><label>疲劳掉落概率</label><input id="s_fatigueRate" type="number" step="0.05" min="0" max="1" value="${s.fatigueDropRate||0}"></div></div>
             <div class="fg"><label>探索消息</label><textarea id="s_msg">${esc(s.message||'')}</textarea></div>
             <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">条件卡牌</span></div>
@@ -573,7 +573,7 @@ window.saveCard = function(id) {
             const v = D.CARD_COMBINATIONS[key];
             if (res) v.result = res.split(',').map(s=>s.trim()).filter(Boolean);
             if (el.querySelector('.combo-msg')) v.message = el.querySelector('.combo-msg').value;
-            if (el.querySelector('.combo-delay')) v.delay = parseInt(el.querySelector('.combo-delay').value)||2000;
+            if (el.querySelector('.combo-delay')) v.delay = Math.round((parseFloat(el.querySelector('.combo-delay').value)||2) * 1000);
             const ch = el.querySelector('.combo-ch')?.value;
             if (ch) v.chance = parseFloat(ch);
             else delete v.chance;
@@ -585,7 +585,7 @@ window.saveCard = function(id) {
         const s = D.SCENE_EXPLORATION[id];
         s.name = document.getElementById('s_name')?.value || '';
         s.slots = parseInt(document.getElementById('s_slots')?.value)||2;
-        s.exploreTime = parseInt(document.getElementById('s_time')?.value)||5000;
+        s.exploreTime = Math.round((parseFloat(document.getElementById('s_time')?.value)||5) * 1000);
         s.fatigueDropRate = parseFloat(document.getElementById('s_fatigueRate')?.value)||0;
         s.message = document.getElementById('s_msg')?.value||'';
         s.requiredCards = [];

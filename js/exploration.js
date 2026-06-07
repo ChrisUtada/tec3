@@ -3,7 +3,6 @@ import { SCENE_EXPLORATION, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar } from './logic.js';
 import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen } from './shared.js';
-import { isOverfatigued } from './shared.js';
 import { CARD } from './consts.js';
 import { playSound } from './sound.js';
 
@@ -350,11 +349,6 @@ export function startExploration() {
     initExplorationElements();
     
     if (!currentScene || isExploring) {
-        return;
-    }
-
-    if (isOverfatigued()) {
-        log(`⚠️ 过度疲劳，无法继续探索`, "normal");
         return;
     }
 
