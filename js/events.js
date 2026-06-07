@@ -77,11 +77,6 @@ export function initUIEvents() {
     }
     
     // === 归因推演弹窗 ===
-    const reasoningModalClose = document.getElementById('reasoning-modal-close');
-    if (reasoningModalClose) {
-        reasoningModalClose.addEventListener('click', closeReasoningModal);
-    }
-    
     const reasoningExecuteBtn = document.getElementById('reasoning-execute-btn');
     if (reasoningExecuteBtn) {
         reasoningExecuteBtn.addEventListener('click', executeReasoning);
@@ -125,10 +120,5 @@ export function initUIEvents() {
     const restCloseBtn = document.getElementById('rest-close-btn');
     if (restCloseBtn) {
         restCloseBtn.addEventListener('click', () => closeRestModal());
-    }
-
-    const restModalClose = document.getElementById('rest-modal-close');
-    if (restModalClose) {
-        restModalClose.addEventListener('click', () => closeRestModal());
     }
 }
