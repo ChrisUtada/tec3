@@ -57,6 +57,7 @@ export function openRestPanel() {
         if (restText) restText.innerText = '将初级调查员和疲劳卡拖入下方槽位后，点击开始休息来消耗疲劳。';
         restInvestigatorSlot.innerHTML = '<div class="rest-slot-placeholder">拖入调查员卡</div>';
         restFatigueSlot.innerHTML = '<div class="rest-slot-placeholder">拖入疲劳卡</div>';
+        [restInvestigatorSlot, restFatigueSlot].forEach(slot => slot.classList.remove('shake-error'));
 
         restProgress.style.display = 'none';
         restProgressFill.style.width = '0%';
