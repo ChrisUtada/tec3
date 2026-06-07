@@ -73,7 +73,21 @@ class CorruptionSystem {
             this.stopTimer(cardId);
             const card = this.api.findCardData(cardId);
             if (card) {
-                this.api.log(`💀 [腐化] 卡牌「${CARD_TEMPLATES[card.templateId].name}」在黑暗中消散...`, "normal");
+                const name = CARD_TEMPLATES[card.templateId]?.name || card.templateId;
+                this.api.log(`💀 [腐化] 卡牌「${name}」在黑暗中消散...`, "normal");
+                // 在消散位置偏移处掉落疲劳卡
+                console.log(`[腐化] 尝试掉落疲劳卡, directSpawnCard=${typeof this.api.directSpawnCard}, x=${card.x}, y=${card.y}`);
+                if (this.api.directSpawnCard) {
+                    const result = this.api.directSpawnCard('DEBUFF_fatigue', card.x + 30, card.y + 30);
+                    console.log(`[腐化] directSpawnCard 返回:`, result);
+                    if (result) {
+                        this.api.log(`💫 [腐化] 疲劳积累 —— 桌面疲劳卡 +1`, "normal");
+                    } else {
+                        this.api.log(`⚠️ [腐化] 疲劳卡生成失败`, "normal");
+                    }
+                } else {
+                    console.warn(`[腐化] directSpawnCard 不可用`);
+                }
                 this.api.destroyCard(cardId);
             }
         });

@@ -4,6 +4,7 @@
 import { closeDialogueModal, nextDialogue, confirmDialogueCard, endDialogue } from './dialogue.js';
 import { closeReasoningModal, executeReasoning } from './reasoning.js';
 import { closeExplorationModal, startExploration } from './exploration.js';
+import { startRest, closeRestModal } from './rest.js';
 import { toggleEndingPanel, closeTrueNameModal } from './ui.js';
 import { syncModalAssets, resumeExploration, tidyCardsByScene } from './engine.js';
 import { initModalDrag } from './shared.js';
@@ -113,5 +114,21 @@ export function initUIEvents() {
         if (trueNameCloseBtn) {
             trueNameCloseBtn.addEventListener('click', closeTrueNameModal);
         }
+    }
+
+    // === 休息面板 ===
+    const restStartBtn = document.getElementById('rest-start-btn');
+    if (restStartBtn) {
+        restStartBtn.addEventListener('click', startRest);
+    }
+
+    const restCloseBtn = document.getElementById('rest-close-btn');
+    if (restCloseBtn) {
+        restCloseBtn.addEventListener('click', () => closeRestModal());
+    }
+
+    const restModalClose = document.getElementById('rest-modal-close');
+    if (restModalClose) {
+        restModalClose.addEventListener('click', () => closeRestModal());
     }
 }

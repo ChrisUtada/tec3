@@ -4,6 +4,20 @@ import { log } from './ui.js';
 import { CARD } from './consts.js';
 import { dragEventManager } from './core/drag-event-manager.js';
 
+//  疲劳卡计数（通过 initFatigueHelper 注入 cardsData 引用，避免循环依赖）
+let _getCardsData = () => [];
+export function initFatigueHelper(cardsDataFn) {
+    _getCardsData = cardsDataFn;
+}
+export function countFatigueCards() {
+    const data = _getCardsData();
+    if (!Array.isArray(data)) return 0;
+    return data.filter(c => c && c.templateId === 'DEBUFF_fatigue').length;
+}
+export function isOverfatigued() {
+    return countFatigueCards() >= 5;
+}
+
 /**
  * 创建惰性初始化的 DOM 元素获取函数
  * @param {Object} elementDefs - 元素定义，key 为变量名，value 为元素 ID

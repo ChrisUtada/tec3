@@ -1,8 +1,8 @@
 //  逻辑归因推演系统
 import { REASONING_ENDINGS, CARD_TEMPLATES } from './config.js';
-import { log } from './ui.js';
-import { showEndingReport } from './ui.js';
-import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen } from './shared.js';
+import { log, showEndingReport } from './ui.js';
+import { embedCardInSlot, restoreCardToBoard, isCardType, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen, isOverfatigued } from './shared.js';
+import { playSound } from './sound.js';
 
 let reasoningPanel = null;
 let reasoningSlots = [];
@@ -64,6 +64,7 @@ export function openReasoningModal() {
 
         closeOtherPanels('reasoning-panel');
         reasoningPanel.classList.add('show');
+        playSound('panelOpen');
 
         log(`🔮 [归因推演] 开启了归因推演仪`, "success");
     });
@@ -115,6 +116,7 @@ export function placeCardInReasoningSlot(cardData, slotIndex) {
     // 检查是否是线索卡牌
     if (!isCardType(cardData.templateId, 'clue')) {
         log(`❌ [归因推演] 只能放入线索卡牌！`, "normal");
+        playSound('error');
         // 先清除所有槽位的错误状态
         reasoningSlots.forEach(slot => {
             if (slot) slot.classList.remove('shake-error');
@@ -184,6 +186,11 @@ function updateExecuteButton() {
 // 执行归因推演
 export function executeReasoning() {
     initReasoningElements();
+    
+    if (isOverfatigued()) {
+        log(`⚠️ 过度疲劳，无法进行归因推演`, "normal");
+        return;
+    }
     
     // 收集所有线索
     const clues = slotContents.filter(slot => slot !== null);

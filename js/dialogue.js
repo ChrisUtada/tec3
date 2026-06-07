@@ -2,6 +2,7 @@
 import { DIALOGUE_DATA, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels, closePanelForReopen } from './shared.js';
+import { playSound } from './sound.js';
 
 let currentDialogue = null;  // 当前人物 templateId
 let currentCardType = null;  // 当前槽位中的卡牌类型
@@ -64,6 +65,7 @@ export function openDialogue(characterId) {
 
         closeOtherPanels('dialogue-panel');
         dialoguePanel.classList.add('show');
+        playSound('panelOpen');
         
         log(`️ [对话系统] 开启了与【${charData.name}】的对话`, "success");
     });
@@ -127,6 +129,7 @@ export function placeCardInSlot(cardData) {
         dialogueSlot.classList.remove('shake-error');
         void dialogueSlot.offsetWidth;
         dialogueSlot.classList.add('shake-error');
+        playSound('error');
         log(`❌ [对话系统] ${charData.name} 对「${cardData.templateId}」没有对话配置`, "normal");
         // 将卡牌放回桌面（强制随机位置）
         restoreCardToBoard(cardData, 'board-canvas', true);

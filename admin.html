@@ -331,7 +331,7 @@ function showCard(id) {
         <div class="fg"><label>ID</label><input id="f_id" value="${esc(id)}" readonly style="color:var(--dim)"></div>
         <div class="fr">
             <div class="fg"><label>名称</label><input id="f_name" value="${esc(t.name)}"></div>
-            <div class="fg"><label>类型</label><select id="f_type">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
+            <div class="fg"><label>类型</label><select id="f_type" onchange="document.getElementById('charExtras').style.display=this.value==='char'?'':'none'">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
         </div>
         <div class="fg"><label>描述</label><textarea id="f_desc">${esc(t.desc||'')}</textarea></div>
         <div class="fr">
@@ -339,6 +339,11 @@ function showCard(id) {
                 <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 消耗品</label>
                 <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 可重复</label>
             </div></div>
+        </div>
+        <div class="fg" id="charExtras" style="${t.type!=='char'?'display:none':''}">
+            <div class="ck">
+                <label><input type="checkbox" id="f_fatigueTrigger" ${t.fatigueTrigger?'checked':''}> 触发疲劳掉落</label>
+            </div>
         </div>
         <div class="fg" id="extraFields"></div>
     </div>`;
@@ -398,7 +403,8 @@ function showCard(id) {
         sceneHtml += `<div class="sec"><div class="sec-hd">场景配置</div>
             <div class="fg"><label>场景名</label><input id="s_name" value="${esc(s.name||'')}"></div>
             <div class="fr"><div class="fg"><label>槽位数</label><input id="s_slots" type="number" value="${s.slots}"></div>
-            <div class="fg"><label>探索时间(ms)</label><input id="s_time" type="number" value="${s.exploreTime}"></div></div>
+            <div class="fg"><label>探索时间(ms)</label><input id="s_time" type="number" value="${s.exploreTime}"></div>
+            <div class="fg"><label>疲劳掉落概率</label><input id="s_fatigueRate" type="number" step="0.05" min="0" max="1" value="${s.fatigueDropRate||0}"></div></div>
             <div class="fg"><label>探索消息</label><textarea id="s_msg">${esc(s.message||'')}</textarea></div>
             <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">条件卡牌</span></div>
             <div id="s_req">`;
@@ -540,6 +546,7 @@ window.saveCard = function(id) {
     t.desc = document.getElementById('f_desc')?.value || '';
     t.consumable = document.getElementById('f_csm')?.checked || false;
     t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
+    t.fatigueTrigger = document.getElementById('f_fatigueTrigger')?.checked || false;
     // corruption
     const cptCk = document.getElementById('f_cpt_ck');
     if (cptCk?.checked) {
@@ -579,6 +586,7 @@ window.saveCard = function(id) {
         s.name = document.getElementById('s_name')?.value || '';
         s.slots = parseInt(document.getElementById('s_slots')?.value)||2;
         s.exploreTime = parseInt(document.getElementById('s_time')?.value)||5000;
+        s.fatigueDropRate = parseFloat(document.getElementById('s_fatigueRate')?.value)||0;
         s.message = document.getElementById('s_msg')?.value||'';
         s.requiredCards = [];
         document.querySelectorAll('#s_req .fa-r:not(:last-child)').forEach(r => {
@@ -723,7 +731,7 @@ const FCS = [
 ];
 
 function genCards() {
-    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
+    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed','fatigueTrigger'];
     let s = '// 卡牌模板\nexport const CARD_TEMPLATES = {\n';
     for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
         const f = [`name: '${escJs(t.name||'')}'`,`desc: '${escJs(t.desc||'')}'`,`type: '${t.type||'item'}'`,`class: '${t.class||baseClass(t.type)}'`];
@@ -761,6 +769,7 @@ function genScenes() {
     for (const [id,v] of Object.entries(D.SCENE_EXPLORATION||{})) {
         s += `    '${id}': { name: '${escJs(v.name||'')}', slots: ${v.slots||2}, exploreTime: ${v.exploreTime||5000}`;
         if (v.message) s += `, message: '${escJs(v.message)}'`;
+        if (v.fatigueDropRate!==undefined) s += `, fatigueDropRate: ${v.fatigueDropRate}`;
         if (v.requiredCards?.length) s += `, requiredCards: ${JSON.stringify(v.requiredCards)}`;
         if (v.drops?.length) s += `, drops: ${JSON.stringify(v.drops)}`;
         if (v.dropGroups?.length) s += `, dropGroups: ${JSON.stringify(v.dropGroups)}`;

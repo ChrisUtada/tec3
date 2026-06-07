@@ -7,7 +7,8 @@ import { showStackProgressBar, hideStackProgressBar, updateProgressBarPosition, 
 import { openDialogue, placeCardInSlot } from './dialogue.js';
 import { openReasoningModal, placeCardInReasoningSlot } from './reasoning.js';
 import { openExploration, initExplorationModule, placeCardInExplorationSlot } from './exploration.js';
-import { restoreCardToBoard } from './shared.js';
+import { openRestPanel, initRestModule, placeCardInRestSlot, startRest } from './rest.js';
+import { restoreCardToBoard, initFatigueHelper, isOverfatigued } from './shared.js';
 import { CARD } from './consts.js';
 import { sacrificeSystem } from './systems/sacrifice.js';
 import { trueNameSystem } from './systems/truename.js';
@@ -34,6 +35,8 @@ const Z_INDEX = {
 
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
 initExplorationModule(directSpawnCard, () => cardsData);
+initFatigueHelper(() => cardsData);
+initRestModule(destroyCard);
 
 export function findCardData(id) { 
     return cardsMap.get(id); // O(1) 查找替代 O(n) find
@@ -270,7 +273,19 @@ export function renderAllCards() {
                 
                 // 根据卡牌类型打开不同的弹窗
                 const cardType = CARD_TEMPLATES[card.templateId].type;
-                
+
+                // 休息卡：始终打开休息面板
+                if (card.templateId === 'SCENE_rest') {
+                    openRestPanel();
+                    return;
+                }
+
+                // 过度疲劳：阻断探索/对话/归因
+                if (isOverfatigued()) {
+                    log(`⚠️ 过度疲劳，需要先休息`, "normal");
+                    return;
+                }
+
                 if (cardType === 'char') {
                     // 人物卡牌：打开对话窗口
                     openDialogue(card.templateId);
@@ -399,6 +414,8 @@ function _initSystems() {
         placeCardInSlot,
         placeCardInReasoningSlot,
         placeCardInExplorationSlot,
+        placeCardInRestSlot,
+        isOverfatigued,
         cardsData,
         sacrificeSystem,
         trueNameSystem,
@@ -454,7 +471,7 @@ export function tidyCardsByScene() {
     cardsData.forEach(card => {
         if (card.sourceScene) {
             const template = CARD_TEMPLATES[card.templateId];
-            if (template && template.type === 'item') {
+            if (template && template.type === 'item' && card.templateId !== 'DEBUFF_fatigue' && card.templateId !== 'ITEM_true_name') {
                 if (!groups[card.sourceScene]) groups[card.sourceScene] = [];
                 groups[card.sourceScene].push(card);
             }
@@ -490,7 +507,8 @@ export function initBaseTable() {
         { instanceId: 'l_capture', templateId: 'LOGIC_capture', x: 310, y: 50, next: null, parent: null, isCaptured: true },
         { instanceId: 'l_reason', templateId: 'LOGIC_reason', x: 445, y: 50, next: null, parent: null, isCaptured: true },
         { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'l_observe', templateId: 'LOGIC_observe', x: 40, y: 180, next: null, parent: null, isCaptured: true }
+        { instanceId: 'l_observe', templateId: 'LOGIC_observe', x: 40, y: 180, next: null, parent: null, isCaptured: true },
+        { instanceId: 's_rest', templateId: 'SCENE_rest', x: 175, y: 180, next: null, parent: null, isCaptured: true }
     ];
     
     // 同步初始化 cardsMap

@@ -3,7 +3,7 @@ export const CARD_TEMPLATES = {
     'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false },
     'SCENE_wz': { name: '场景：未知地点', desc: '【核心锚点】初始坐标。将其与手电筒叠加，并用[⚡前往]卡催化。', type: 'scene', class: 'scene-card', consumable: true },
     'CHAR_zs': { name: '人物：朱穗', desc: '【NPC】高级调查员。可以直接扔线索给她进行无卡自发对质。', type: 'char', class: 'char-card', consumable: false, allowDuplicate: true },
-    'CHAR_investigator': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false },
+    'CHAR_investigator': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false, fatigueTrigger: true },
     
     'CLUES_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。', type: 'clue', class: 'clue-vision', consumable: true },
     'ITEM_mt': { name: '道具：木桶', desc: '【道具】坚固旧木桶。直接把贴纸丢上去可以融合成密码盒。', type: 'item', class: 'item-card', consumable: true },
@@ -112,5 +112,11 @@ export const CARD_TEMPLATES = {
     'ITEM_stylus': { name: '物品：唱针', desc: '【道具】一枚老式唱针，沾着暗红色的痕迹。将它装回唱机上，也许能播放出本不该被听到的声音。', type: 'item', class: 'item-card', consumable: false },
     
     // 观测卡（常驻功能卡）
-    'LOGIC_observe': { name: '观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false }
+    'LOGIC_observe': { name: '观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false },
+
+    // 疲劳卡（负面卡）
+    'DEBUFF_fatigue': { name: '疲劳', desc: '【负面状态】连续探索导致的疲劳积累。桌面疲劳卡达到 5 张时将无法进行探索、对话和归因。放入休息卡中可恢复。', type: 'item', class: 'item-card debuff-card', consumable: true, allowDuplicate: true },
+
+    // 休息卡（功能卡）
+    'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false }
 };

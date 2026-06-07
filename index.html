@@ -92,6 +92,35 @@
             </div>
         </div>
 
+        <!-- 休息面板 -->
+        <div id="rest-panel" class="right-panel">
+            <div class="panel-header">
+                <div class="panel-title" id="rest-title">休息处</div>
+                <div class="panel-close" id="rest-modal-close">[ X ]</div>
+            </div>
+            <div class="panel-body">
+                <div class="rest-text" id="rest-text">将初级调查员和疲劳卡拖入下方槽位后，点击开始休息来消耗疲劳。</div>
+                <div class="rest-progress" id="rest-progress" style="display:none;">
+                    <div class="exploration-progress-bar">
+                        <div class="exploration-progress-fill" id="rest-progress-fill"></div>
+                    </div>
+                    <div class="exploration-progress-text">休息中...</div>
+                </div>
+                <div class="rest-slots">
+                    <div class="rest-slot" id="rest-investigator-slot">
+                        <div class="rest-slot-placeholder">拖入调查员卡</div>
+                    </div>
+                    <div class="rest-slot" id="rest-fatigue-slot">
+                        <div class="rest-slot-placeholder">拖入疲劳卡</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button class="exploration-btn" id="rest-start-btn" disabled>开始休息</button>
+                <button class="exploration-btn" id="rest-close-btn">关闭</button>
+            </div>
+        </div>
+
         <!-- 归因推演面板 -->
         <div id="reasoning-panel" class="right-panel">
             <div class="panel-header">

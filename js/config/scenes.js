@@ -17,6 +17,7 @@ export const SCENE_EXPLORATION = {
             { templateId: 'CHAR_investigator', min: 1, max: 1 }   // 必须放入1个初级调查员
         ],
         // 掉落配置
+        fatigueDropRate: 0.1,
         drops: [
             { templateId: 'ITEM_cdyg', chance: 1.0, message: '发现了惨白的月亮！' },
             { templateId: 'ITEM_zxtz', chance: 1.0, message: '发现了雕塑贴纸！' },
@@ -32,6 +33,7 @@ export const SCENE_EXPLORATION = {
         name: '植物学家的花园',
         slots: 3,
         exploreTime: 5000,
+        fatigueDropRate: 0.1,
         // 条件分支产出：根据放入的卡牌不同，掉落不同的物品
         dropGroups: [
             {
@@ -70,6 +72,7 @@ export const SCENE_EXPLORATION = {
         slots: 3,
         exploreTime: 5000,
         message: '在 TEC 总部中搜索，寻找有用的信息和资源...',
+        fatigueDropRate: 0.1,
         requiredCards: [
             { templateId: 'CHAR_investigator', min: 1, max: 1 }
         ],
@@ -85,6 +88,7 @@ export const SCENE_EXPLORATION = {
         slots: 3,
         exploreTime: 4000,
         message: '调查员翻查书桌，寻找有用的物品...',
+        fatigueDropRate: 0.1,
         requiredCards: [
             { templateId: 'CHAR_investigator', min: 1, max: 1 }
         ],
@@ -102,6 +106,7 @@ export const SCENE_EXPLORATION = {
         slots: 3,
         exploreTime: 4000,
         message: '调查员打开抽屉，检查里面的物品...',
+        fatigueDropRate: 0.1,
         requiredCards: [
             { templateId: 'CHAR_investigator', min: 1, max: 1 }
         ],

@@ -3,6 +3,7 @@
 
 import { dragEventManager } from './drag-event-manager.js';
 import { CARD } from '../consts.js';
+import { playSound } from '../sound.js';
 
 export class DragSystem {
     constructor() {
@@ -38,6 +39,7 @@ export class DragSystem {
         const d = this._deps;
         if (d.gameState.isGameOver) return;
 
+        playSound('click');
         this._activeDragId = card.instanceId;
 
         // 取消卡牌语音气泡
@@ -175,6 +177,17 @@ export class DragSystem {
 
         const mainCard = d.findCardData(this._activeDragId);
 
+        // ===== 0. 休息槽位检测（最高优先级，过度疲劳时只有此检测有效） =====
+        if (this._checkRestSlot(e, mainCard)) return;
+
+        // ===== 过度疲劳：跳过所有其他操作 =====
+        if (d.isOverfatigued()) {
+            this._constrainCardToBoard(mainCard);
+            this._activeDragId = null;
+            d.renderAllCards();
+            return;
+        }
+
         // ===== 1. 检查是否拖拽到对话槽 =====
         if (this._checkDialogueSlot(e, mainCard)) return;
 
@@ -193,6 +206,7 @@ export class DragSystem {
         if (!didStack) {
             // 未吸附：如果卡牌落在激活的探索面板下方，拉回可见区域
             this._constrainCardToBoard(mainCard);
+            playSound('drop');
         }
 
         // ===== 6. 清理未粘合卡牌的待处理任务 =====
@@ -222,6 +236,7 @@ export class DragSystem {
                 mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
                 // 检查返回值，只有成功时才清除拖拽状态
                 if (d.placeCardInSlot(mainCard)) {
+                    playSound('slot');
                     this._activeDragId = null;
                     d.renderAllCards();
                     return true;
@@ -254,6 +269,7 @@ export class DragSystem {
                     mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
                     // 检查返回值，只有成功时才清除拖拽状态
                     if (d.placeCardInReasoningSlot(mainCard, i)) {
+                        playSound('slot');
                         this._activeDragId = null;
                         d.renderAllCards();
                         return true;
@@ -288,6 +304,7 @@ export class DragSystem {
                         mouseY >= slotRect.top && mouseY <= slotRect.bottom) {
                         // 检查返回值，只有成功时才清除拖拽状态
                         if (d.placeCardInExplorationSlot(mainCard, i)) {
+                            playSound('slot');
                             this._activeDragId = null;
                             d.renderAllCards();
                             return true;
@@ -302,6 +319,40 @@ export class DragSystem {
     }
 
     // ---------- 特殊系统检测 ----------
+
+    /**
+     * 检查是否拖放到休息面板槽位
+     */
+    _checkRestSlot(e, mainCard) {
+        const d = this._deps;
+        const restPanel = document.getElementById('rest-panel');
+        if (!restPanel || !restPanel.classList.contains('show')) return false;
+
+        const restInvestigatorSlot = document.getElementById('rest-investigator-slot');
+        const restFatigueSlot = document.getElementById('rest-fatigue-slot');
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+
+        const checkSlot = (slotEl, slotIndex) => {
+            if (!slotEl) return false;
+            const rect = slotEl.getBoundingClientRect();
+            if (mouseX >= rect.left && mouseX <= rect.right &&
+                mouseY >= rect.top && mouseY <= rect.bottom) {
+                if (d.placeCardInRestSlot(mainCard, slotIndex)) {
+                    playSound('slot');
+                    this._activeDragId = null;
+                    d.renderAllCards();
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        };
+
+        if (checkSlot(restInvestigatorSlot, 0)) return true;
+        if (checkSlot(restFatigueSlot, 1)) return true;
+        return false;
+    }
 
     /**
      * 检查并执行特殊系统（献祭、真名揭示）的堆叠
@@ -453,12 +504,11 @@ export class DragSystem {
     }
 
     /**
-     * 释放位置修正：如果探索面板激活且卡牌落在面板区域，自动拉回可见区
+     * 释放位置修正：如果卡牌落在右侧面板区域，自动拉回可见区
      */
     _constrainCardToBoard(card) {
-        const explorationPanel = document.getElementById('exploration-panel');
-        if (!explorationPanel || !explorationPanel.classList.contains('exploration-active')) return;
-
+        const anyPanelOpen = document.querySelector('.right-panel.show');
+        if (!anyPanelOpen) return;
         const panelWidth = 420;
         const padding = 20;
         const maxX = window.innerWidth - panelWidth - CARD.WIDTH - padding;

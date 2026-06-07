@@ -3,7 +3,9 @@ import { SCENE_EXPLORATION, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { showStackProgressBar, hideStackProgressBar } from './logic.js';
 import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels, clearSlotCards, closePanelForReopen } from './shared.js';
+import { isOverfatigued } from './shared.js';
 import { CARD } from './consts.js';
+import { playSound } from './sound.js';
 
 // 从 engine.js 获取 spawnUnboundCard 函数
 let spawnCard = null;
@@ -98,6 +100,7 @@ export function openExploration(sceneId) {
         startBtn.disabled = false;
 
         explorationPanel.classList.add('show');
+        playSound('panelOpen');
         log(`🌍 [探索系统] 开启了【${sceneData.name}】的探索`, "success");
     });
 }
@@ -177,6 +180,7 @@ export function placeCardInExplorationSlot(cardData, slotIndex) {
     // 传入 cardData.instanceId 以排除该卡（允许卡牌在槽位之间自由移动）
     if (!isCardAllowedInSlot(templateId, cardData.instanceId)) {
         log(`❌ [探索系统] ${template.name} 不能放入此槽位`, "normal");
+        playSound('error');
         // 只对当前槽位震动
         const slotElement = explorationSlotsContainer.children[slotIndex];
         if (slotElement) {
@@ -349,6 +353,11 @@ export function startExploration() {
         return;
     }
 
+    if (isOverfatigued()) {
+        log(`⚠️ 过度疲劳，无法继续探索`, "normal");
+        return;
+    }
+
     const sceneData = SCENE_EXPLORATION[currentScene];
     
     // 检查条件是否满足
@@ -449,10 +458,31 @@ function completeExploration(sceneData) {
             log(`❌ [探索系统] spawnCard 函数未初始化`, "normal");
         }
     });
+    
+    //   疲劳卡掉落：根据场景概率 + 人物触发属性
+    if (spawnCard) {
+        const fatigueDropRate = sceneData.fatigueDropRate || 0;
+        const hasFatigueTrigger = explorationSlots.some(card => {
+            if (!card) return false;
+            const tmpl = CARD_TEMPLATES[card.templateId];
+            return tmpl && tmpl.fatigueTrigger === true;
+        });
+        if (hasFatigueTrigger && Math.random() < fatigueDropRate) {
+            const fatigueX = centerX + 60;
+            const fatigueY = centerY + 120;
+            const fatigueData = spawnCard('DEBUFF_fatigue', fatigueX, fatigueY);
+            if (fatigueData) {
+                fatigueData.sourceScene = currentScene;
+                highlightDroppedCard(fatigueData.instanceId);
+                log(`💫 [探索掉落] 疲劳积累 —— 桌面疲劳卡 +1`, "normal");
+            }
+        }
+    }
         
     // 显示提示信息
     explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。不可消耗的卡牌保留在槽位中，可手动拖出。`;
         
+    playSound('complete');
     log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
     
     // 重置状态，允许再次放入卡牌进行探索
