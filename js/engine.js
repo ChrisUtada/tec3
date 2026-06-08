@@ -1,5 +1,5 @@
 //  渲染引擎与拖拽逻辑
-import { CARD_TEMPLATES } from './config.js';
+import { CARD_TEMPLATES, SCENE_EXPLORATION } from './config.js';
 import { gameState, updateState } from './state.js';
 import { log, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus, openTrueNameModal } from './ui.js';
 import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding, getTaskProcessing, setTaskProcessing } from './logic.js';
@@ -118,6 +118,27 @@ export function resetVerbCard(verb, originalX, originalY) {
     if (verb.parent) { const p = findCardData(verb.parent); if (p) p.next = null; verb.parent = null; }
     verb.x = originalX; verb.y = originalY;
     renderAllCards();
+}
+
+// 统计场景还剩多少种可掉落卡牌（不含 allowDuplicate 的无限掉落）
+function getRemainingSceneDrops(sceneTemplateId) {
+    const sceneData = SCENE_EXPLORATION[sceneTemplateId];
+    if (!sceneData) return 0;
+    const allDrops = [];
+    if (sceneData.dropGroups) {
+        sceneData.dropGroups.forEach(g => allDrops.push(...(g.drops || [])));
+    } else {
+        allDrops.push(...(sceneData.drops || []));
+    }
+    const unique = new Set(allDrops.map(d => d.templateId));
+    let count = 0;
+    for (const tid of unique) {
+        const tmpl = CARD_TEMPLATES[tid];
+        if (tmpl && tmpl.allowDuplicate) continue;
+        if (cardsData.some(c => c.templateId === tid)) continue;
+        count++;
+    }
+    return count;
 }
 
 export function renderAllCards() {
@@ -241,9 +262,11 @@ export function renderAllCards() {
                     <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
                 `;
             } else {
+                const remaining = t.type === 'scene' ? getRemainingSceneDrops(card.templateId) : 0;
                 cardEl.innerHTML = `
                     <div class="card-name">${t.name}</div>
                     ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+                    ${remaining > 0 ? `<div class="card-drops-badge">📦 ${remaining}</div>` : ''}
                     <div class="card-type-tag">${t.type}</div>
                 `;
             }
@@ -322,6 +345,13 @@ export function renderAllCards() {
                     ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
                     <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
                 `;
+            } else if (t.type === 'scene') {
+                const remaining = getRemainingSceneDrops(card.templateId);
+                const badge = cardEl.querySelector('.card-drops-badge');
+                if (badge) {
+                    badge.textContent = remaining > 0 ? `📦 ${remaining}` : '';
+                    badge.style.display = remaining > 0 ? '' : 'none';
+                }
             }
         }
 
