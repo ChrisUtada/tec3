@@ -9,11 +9,13 @@ import { playSound } from './sound.js';
 // 从 engine.js 获取 spawnUnboundCard 函数
 let spawnCard = null;
 let getCardsData = null;
+let destroyCard = null;
 
 // 初始化时获取 spawnCard 函数
-export function initExplorationModule(spawnFn, cardsDataFn) {
+export function initExplorationModule(spawnFn, cardsDataFn, destroyFn) {
     spawnCard = spawnFn;
     getCardsData = cardsDataFn;
+    destroyCard = destroyFn;
 }
 
 let currentScene = null;  // 当前场景 templateId
@@ -344,6 +346,12 @@ function checkAllConditionsMet() {
     return checkConditionSet(sceneData.requiredCards);
 }
 
+// 统计桌面上疲劳卡的数量
+function countFatigueOnBoard() {
+    const cards = getCardsData ? getCardsData() : [];
+    return cards.filter(c => c.templateId === 'DEBUFF_fatigue').length;
+}
+
 // 开始探索
 export function startExploration() {
     initExplorationElements();
@@ -358,6 +366,40 @@ export function startExploration() {
     if (!checkAllConditionsMet()) {
         log(`❌ [探索系统] 探索条件未满足`, "normal");
         return;
+    }
+
+    // 疲劳>=5触发疯狂窥视/被场景吞没
+    if (countFatigueOnBoard() >= 5) {
+        const centerX = explorationSlotsContainer.offsetWidth / 2;
+        const centerY = explorationSlotsContainer.offsetHeight / 2;
+
+        if (Math.random() < 0.5) {
+            // 50%：生成疯狂窥视卡
+            if (spawnCard) {
+                const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
+                if (peekData) {
+                    log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
+                }
+            }
+        } else {
+            // 50%：被场景吞没，消耗所有槽位卡牌
+            explorationSlots.forEach((cd, i) => {
+                if (cd) {
+                    const tmpl = CARD_TEMPLATES[cd.templateId];
+                    const name = tmpl ? tmpl.name : cd.templateId;
+                    log(`🌑 [场景吞没] 【${name}】被场景吞噬！`, "normal");
+                    if (destroyCard) {
+                        destroyCard(cd.instanceId);
+                    } else {
+                        const el = document.getElementById(cd.instanceId);
+                        if (el) el.remove();
+                    }
+                }
+            });
+            explorationSlots.fill(null);
+            log(`🌑 [场景吞没] 场景将一切吞入黑暗...探索无法进行`, "normal");
+            return;
+        }
     }
 
     isExploring = true;

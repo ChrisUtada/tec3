@@ -117,6 +117,9 @@ export const CARD_TEMPLATES = {
     // 疲劳卡（负面卡）
     'DEBUFF_fatigue': { name: '疲劳', desc: '【负面状态】连续探索导致的疲劳积累。桌面疲劳卡达到 5 张时将无法进行探索、对话和归因。放入休息卡中可恢复。', type: 'item', class: 'item-card debuff-card', consumable: true, allowDuplicate: true },
 
+    // 疯狂窥视卡（特殊）
+    'ITEM_peek_truth': { name: '疯狂窥视', desc: '【特殊】将其叠放到真名卡上时，立刻揭露真名。', type: 'item', class: 'item-card peek-truth-card', consumable: true, allowDuplicate: true },
+
     // 休息卡（功能卡）
     'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false }
 };

@@ -180,6 +180,46 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
         return true;
     }
 
+    // 疯狂窥视 + 真名卡 → 即刻揭露真名
+    if (rule.type === 'peekReveal') {
+        if (moved.templateId !== 'ITEM_peek_truth') return false;
+
+        showStackProgressBar(target.instanceId, rule.delay);
+        isAnyTaskProcessing = true;
+        log(`👁️ [疯狂窥视] ${rule.message}`, "success");
+
+        const timeoutId = setTimeout(() => {
+            delete target.pendingTimeoutId;
+            hideStackProgressBar(target.instanceId);
+
+            if (!moved.parent || moved.parent !== target.instanceId) {
+                isAnyTaskProcessing = false;
+                return;
+            }
+
+            // 销毁疯狂窥视卡
+            if (CARD_TEMPLATES[moved.templateId].consumable) {
+                destroyCard(moved.instanceId);
+            }
+
+            // 销毁旧真名卡，生成揭露版
+            const targetTemplate = CARD_TEMPLATES[target.templateId];
+            const newCard = directSpawnCard(target.templateId, target.x, target.y);
+            if (newCard) {
+                newCard.isRevealed = true;
+                newCard.collectedSenses = [...(targetTemplate.targetSenses || [])];
+                log(`🔮 [真名揭露] 真名【${targetTemplate.realName || '???'}】已被疯狂窥视揭开！`, "success");
+            }
+            destroyCard(target.instanceId);
+
+            setSystemStatus('● 真名揭露 // 数据金库解冻', 'gold');
+            isAnyTaskProcessing = false;
+        }, rule.delay);
+
+        target.pendingTimeoutId = timeoutId;
+        return true;
+    }
+
     // 显示进度条（进度条在目标卡牌上）
     showStackProgressBar(target.instanceId, rule.delay);
 

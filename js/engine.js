@@ -34,7 +34,7 @@ const Z_INDEX = {
 };
 
 // 初始化 exploration 模块（使用直接生成，探索本身已有进度条）
-initExplorationModule(directSpawnCard, () => cardsData);
+initExplorationModule(directSpawnCard, () => cardsData, destroyCard);
 initRestModule(destroyCard);
 
 export function findCardData(id) { 

@@ -120,5 +120,12 @@ export const CARD_COMBINATIONS = {
         result: ['CLUE_shadow', 'CLUE_whisper', 'CLUE_cold'],
         message: '⚡ 捕获！从带有眼睛的木门中提取到隐藏线索！',
         delay: 3000
+    },
+
+    // 疯狂窥视 + 真名卡 → 即刻揭露真名
+    'ITEM_peek_truth+ITEM_true_name': {
+        type: 'peekReveal',
+        message: '疯狂窥视撕开了真名的伪装——真相显露！',
+        delay: 2000
     }
 };
