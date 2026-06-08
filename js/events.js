@@ -77,6 +77,7 @@ export function initUIEvents() {
     }
     
     // === 归因推演弹窗 ===
+
     const reasoningExecuteBtn = document.getElementById('reasoning-execute-btn');
     if (reasoningExecuteBtn) {
         reasoningExecuteBtn.addEventListener('click', executeReasoning);
@@ -121,4 +122,5 @@ export function initUIEvents() {
     if (restCloseBtn) {
         restCloseBtn.addEventListener('click', () => closeRestModal());
     }
+
 }
