@@ -29,7 +29,7 @@ let _fatigueEffect = null;  // 疲劳>=5时的效果: 'peek' | 'swallow' | null
 let explorationTimeoutId = null;
 
 // 延迟获取 DOM 元素
-let explorationPanel, explorationTitle, explorationSlotsContainer, explorationProgress, explorationProgressFill, explorationProgressText, explorationInfo, startBtn, closeBtn;
+let explorationPanel, explorationTitle, explorationSlotsContainer, explorationProgress, explorationProgressFill, explorationProgressText, explorationInfo, explorationDropsInfo, startBtn, closeBtn;
 
 function initExplorationElements() {
     if (!explorationPanel) {
@@ -40,6 +40,7 @@ function initExplorationElements() {
         explorationProgressFill = document.getElementById('exploration-progress-fill');
         explorationProgressText = document.getElementById('exploration-progress-text');
         explorationInfo = document.getElementById('exploration-info');
+        explorationDropsInfo = document.getElementById('exploration-drops-info');
         startBtn = document.getElementById('exploration-start-btn');
         closeBtn = document.getElementById('exploration-close-btn');
     }
@@ -98,6 +99,14 @@ export function openExploration(sceneId) {
         explorationProgressFill.style.width = '0%';
 
         explorationInfo.innerText = sceneData.message || '展开探索…';
+
+        // 显示剩余可掉落提示
+        const remaining = getRemainingSceneDrops(sceneData);
+        if (explorationDropsInfo) {
+            explorationDropsInfo.textContent = remaining > 0
+                ? `📦 可掉落剩余 ${remaining} 种`
+                : '📦 所有可掉落卡牌已全部获得';
+        }
 
         startBtn.style.display = 'inline-block';
         startBtn.disabled = false;
@@ -353,6 +362,26 @@ function checkAllConditionsMet() {
 function countFatigueOnBoard() {
     const cards = getCardsData ? getCardsData() : [];
     return cards.filter(c => c.templateId === 'DEBUFF_fatigue').length;
+}
+
+// 统计场景还剩多少种可掉落卡牌（不含 allowDuplicate 的无限掉落、不含窥视卡）
+function getRemainingSceneDrops(sceneData) {
+    const allDrops = [];
+    if (sceneData.dropGroups) {
+        sceneData.dropGroups.forEach(g => allDrops.push(...(g.drops || [])));
+    } else {
+        allDrops.push(...(sceneData.drops || []));
+    }
+    const unique = new Set(allDrops.map(d => d.templateId));
+    const allCards = getCardsData ? getCardsData() : [];
+    let count = 0;
+    for (const tid of unique) {
+        const tmpl = CARD_TEMPLATES[tid];
+        if (tmpl && tmpl.allowDuplicate) continue;
+        if (allCards.some(c => c.templateId === tid)) continue;
+        count++;
+    }
+    return count;
 }
 
 // 开始探索
