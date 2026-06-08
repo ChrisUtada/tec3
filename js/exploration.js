@@ -100,13 +100,8 @@ export function openExploration(sceneId) {
 
         explorationInfo.innerText = sceneData.message || '展开探索…';
 
-        // 显示剩余可掉落提示
-        const { remaining, total } = getSceneDropsProgress(sceneData);
-        if (explorationDropsInfo) {
-            explorationDropsInfo.textContent = remaining > 0
-                ? `─── 剩余掉落 ───\n还有 ${remaining}/${total} 种卡牌未获得`
-                : `─── 剩余掉落 ───\n所有卡牌已全部获得`;
-        }
+        // 更新剩余掉落提示
+        updateDropsInfo();
 
         startBtn.style.display = 'inline-block';
         startBtn.disabled = false;
@@ -384,6 +379,17 @@ function getSceneDropsProgress(sceneData) {
     return { remaining: count, total: unique.size };
 }
 
+// 更新面板中的剩余掉落提示
+function updateDropsInfo() {
+    if (!explorationDropsInfo) return;
+    const sceneData = SCENE_EXPLORATION[currentScene];
+    if (!sceneData) return;
+    const { remaining, total } = getSceneDropsProgress(sceneData);
+    explorationDropsInfo.textContent = remaining > 0
+        ? `─── 剩余掉落 ───\n还有 ${remaining}/${total} 种卡牌未获得`
+        : `─── 剩余掉落 ───\n所有卡牌已全部获得`;
+}
+
 // 开始探索
 export function startExploration() {
     initExplorationElements();
@@ -473,6 +479,7 @@ function completeExploration(sceneData) {
             playSound('complete');
             log(`🌑 [场景吞没] 场景将一切吞入黑暗，无任何掉落`, "success");
             _fatigueEffect = null;
+            updateDropsInfo();
             resetExplorationState();
             return;
         }
@@ -500,6 +507,7 @@ function completeExploration(sceneData) {
         explorationInfo.innerText = `探索完成！疯狂窥视给予了你看穿真相的能力。`;
         playSound('complete');
         log(`👁️ [疯狂窥视] 探索完成，获得疯狂窥视卡`, "success");
+        updateDropsInfo();
         resetExplorationState();
         return;
     }
@@ -514,6 +522,7 @@ function completeExploration(sceneData) {
         explorationInfo.innerText = `探索失败...槽位中的卡牌完好无损，但一无所获。`;
         playSound('complete');
         log(`❌ [探索失败] ${fatigueCount} 张疲劳干扰了探索，未获得任何掉落`, "normal");
+        updateDropsInfo();
         resetExplorationState();
         return;
     }
@@ -576,6 +585,7 @@ function completeExploration(sceneData) {
     explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。`;
     playSound('complete');
     log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
+    updateDropsInfo();
     resetExplorationState();
 }
 
