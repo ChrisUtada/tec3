@@ -23,6 +23,7 @@ let explorationSlots = [];  // 槽位中的卡牌数据
 let isExploring = false;  // 是否正在探索中
 let draggedCardData = null;  // 记录被拖入的卡牌数据
 let highlightedCards = new Set();  // 高亮卡牌的 ID 集合
+let _fatigueEffect = null;  // 疲劳>=5时的效果: 'peek' | 'swallow' | null
 
 //  保存探索 timeoutId，以便在关闭探索窗口时取消
 let explorationTimeoutId = null;
@@ -56,6 +57,7 @@ function initExplorationElements() {
             clearSlotCards(explorationSlots, draggedCardData);
             draggedCardData = null;
             currentScene = null;
+            _fatigueEffect = null;
         });
         explorationPanel._cleanupAttached = true;
     }
@@ -133,6 +135,7 @@ export function closeExplorationModal() {
     
     currentScene = null;
     explorationSlots.length = 0;
+    _fatigueEffect = null;
     isExploring = false;
     
     log(` [探索系统] 关闭了探索窗口`, "normal");
@@ -368,37 +371,14 @@ export function startExploration() {
         return;
     }
 
-    // 疲劳>=5触发疯狂窥视/被场景吞没
+    // 疲劳>=5触发疯狂窥视/被场景吞没（效果在探索结束时执行）
+    _fatigueEffect = null;
     if (countFatigueOnBoard() >= 5) {
-        const centerX = explorationSlotsContainer.offsetWidth / 2;
-        const centerY = explorationSlotsContainer.offsetHeight / 2;
-
-        if (Math.random() < 0.5) {
-            // 50%：生成疯狂窥视卡
-            if (spawnCard) {
-                const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
-                if (peekData) {
-                    log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
-                }
-            }
+        _fatigueEffect = Math.random() < 0.5 ? 'peek' : 'swallow';
+        if (_fatigueEffect === 'peek') {
+            log(`👁️ [疯狂窥视] 疲劳达到极限，你感到周围的空间开始扭曲...`, "success");
         } else {
-            // 50%：被场景吞没，消耗所有槽位卡牌
-            explorationSlots.forEach((cd, i) => {
-                if (cd) {
-                    const tmpl = CARD_TEMPLATES[cd.templateId];
-                    const name = tmpl ? tmpl.name : cd.templateId;
-                    log(`🌑 [场景吞没] 【${name}】被场景吞噬！`, "normal");
-                    if (destroyCard) {
-                        destroyCard(cd.instanceId);
-                    } else {
-                        const el = document.getElementById(cd.instanceId);
-                        if (el) el.remove();
-                    }
-                }
-            });
-            explorationSlots.fill(null);
-            log(`🌑 [场景吞没] 场景将一切吞入黑暗...探索无法进行`, "normal");
-            return;
+            log(`🌑 [场景吞没] 场景在你脚下张开巨口...`, "normal");
         }
     }
 
@@ -437,7 +417,35 @@ function completeExploration(sceneData) {
     
     // 隐藏进度条
     explorationProgress.style.display = 'none';
-    
+
+    // 计算生成位置（在画布中央）
+    const boardCanvas = document.getElementById('board-canvas');
+    const centerX = boardCanvas.offsetWidth / 2;
+    const centerY = boardCanvas.offsetHeight / 2;
+
+    // ===== 疲劳>=5：场景吞没 =====
+    if (_fatigueEffect === 'swallow') {
+        explorationSlots.forEach((cd) => {
+            if (!cd) return;
+            const tmpl = CARD_TEMPLATES[cd.templateId];
+            const name = tmpl ? tmpl.name : cd.templateId;
+            log(`🌑 [场景吞没] 【${name}】被场景吞噬！`, "normal");
+            if (destroyCard) {
+                destroyCard(cd.instanceId);
+            } else {
+                const el = document.getElementById(cd.instanceId);
+                if (el) el.remove();
+            }
+        });
+        explorationSlots.fill(null);
+        explorationInfo.innerText = `场景将一切吞入黑暗...槽位空空如也。`;
+        playSound('complete');
+        log(`🌑 [场景吞没] 场景将一切吞入黑暗，无任何掉落`, "success");
+        _fatigueEffect = null;
+        resetExplorationState();
+        return;
+    }
+
     // 消耗槽位中的卡牌（根据 consumable 属性）
     explorationSlots.forEach((cardData, index) => {
         if (cardData) {
@@ -459,13 +467,6 @@ function completeExploration(sceneData) {
     
     // 根据概率计算掉落（支持条件分支产出）
     const drops = calculateDrops(sceneData);
-    
-    // 计算生成位置（在画布中央）
-    const boardCanvas = document.getElementById('board-canvas');
-    
-    //  使用 boardCanvas 的 offsetWidth/offsetHeight 获取实际内容区域大小
-    const centerX = boardCanvas.offsetWidth / 2;
-    const centerY = boardCanvas.offsetHeight / 2;
     
     // 直接生成掉落物（探索窗口内部已有进度条，不需要额外的堆叠进度条）
     let actualDrops = 0;  // 实际生成的数量
@@ -513,6 +514,17 @@ function completeExploration(sceneData) {
                 log(`💫 [探索掉落] 疲劳积累 —— 桌面疲劳卡 +1`, "normal");
             }
         }
+    }
+
+    // ===== 疲劳>=5：疯狂窥视 =====
+    if (_fatigueEffect === 'peek') {
+        if (spawnCard) {
+            const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
+            if (peekData) {
+                log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
+            }
+        }
+        _fatigueEffect = null;
     }
         
     // 显示提示信息
