@@ -71,7 +71,6 @@ export const CARD_TEMPLATES = {
     
     // 新掉落物品
     'ITEM_cdyg': { name: '惨白的月亮', desc: '【道具】散发着诡异光芒的装饰。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
-    'ITEM_zxtz': { name: '嘴型贴纸', desc: '【资产】带有神秘图案的贴纸。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
     'ITEM_mmd': { name: '木门', desc: '【道具】一扇古朴的木门。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
     'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
     'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },

@@ -20,7 +20,6 @@ export const SCENE_EXPLORATION = {
         fatigueDropRate: 0.1,
         drops: [
             { templateId: 'ITEM_cdyg', chance: 1.0, message: '发现了惨白的月亮！' },
-            { templateId: 'ITEM_zxtz', chance: 1.0, message: '发现了雕塑贴纸！' },
             { templateId: 'ITEM_mmd', chance: 1.0, message: '发现了木门！' },
             { templateId: 'ITEM_s_qhj', chance: 1.0, message: '发现了奇怪的痕迹！' },
             { templateId: 'ITEM_mk', chance: 1.0, message: '发现了门扣！' },

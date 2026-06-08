@@ -17,14 +17,6 @@ export const CARD_COMBINATIONS = {
         delay: 2000
     },
     
-    // 特效类：嘴型贴纸 + 惨白月亮 → 滋滋滋（无产出，仅视觉效果）
-    'ITEM_cdyg+ITEM_zxtz': {
-        type: 'speech',
-        speechText: '滋滋滋...',
-        speechDuration: 2500,
-        message: '贴纸贴在月亮上，它开始发出诡异的声响...'
-    },
-
     // 概率掉落：手电筒 + 惨白月亮 → 信号屏蔽装置（10%几率）
     'ITEM_cdyg+ITEM_sdt': {
         type: 'crafting',

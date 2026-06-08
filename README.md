@@ -140,7 +140,6 @@ TEC3/
 | ITEM_coin | 因果律 | item | item-card | allowDuplicate ✓ |
 | ITEM_true_name | ??? | item | item-card true-name-card | 五感容器 |
 | ITEM_cdyg | 惨白的月亮 | item | item-card | allowDuplicate ✓ |
-| ITEM_zxtz | 嘴型贴纸 | item | item-card | allowDuplicate ✓ |
 | ITEM_mmd | 木门 | item | item-card | allowDuplicate ✓ |
 | ITEM_s_qhj | 奇怪的痕迹 | item | item-card | allowDuplicate ✓ |
 | ITEM_mk | 门扣 | item | item-card | allowDuplicate ✓ |
@@ -183,7 +182,6 @@ TEC3/
 | 手电筒 + 未知地点 | explore | 荒宅院落 | 都不消耗 |
 | 手电筒 + 朱穗 | interaction | 木桶 | 都不消耗 |
 | 五行贴纸 + 木桶 | crafting | 暗码铁盒 | 全部消耗 |
-| 嘴型贴纸 + 惨白月亮 | speech | （气泡） | 都不消耗 |
 | 惨白月亮 + 手电筒 | crafting | 信号屏蔽（10%） | 都不消耗 |
 | 信号屏蔽 + 朱穗 | synthesis | 铁锈的味道 | 都不消耗 |
 | 木门 + 眼睛 | crafting | 带眼睛的木门 | 仅消耗木门 |

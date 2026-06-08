@@ -380,8 +380,9 @@ function showCard(id) {
                 const parts = key.split('+');
                 const other = parts.find(p=>p!==id);
                 const res = (v.result||[]).join(', ');
+                const comboTypes = ['interaction','speech','peekReveal','direct'];
                 comboHtml += `<div class="de">
-                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><span class="rt rt-c">${v.type}</span></div>
+                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><select class="combo-type">${comboTypes.map(tv=>`<option value="${tv}" ${tv===v.type?'selected':''}>${tv}</option>`).join('')}</select></div>
                     <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID"><input class="combo-res" value="${esc(res)}" placeholder="产出ID(逗号分隔)" style="flex:1.5"></div>
                     <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="触发文本" style="flex:2"><input class="combo-delay" type="number" step="0.5" min="0" value="${(v.delay||2000)/1000}" placeholder="延迟(秒)" style="width:70px"></div>
                     <div class="fa-r" style="gap:8px;">
@@ -497,6 +498,7 @@ function showPreview(id) {
     else if (ty==='item') ex='border-top:3px solid #7a5a8a;';
     else if (ty==='logic') ex='border-top:3px solid #5a6a7a;';
     if (t.class?.includes('true-name')) ex+='border-color:#c9a227;box-shadow:0 0 15px rgba(201,162,39,0.3);';
+    if (t.class?.includes('peek-truth')) ex+='border-color:#d4a0e0;box-shadow:0 0 15px rgba(212,160,224,0.3);';
     document.getElementById('pv').innerHTML = `<div class="card-pv pv-${ty}" style="${ex}"><div class="pn">${esc(t.name)}</div><div class="pt">${t.type}${t.consumable?' •消耗':''}${t.corruptionTime?' •腐化':''}</div></div>`;
 }
 
@@ -569,8 +571,10 @@ window.saveCard = function(id) {
             if (!other) return;
             const key = [id, other].sort().join('+');
             const existing = D.CARD_COMBINATIONS[key];
-            if (!existing) D.CARD_COMBINATIONS[key] = { type: 'interaction', result: [], message: '', delay: 2000 };
+            const ctSel = el.querySelector('.combo-type');
+            if (!existing) D.CARD_COMBINATIONS[key] = { type: ctSel?.value || 'interaction', result: [], message: '', delay: 2000 };
             const v = D.CARD_COMBINATIONS[key];
+            if (ctSel) v.type = ctSel.value;
             if (res) v.result = res.split(',').map(s=>s.trim()).filter(Boolean);
             if (el.querySelector('.combo-msg')) v.message = el.querySelector('.combo-msg').value;
             if (el.querySelector('.combo-delay')) v.delay = Math.round((parseFloat(el.querySelector('.combo-delay').value)||2) * 1000);
