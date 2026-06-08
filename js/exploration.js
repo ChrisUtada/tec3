@@ -101,11 +101,11 @@ export function openExploration(sceneId) {
         explorationInfo.innerText = sceneData.message || '展开探索…';
 
         // 显示剩余可掉落提示
-        const remaining = getRemainingSceneDrops(sceneData);
+        const { remaining, total } = getSceneDropsProgress(sceneData);
         if (explorationDropsInfo) {
             explorationDropsInfo.textContent = remaining > 0
-                ? `📦 可掉落剩余 ${remaining} 种`
-                : '📦 所有可掉落卡牌已全部获得';
+                ? `─── 剩余掉落 ───\n还有 ${remaining}/${total} 种卡牌未获得`
+                : `─── 剩余掉落 ───\n所有卡牌已全部获得`;
         }
 
         startBtn.style.display = 'inline-block';
@@ -364,8 +364,8 @@ function countFatigueOnBoard() {
     return cards.filter(c => c.templateId === 'DEBUFF_fatigue').length;
 }
 
-// 统计场景还剩多少种可掉落卡牌（不含 allowDuplicate 的无限掉落、不含窥视卡）
-function getRemainingSceneDrops(sceneData) {
+// 统计场景掉落进度（不含 allowDuplicate 的无限掉落、不含窥视卡）
+function getSceneDropsProgress(sceneData) {
     const allDrops = [];
     if (sceneData.dropGroups) {
         sceneData.dropGroups.forEach(g => allDrops.push(...(g.drops || [])));
@@ -381,7 +381,7 @@ function getRemainingSceneDrops(sceneData) {
         if (allCards.some(c => c.templateId === tid)) continue;
         count++;
     }
-    return count;
+    return { remaining: count, total: unique.size };
 }
 
 // 开始探索

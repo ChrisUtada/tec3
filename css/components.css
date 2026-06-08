@@ -699,12 +699,12 @@
 }
 
 .exploration-drops-info {
-    width: 100%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #5a4a3a;
+    padding: 4px 8px;
+    white-space: pre-wrap;
     text-align: center;
-    padding: 8px 0;
-    font-size: 13px;
-    color: #3a7a5a;
-    font-weight: bold;
 }
 
 .exploration-btn {
