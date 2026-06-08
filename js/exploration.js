@@ -373,13 +373,17 @@ export function startExploration() {
 
     // 疲劳>=5触发疯狂窥视/被场景吞没（效果在探索结束时执行）
     _fatigueEffect = null;
-    if (countFatigueOnBoard() >= 5) {
+    const fatigueCount = countFatigueOnBoard();
+    if (fatigueCount >= 5) {
         _fatigueEffect = Math.random() < 0.5 ? 'peek' : 'swallow';
         if (_fatigueEffect === 'peek') {
             log(`👁️ [疯狂窥视] 疲劳达到极限，你感到周围的空间开始扭曲...`, "success");
         } else {
             log(`🌑 [场景吞没] 场景在你脚下张开巨口...`, "normal");
         }
+    } else if (fatigueCount >= 1) {
+        const rates = [0, 20, 30, 40, 50];
+        log(`⚠️ [疲劳干扰] ${fatigueCount} 张疲劳使探索失败率提升至 ${rates[fatigueCount]}%`, "normal");
     }
 
     isExploring = true;
@@ -423,72 +427,96 @@ function completeExploration(sceneData) {
     const centerX = boardCanvas.offsetWidth / 2;
     const centerY = boardCanvas.offsetHeight / 2;
 
-    // ===== 疲劳>=5：场景吞没 =====
-    if (_fatigueEffect === 'swallow') {
-        explorationSlots.forEach((cd) => {
+    const fatigueCount = countFatigueOnBoard();
+    let actualDrops = 0;
+
+    // ===== 疲劳>=5：吞没/窥视 =====
+    if (fatigueCount >= 5) {
+        if (_fatigueEffect === 'swallow') {
+            explorationSlots.forEach((cd) => {
+                if (!cd) return;
+                const tmpl = CARD_TEMPLATES[cd.templateId];
+                log(`🌑 [场景吞没] 【${tmpl ? tmpl.name : cd.templateId}】被场景吞噬！`, "normal");
+                if (destroyCard) destroyCard(cd.instanceId);
+            });
+            explorationSlots.fill(null);
+            explorationInfo.innerText = `场景将一切吞入黑暗...槽位空空如也。`;
+            playSound('complete');
+            log(`🌑 [场景吞没] 场景将一切吞入黑暗，无任何掉落`, "success");
+            _fatigueEffect = null;
+            resetExplorationState();
+            return;
+        }
+
+        // peek：只消耗槽位卡牌 + 生成窥视卡，无其他掉落
+        explorationSlots.forEach((cd, i) => {
             if (!cd) return;
             const tmpl = CARD_TEMPLATES[cd.templateId];
-            const name = tmpl ? tmpl.name : cd.templateId;
-            log(`🌑 [场景吞没] 【${name}】被场景吞噬！`, "normal");
-            if (destroyCard) {
-                destroyCard(cd.instanceId);
-            } else {
+            if (tmpl && tmpl.consumable) {
+                log(`🗑️ [探索系统] 【${tmpl.name}】在探索中被消耗`, "normal");
                 const el = document.getElementById(cd.instanceId);
                 if (el) el.remove();
+                explorationSlots[i] = null;
             }
         });
-        explorationSlots.fill(null);
-        explorationInfo.innerText = `场景将一切吞入黑暗...槽位空空如也。`;
-        playSound('complete');
-        log(`🌑 [场景吞没] 场景将一切吞入黑暗，无任何掉落`, "success");
+
+        if (spawnCard) {
+            const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
+            if (peekData) {
+                log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
+            }
+        }
         _fatigueEffect = null;
+
+        explorationInfo.innerText = `探索完成！疯狂窥视给予了你看穿真相的能力。`;
+        playSound('complete');
+        log(`👁️ [疯狂窥视] 探索完成，获得疯狂窥视卡`, "success");
         resetExplorationState();
         return;
     }
 
-    // 消耗槽位中的卡牌（根据 consumable 属性）
-    explorationSlots.forEach((cardData, index) => {
-        if (cardData) {
-            const template = CARD_TEMPLATES[cardData.templateId];
-            if (template && template.consumable) {
-                log(`🗑️ [探索系统] 【${template.name}】在探索中被消耗`, "normal");
-                const cardEl = document.getElementById(cardData.instanceId);
-                if (cardEl) {
-                    cardEl.remove();
-                }
-                // 清空已消耗卡牌的数据
-                explorationSlots[index] = null;
-            } else if (template) {
-                log(`✅ [探索系统] 【${template.name}】保留在槽位中`, "success");
-                // 不可消耗的卡牌保持在槽位中，由玩家手动拖出
-            }
+    // ===== 疲劳 0-4：按失败率判定 =====
+    const failureRates = [0, 0.2, 0.3, 0.4, 0.5];
+    const failureRate = failureRates[Math.min(fatigueCount, 4)];
+    const isFailure = failureRate > 0 && Math.random() < failureRate;
+
+    if (isFailure) {
+        // 失败：无消耗、无掉落，卡牌保留
+        explorationInfo.innerText = `探索失败...槽位中的卡牌完好无损，但一无所获。`;
+        playSound('complete');
+        log(`❌ [探索失败] ${fatigueCount} 张疲劳干扰了探索，未获得任何掉落`, "normal");
+        resetExplorationState();
+        return;
+    }
+
+    // ===== 成功：正常消耗 + 掉落 =====
+    explorationSlots.forEach((cd, i) => {
+        if (!cd) return;
+        const tmpl = CARD_TEMPLATES[cd.templateId];
+        if (tmpl && tmpl.consumable) {
+            log(`🗑️ [探索系统] 【${tmpl.name}】在探索中被消耗`, "normal");
+            const el = document.getElementById(cd.instanceId);
+            if (el) el.remove();
+            explorationSlots[i] = null;
+        } else if (tmpl) {
+            log(`✅ [探索系统] 【${tmpl.name}】保留在槽位中`, "success");
         }
     });
     
     // 根据概率计算掉落（支持条件分支产出）
     const drops = calculateDrops(sceneData);
-    
-    // 直接生成掉落物（探索窗口内部已有进度条，不需要额外的堆叠进度条）
-    let actualDrops = 0;  // 实际生成的数量
         
     drops.forEach((drop, index) => {
-        // 扇形分布生成位置
         const offsetX = (index - (drops.length - 1) / 2) * 140;
         const spawnX = centerX + offsetX;
         const spawnY = centerY;
-                
-        // 生成新卡牌
-        const template = CARD_TEMPLATES[drop.templateId];
-        if (template && spawnCard) {
-            // 探索掉落：是否可重复由卡牌模板上的 allowDuplicate 决定
+        const tmpl = CARD_TEMPLATES[drop.templateId];
+        if (tmpl && spawnCard) {
             const cardData = spawnCard(drop.templateId, spawnX, spawnY);
-                
-            // 标记卡牌的来源场景（用于整理归位）
             if (cardData) {
                 cardData.sourceScene = currentScene;
                 highlightDroppedCard(cardData.instanceId);
             }
-                
             log(`✨ [探索掉落] ${drop.message}`, "success");
             actualDrops++;
         } else if (!spawnCard) {
@@ -496,7 +524,7 @@ function completeExploration(sceneData) {
         }
     });
     
-    //   疲劳卡掉落：根据场景概率 + 人物触发属性
+    // 疲劳卡掉落：根据场景概率 + 人物触发属性（仅在非窥视/吞没模式下）
     if (spawnCard) {
         const fatigueDropRate = sceneData.fatigueDropRate || 0;
         const hasFatigueTrigger = explorationSlots.some(card => {
@@ -515,25 +543,10 @@ function completeExploration(sceneData) {
             }
         }
     }
-
-    // ===== 疲劳>=5：疯狂窥视 =====
-    if (_fatigueEffect === 'peek') {
-        if (spawnCard) {
-            const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
-            if (peekData) {
-                log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
-            }
-        }
-        _fatigueEffect = null;
-    }
         
-    // 显示提示信息
-    explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。不可消耗的卡牌保留在槽位中，可手动拖出。`;
-        
+    explorationInfo.innerText = `探索完成！共获得 ${actualDrops} 个物品。`;
     playSound('complete');
     log(`✅ [探索系统] 探索完成，共获得 ${actualDrops} 个掉落物`, "success");
-    
-    // 重置状态，允许再次放入卡牌进行探索
     resetExplorationState();
 }
 
