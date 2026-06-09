@@ -330,7 +330,7 @@ function showCard(id) {
     const t = D.CARD_TEMPLATES[id];
     if (!t) { showEmpty(); return; }
     let h = `<div class="sec"><div class="sec-hd">基础属性</div>
-        <div class="fg"><label>ID</label><input id="f_id" value="${esc(id)}" readonly style="color:var(--dim)"></div>
+        <div class="fg"><label>ID</label><input id="f_id" value="${esc(id)}" style="font-weight:bold;color:#2a1a0a"></div>
         <div class="fr">
             <div class="fg"><label>名称</label><input id="f_name" value="${esc(t.name)}"></div>
             <div class="fg"><label>类型</label><select id="f_type" onchange="document.getElementById('charExtras').style.display=this.value==='char'?'':'none'">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
@@ -550,7 +550,19 @@ function showRelations(id) {
 }
 
 // ═══ Save card ═══
+const HARDCODED_FILES = ['engine.js','exploration.js','logic.js','rest.js','js/systems/corruption.js','js/systems/sacrifice.js'];
+
 window.saveCard = function(id) {
+    const newId = document.getElementById('f_id')?.value?.trim() || id;
+    const renamed = newId !== id;
+    if (renamed) {
+        if (D.CARD_TEMPLATES[newId] && newId !== id) {
+            setStatus(`❌ ID「${newId}」已存在`);
+            return;
+        }
+        renameCardId(id, newId);
+        id = newId;
+    }
     const t = D.CARD_TEMPLATES[id];
     t.name = document.getElementById('f_name')?.value || t.name;
     t.type = document.getElementById('f_type')?.value || t.type;
@@ -663,7 +675,11 @@ window.saveCard = function(id) {
     }
     
     D.CARD_TEMPLATES[id] = t;
-    setStatus(`已保存: ${id}`);
+    if (renamed) {
+        setStatus(`已重命名 ${id}，同步所有配置数据。${HARDCODED_FILES.length} 个运行时文件中的硬编码引用需手动修改`);
+    } else {
+        setStatus(`已保存: ${id}`);
+    }
     document.getElementById('svStatus').textContent = '✓ 已应用';
     renderList();
     showPreview(id);
@@ -755,6 +771,69 @@ window.addDGroup = function() {
     const d = document.createElement('div'); d.className='de';
     d.innerHTML='<div class="fa-r"><input class="d-trg" placeholder="触发卡ID" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.closest(\'.de\').remove()">✕</button></div><button class="btn btn-sm" onclick="addDLine(this)">＋ 行</button>';
     c.appendChild(d);
+};
+
+// ═══ Rename card ID (sync all D.* references) ═══
+window.renameCardId = function(oldId, newId) {
+    if (oldId === newId) return;
+    // 1. CARD_TEMPLATES
+    D.CARD_TEMPLATES[newId] = D.CARD_TEMPLATES[oldId];
+    delete D.CARD_TEMPLATES[oldId];
+
+    // 2. CARD_COMBINATIONS — keys and result[]
+    const nc = {};
+    for (const [k, v] of Object.entries(D.CARD_COMBINATIONS || {})) {
+        const parts = k.split('+').map(p => p === oldId ? newId : p).sort();
+        const nk = parts.join('+');
+        nc[nk] = v;
+        if (v.result) v.result = v.result.map(r => r === oldId ? newId : r);
+    }
+    D.CARD_COMBINATIONS = nc;
+
+    // 3. SCENE_EXPLORATION — key + templateId references
+    if (D.SCENE_EXPLORATION) {
+        if (D.SCENE_EXPLORATION[oldId]) {
+            D.SCENE_EXPLORATION[newId] = D.SCENE_EXPLORATION[oldId];
+            delete D.SCENE_EXPLORATION[oldId];
+        }
+        for (const sc of Object.values(D.SCENE_EXPLORATION)) {
+            (sc.requiredCards||[]).forEach(c => { if (c.templateId === oldId) c.templateId = newId; });
+            (sc.drops||[]).forEach(d => { if (d.templateId === oldId) d.templateId = newId; });
+            (sc.dropGroups||[]).forEach(g => {
+                (g.requiredCards||[]).forEach(c => { if (c.templateId === oldId) c.templateId = newId; });
+                (g.drops||[]).forEach(d => { if (d.templateId === oldId) d.templateId = newId; });
+            });
+        }
+    }
+
+    // 4. DIALOGUE_DATA — top-level key + trigger keys
+    if (D.DIALOGUE_DATA) {
+        if (D.DIALOGUE_DATA[oldId]) {
+            D.DIALOGUE_DATA[newId] = D.DIALOGUE_DATA[oldId];
+            delete D.DIALOGUE_DATA[oldId];
+        }
+        for (const cd of Object.values(D.DIALOGUE_DATA)) {
+            const dlg = cd.dialogues || {};
+            if (dlg[oldId]) { dlg[newId] = dlg[oldId]; delete dlg[oldId]; }
+        }
+    }
+
+    // 5. REASONING_ENDINGS — keys (single or A+B)
+    if (D.REASONING_ENDINGS) {
+        const ne = {};
+        for (const [k, v] of Object.entries(D.REASONING_ENDINGS)) {
+            if (k === 'default') { ne[k] = v; continue; }
+            const nk = k.split('+').map(p => p === oldId ? newId : p).join('+');
+            ne[nk] = v;
+        }
+        D.REASONING_ENDINGS = ne;
+    }
+
+    // 6. OBSERVATION_TEXTS
+    if (D.OBSERVATION_TEXTS && D.OBSERVATION_TEXTS[oldId] !== undefined) {
+        D.OBSERVATION_TEXTS[newId] = D.OBSERVATION_TEXTS[oldId];
+        delete D.OBSERVATION_TEXTS[oldId];
+    }
 };
 
 // ═══ Export ═══
