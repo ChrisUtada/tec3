@@ -457,25 +457,8 @@ function showCard(id) {
             <div class="fg"><textarea id="f_obs" rows="3">${esc(obsText)}</textarea></div></div>`;
     }
     
-    // ═══ Endings section ═══
-    let endingsHtml = '';
-    if (D.REASONING_ENDINGS) {
-        const relatedEndings = Object.entries(D.REASONING_ENDINGS).filter(([k]) => k === 'default' || k.split('+').includes(id));
-        if (relatedEndings.length) {
-            endingsHtml += `<div class="sec"><div class="sec-hd">结局 <span style="font-weight:normal;font-size:10px;color:var(--dim);">(${relatedEndings.length})</span></div>`;
-            for (const [key, v] of relatedEndings) {
-                endingsHtml += `<div class="de">
-                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(key)}</span></div>
-                    <div class="fg"><label>标题</label><input class="end-title" value="${esc(v.title||'')}" style="width:100%"></div>
-                    <div class="fg"><label>故事</label><textarea class="end-story" rows="3" style="width:100%">${esc(v.story||'')}</textarea></div>
-                </div>`;
-            }
-            endingsHtml += `</div>`;
-        }
-    }
-    
     // ═══ Save button ═══
-    h += corruptionHtml + comboHtml + sceneHtml + diaHtml + obsHtml + endingsHtml;
+    h += corruptionHtml + comboHtml + sceneHtml + diaHtml + obsHtml;
     h += `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-p" onclick="saveCard('${id}')">💾 应用修改</button>
         <button class="btn btn-d" onclick="delCard('${id}')">🗑 删除卡牌</button>
@@ -484,16 +467,18 @@ function showCard(id) {
     
     document.getElementById('ctr').innerHTML = h;
     // Populate extraFields (must be after DOM creation)
-    const sfFields = ['senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
-    const sfLabels = {'senseType':'感官类型','recycleValue':'献祭价值','value':'价值','realName':'真名','realDesc':'真名描述','targetSenses':'目标感官(JSON)','collectedSenses':'已收集感官(JSON)','interactText':'交互文本','isRevealed':'已揭示'};
+    const cardType = t.type || 'item';
+    const typeFieldMap = {
+        clue: ['senseType'],
+        item: ['recycleValue','value'],
+    };
+    const sharedFields = ['realName','realDesc','interactText'];
+    const sfLabels = {'senseType':'感官类型','recycleValue':'献祭价值','value':'价值','realName':'真名','realDesc':'真名描述','interactText':'交互文本'};
     let sfHtml = '';
-    for (const k of sfFields) {
+    const shown = new Set([...(typeFieldMap[cardType]||[]), ...sharedFields]);
+    for (const k of shown) {
         const val = t[k] !== undefined ? (Array.isArray(t[k]) ? JSON.stringify(t[k]) : String(t[k])) : '';
-        if (typeof t[k] === 'boolean') {
-            sfHtml += `<div class="ck"><label><input type="checkbox" id="f_${k}" ${t[k]?'checked':''}> ${sfLabels[k]||k}</label></div>`;
-        } else {
-            sfHtml += `<div class="fg"><label>${sfLabels[k]||k}</label><input id="f_${k}" value="${esc(val)}"></div>`;
-        }
+        sfHtml += `<div class="fg"><label>${sfLabels[k]||k}</label><input id="f_${k}" value="${esc(val)}"></div>`;
     }
     if (t.class && t.class !== baseClass(t.type) && t.class !== `${baseClass(t.type)} ${t.type}-card`) {
         sfHtml += `<div class="fg"><label>额外CSS类</label><input id="f_class_extra" value="${esc(t.class)}"></div>`;
@@ -602,22 +587,19 @@ window.saveCard = function(id) {
     const extras = (t.class || base).split(/\s+/).filter(c => c && c !== base);
     t.class = extras.length ? base + ' ' + extras.join(' ') : base;
     
-    // Save special fields from extraFields
-    const sfFields = ['senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
+    // Save special fields from extraFields (type-appropriate)
+    const cardType = t.type || 'item';
+    const typeFieldMap = { clue: ['senseType'], item: ['recycleValue','value'] };
+    const sharedFields = ['realName','realDesc','interactText'];
+    const sfFields = [...(typeFieldMap[cardType]||[]), ...sharedFields];
     for (const k of sfFields) {
         const el = document.getElementById('f_' + k);
         if (!el) continue;
-        if (el.type === 'checkbox') {
-            if (el.checked) t[k] = true;
-            else delete t[k];
-        } else {
-            const v = el.value.trim();
-            if (v === '') { delete t[k]; continue; }
-            // Try parse as JSON (for arrays), number, or keep as string
-            if (v.startsWith('[') || v.startsWith('{')) { try { t[k] = JSON.parse(v); } catch(e) { t[k] = v; } }
-            else if (!isNaN(Number(v)) && v !== '') { t[k] = Number(v); }
-            else t[k] = v;
-        }
+        const v = el.value.trim();
+        if (v === '') { delete t[k]; continue; }
+        if (v.startsWith('[') || v.startsWith('{')) { try { t[k] = JSON.parse(v); } catch(e) { t[k] = v; } }
+        else if (!isNaN(Number(v)) && v !== '') { t[k] = Number(v); }
+        else t[k] = v;
     }
     // Extra CSS class override
     const clsEl = document.getElementById('f_class_extra');
@@ -710,19 +692,6 @@ window.saveCard = function(id) {
     // Save observation
     if (D.OBSERVATION_TEXTS) {
         D.OBSERVATION_TEXTS[id] = document.getElementById('f_obs')?.value || '';
-    }
-    
-    // Save endings
-    if (D.REASONING_ENDINGS) {
-        document.querySelectorAll('.sec:has(.end-title) .de').forEach(el => {
-            const key = el.querySelector('.fa-r span')?.textContent;
-            const title = el.querySelector('.end-title')?.value;
-            const story = el.querySelector('.end-story')?.value;
-            if (key && D.REASONING_ENDINGS[key]) {
-                D.REASONING_ENDINGS[key].title = title || '';
-                D.REASONING_ENDINGS[key].story = story || '';
-            }
-        });
     }
     
     D.CARD_TEMPLATES[id] = t;
@@ -903,7 +872,7 @@ const FCS = [
 ];
 
 function genCards() {
-    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed','fatigueTrigger','dropOnce'];
+    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','interactText','fatigueTrigger','dropOnce'];
     let s = '// 卡牌模板\nexport const CARD_TEMPLATES = {\n';
     for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
         const f = [`name: '${escJs(t.name||'')}'`,`desc: '${escJs(t.desc||'')}'`,`type: '${t.type||'item'}'`,`class: '${t.class||baseClass(t.type)}'`];
