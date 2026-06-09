@@ -82,7 +82,7 @@ export function placeCardInRestSlot(cardData, slotIndex) {
     if (!template) return false;
 
     if (slotIndex === 0) {
-        if (cardData.templateId !== 'CHAR_investigator') {
+        if (cardData.templateId !== 'CHAR_dcy') {
             log(`❌ [休息] 只有初级调查员可以放入此槽位`, "normal");
             if (restInvestigatorSlot) {
                 void restInvestigatorSlot.offsetWidth;

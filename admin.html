@@ -259,9 +259,9 @@ let selId = null;
 let currentScene = '';
 let isSrv = false;
 let loadedFiles = {};
-const TYPES = ['char','item','clue','logic'];
-const TN = { char:'人物', item:'物品', clue:'线索', logic:'逻辑' };
-const TC = { char:'#8a5a3a', item:'#7a5a8a', clue:'#b99217', logic:'#5a6a7a' };
+const TYPES = ['char','item','clue','logic','scene'];
+const TN = { char:'人物', item:'物品', clue:'线索', logic:'逻辑', scene:'场景' };
+const TC = { char:'#8a5a3a', item:'#7a5a8a', clue:'#b99217', logic:'#5a6a7a', scene:'#3a7a5a' };
 function esc(s) { return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
 function escJs(s) { return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,''):''; }
 function len(n) { return D[n]?Object.keys(D[n]).length:0; }
@@ -1229,6 +1229,14 @@ window.renameCardId = function(oldId, newId) {
     if (D.OBSERVATION_TEXTS && D.OBSERVATION_TEXTS[oldId] !== undefined) {
         D.OBSERVATION_TEXTS[newId] = D.OBSERVATION_TEXTS[oldId];
         delete D.OBSERVATION_TEXTS[oldId];
+    }
+
+    // 7. INITIAL_BOARD / INITIAL_SPAWN — templateId references
+    for (const key of ['INITIAL_BOARD','INITIAL_SPAWN']) {
+        const arr = D[key] || [];
+        for (const entry of arr) {
+            if (entry.templateId === oldId) entry.templateId = newId;
+        }
     }
 };
 
