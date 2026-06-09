@@ -210,6 +210,7 @@ body {
             <span class="ok" id="exportStatus"></span>
             <button class="btn" onclick="closeModal('exportModal')">关闭</button>
             <button class="btn btn-p" id="dlBtn" onclick="downloadExports()">下载全部</button>
+            <button class="btn btn-p" onclick="downloadDeploy()">下载部署脚本</button>
         </div>
     </div>
 </div>
@@ -550,7 +551,6 @@ function showRelations(id) {
 }
 
 // ═══ Save card ═══
-const HARDCODED_FILES = ['engine.js','exploration.js','logic.js','rest.js','js/systems/corruption.js','js/systems/sacrifice.js'];
 
 window.saveCard = function(id) {
     const newId = document.getElementById('f_id')?.value?.trim() || id;
@@ -774,7 +774,12 @@ window.addDGroup = function() {
 };
 
 // ═══ Rename card ID (sync all D.* references) ═══
+let _renameHistory = {};
+
 window.renameCardId = function(oldId, newId) {
+    if (oldId === newId) return;
+    _renameHistory[oldId] = newId;
+    
     if (oldId === newId) return;
     // 1. CARD_TEMPLATES
     D.CARD_TEMPLATES[newId] = D.CARD_TEMPLATES[oldId];
@@ -842,6 +847,7 @@ const FCS = [
     {n:'combinations.js',v:'CARD_COMBINATIONS',gen:genCombos},
     {n:'scenes.js',v:'SCENE_EXPLORATION',gen:genScenes},
     {n:'dialogues.js',v:'DIALOGUE_DATA',gen:genDialogues},
+    {n:'endings.js',v:'REASONING_ENDINGS',gen:genEndings},
     {n:'observations.js',v:'OBSERVATION_TEXTS',gen:genObs},
 ];
 
@@ -926,12 +932,111 @@ function genObs() {
     for (const [id,t] of Object.entries(D.OBSERVATION_TEXTS||{})) s += `    '${id}': '${escJs(t)}',\n`;
     return s+'};\n';
 }
+function genEndings() {
+    let s = '// 结局\nexport const REASONING_ENDINGS = {\n';
+    for (const [k,v] of Object.entries(D.REASONING_ENDINGS||{})) {
+        s += `    '${k}': { title: '${escJs(v.title||'')}', story: '${escJs(v.story||'')}' },\n`;
+    }
+    return s+'};\n';
+}
+
+const HARDCODED_FILES = [
+    'js/engine.js','js/exploration.js','js/logic.js',
+    'js/rest.js','js/systems/corruption.js','js/systems/sacrifice.js'
+];
+
+// 生成一键部署脚本
+function genDeployScript() {
+    // 收集所有配置文件的 gen 输出
+    const configs = {};
+    for (const f of FCS) {
+        if (D[f.v]) configs[f.n] = f.gen();
+    }
+    // 构建 renames 映射表
+    const renames = {};
+    for (const [oldId, newId] of Object.entries(_renameHistory)) {
+        if (oldId !== newId) renames[oldId] = newId;
+    }
+    const hasRenames = Object.keys(renames).length > 0;
+
+    let s = `// TEC3 一键部署脚本
+// 由 admin 面板生成
+// 用法: node deploy.js
+const fs = require('fs');
+
+const RENAMES = ${JSON.stringify(renames, null, 4)};
+
+const FILES = ${JSON.stringify(HARDCODED_FILES, null, 4)};
+
+function writeFiles() {
+    // 确保 js/config 目录存在
+    const dir = 'js/config';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    
+    const configs = {
+`;
+    for (const [name, code] of Object.entries(configs)) {
+        // 转义 JS 模板字面量中的反引号和 ${}
+        const escaped = code.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+        s += `        '${name}': \`${escaped}\`,\n`;
+    }
+
+    s += `    };
+    
+    for (const [name, content] of Object.entries(configs)) {
+        fs.writeFileSync('js/config/' + name, content, 'utf-8');
+        console.log('  ✓ 写入 js/config/' + name);
+    }
+}
+
+function patchFiles() {
+    const oldIds = Object.keys(RENAMES);
+    if (!oldIds.length) return;
+    
+    for (const filePath of FILES) {
+        try {
+            if (!fs.existsSync(filePath)) {
+                console.log('  ⚠ 跳过（不存在）: ' + filePath);
+                continue;
+            }
+            let content = fs.readFileSync(filePath, 'utf-8');
+            let changed = false;
+            for (const [oldId, newId] of Object.entries(RENAMES)) {
+                const regex = new RegExp("'" + oldId.replace(/[.*+?^\${}()|[\]\\\\]/g, '\\\\$&') + "'", 'g');
+                const newContent = content.replace(regex, "'" + newId + "'");
+                if (newContent !== content) { changed = true; content = newContent; }
+            }
+            if (changed) {
+                fs.writeFileSync(filePath, content, 'utf-8');
+                console.log('  ✓ 已更新: ' + filePath);
+            } else {
+                console.log('  - 无需修改: ' + filePath);
+            }
+        } catch(e) {
+            console.log('  ✗ 失败: ' + filePath + ' - ' + e.message);
+        }
+    }
+}
+
+console.log('=== TEC3 部署脚本 ===');
+console.log('写入配置...');
+writeFiles();
+if (Object.keys(RENAMES).length) {
+    console.log('修补运行时文件...');
+    patchFiles();
+}
+console.log('=== 部署完成 ===');
+`;
+    return s;
+}
 
 window.doExport = function() {
     if (!D.CARD_TEMPLATES) { setStatus('无数据'); return; }
     document.getElementById('exportModal').classList.add('show');
     document.getElementById('exportTitle').textContent = `导出 ${Object.keys(D.CARD_TEMPLATES).length} 卡`;
-    document.getElementById('exportCode').value = '// TEC3 导出\n'+FCS.map(f=>D[f.v]?f.gen():'').join('\n');
+    const genCode = '// TEC3 导出\n'+FCS.map(f=>D[f.v]?f.gen():'').join('\n');
+    const deployCode = genDeployScript();
+    document.getElementById('exportCode').value = genCode + '\n\n// ===== 部署脚本 =====\n// deploy.js 请单独下载使用\n' + deployCode;
     document.getElementById('exportStatus').textContent = '可分别下载各文件';
 };
 
@@ -945,6 +1050,16 @@ window.downloadExports = function() {
         }
     }
     setStatus('已下载');
+    closeModal('exportModal');
+};
+
+window.downloadDeploy = function() {
+    const code = genDeployScript();
+    const b = new Blob([code], {type:'text/javascript;charset=utf-8'});
+    const u = URL.createObjectURL(b);
+    const a = document.createElement('a'); a.href=u; a.download='deploy.js'; a.click();
+    URL.revokeObjectURL(u);
+    setStatus('已下载 deploy.js');
     closeModal('exportModal');
 };
 
