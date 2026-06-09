@@ -342,7 +342,7 @@ function showCard(id) {
                 <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 消耗品</label>
                 <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 可重复</label>
                 <label><input type="checkbox" id="f_dropOnce" ${t.dropOnce?'checked':''}> 仅掉落一次</label>
-                <label><input type="checkbox" id="f_fatigueTrigger" ${t.fatigueTrigger?'checked':''}> 触发疲劳</label>
+                <label><input type="checkbox" id="f_fatigueTrigger" ${t.fatigueTrigger?'checked':''} style="${t.type!=='char'?'display:none':''}"> 触发疲劳</label>
             </div></div>
         </div>
             <div class="fg" id="extraFields"></div>
@@ -572,7 +572,8 @@ window.saveCard = function(id) {
     t.consumable = document.getElementById('f_csm')?.checked || false;
     t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
     t.dropOnce = document.getElementById('f_dropOnce')?.checked || false;
-    t.fatigueTrigger = document.getElementById('f_fatigueTrigger')?.checked || false;
+    if (t.type === 'char') t.fatigueTrigger = document.getElementById('f_fatigueTrigger')?.checked || false;
+    else delete t.fatigueTrigger;
     // corruption
     const cptCk = document.getElementById('f_cpt_ck');
     if (cptCk?.checked) {
