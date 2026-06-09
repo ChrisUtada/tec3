@@ -9,3 +9,4 @@ export { SCENE_EXPLORATION } from './config/scenes.js';
 export { DIALOGUE_DATA } from './config/dialogues.js';
 export { REASONING_ENDINGS } from './config/endings.js';
 export { OBSERVATION_TEXTS } from './config/observations.js';
+export { INITIAL_BOARD, INITIAL_SPAWN } from './config/start.js';

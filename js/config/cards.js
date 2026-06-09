@@ -1,157 +1,43 @@
-// 🃏 卡牌模板定义
+// 卡牌模板
 export const CARD_TEMPLATES = {
     'ITEM_sdt': { name: '手电筒', desc: '【道具】强干涉物理光源。空间跃迁的基础。', type: 'item', class: 'item-card', consumable: false },
-    'SCENE_wz': { name: '场景：未知地点', desc: '【核心锚点】初始坐标。将其与手电筒叠加，并用[⚡前往]卡催化。', type: 'scene', class: 'scene-card', consumable: true },
     'CHAR_zs': { name: '人物：朱穗', desc: '【NPC】高级调查员。可以直接扔线索给她进行无卡自发对质。', type: 'char', class: 'char-card', consumable: false, allowDuplicate: true },
     'CHAR_investigator': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false, fatigueTrigger: true },
-    
-    'CLUES_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。', type: 'clue', class: 'clue-vision', consumable: true },
-    'ITEM_mt': { name: '道具：木桶', desc: '【道具】坚固旧木桶。直接把贴纸丢上去可以融合成密码盒。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_tz': { name: '五行贴纸', desc: '【资产】带有高维规约的符号贴纸。直接丢进木桶里自发反应。', type: 'item', class: 'item-card', consumable: true },
-    'ITEM_mmh': { name: '暗码铁盒', desc: '【机械锁】沉重紧闭的盒身。[双击卡面] 激活解码校验机制。', type: 'item', class: 'item-card lock-card', consumable: false },
-    'CLUE_hz_inside': { name: '线索：宗族谱本', desc: '【文献】记录了异常的真名。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
-    'CLUE_tx': { name: '线索：铁锈的味道', desc: '【味觉异常】致命污染。用于归因推演的关键线索。', type: 'clue', class: 'clue-taste', consumable: true },
-    'CLUE_xhpb': { name: '线索：信号屏蔽', desc: '【视觉线索】常态信息暴露。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
-    
-    // 五感线索卡 - 每种感官对应一种线索
-    'CLUE_vision_eye': { name: '线索：扭曲的视线', desc: '【视觉】视网膜捕捉到不属于这个世界的影像。', type: 'clue', class: 'clue-vision', consumable: true, senseType: 'vision' },
-    'CLUE_hearing_echo': { name: '线索：回响的低语', desc: '【听觉】来自异空间的声音碎片。', type: 'clue', class: 'clue-hearing', consumable: true, senseType: 'hearing' },
     'CLUE_taste_metal': { name: '线索：金属的苦涩', desc: '【味觉】口腔中蔓延的诡异金属味。', type: 'clue', class: 'clue-taste', consumable: true, senseType: 'taste' },
     'CLUE_touch_ice': { name: '线索：刺骨的寒意', desc: '【触觉】穿透衣物的异常低温。', type: 'clue', class: 'clue-touch', consumable: true, senseType: 'touch' },
     'CLUE_smell_rot': { name: '线索：腐朽的气息', desc: '【嗅觉】令人作呕的腐烂气味。', type: 'clue', class: 'clue-smell', consumable: true, senseType: 'smell' },
-    
-    // 原有测试线索
-    'CLUE_shadow': { name: '线索：墙上的阴影', desc: '【视觉异常】不合常理的投影角度。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true, allowDuplicate: true },
     'CLUE_whisper': { name: '线索：低语声', desc: '【听觉异常】来自虚空的呢喃。用于归因推演的关键线索。', type: 'clue', class: 'clue-hearing', consumable: true },
-    'CLUE_cold': { name: '线索：骤降的温度', desc: '【触觉异常】空间温度异常波动。用于归因推演的关键线索。', type: 'clue', class: 'clue-touch', consumable: true },
-    'CLUE_blood': { name: '线索：血迹图案', desc: '【视觉线索】地板上神秘的符文。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true, allowDuplicate: true },
-    
-    // 功能卡：捕获（常驻功能）
     'LOGIC_capture': { name: '⚡捕获', desc: '【常驻功能卡】将此卡放置在人物、场景或物品上进行捕获，可获得隐藏线索。此卡不会被消耗。', type: 'item', class: 'item-card capture-card', consumable: false },
-    
-    // 逻辑归因卡牌
     'LOGIC_reason': { name: '逻辑归因', desc: '【指令卡】打开归因推演界面，通过线索组合推导真相。双击使用。', type: 'logic', class: 'logic-card', consumable: true },
-    
-    // 献祭卡牌（功能卡）
-    'ITEM_recycle': { 
-        name: '⚡献祭', 
-        desc: '【功能】将多余卡牌献祭，获取因果律。将卡牌拖放到此卡上即可献祭。', 
-        type: 'logic', 
-        class: 'logic-card', 
-        consumable: false,
-        recycleValue: 10,
-        interactText: '将多余卡牌拖放到献祭台上，可将其转化为因果律。'
-    },
-    
-    // 因果律卡
-    'ITEM_coin': {
-        name: '因果律',
-        desc: '【因果货币】可用于改变事件概率或购买特殊物品。',
-        type: 'item',
-        class: 'item-card',
-        consumable: true,
-        allowDuplicate: true,    // 货币可无限刷出
-        value: 10,
-        interactText: '因果律：可用于干预现实的力量。'
-    },
-    
-    // 真名卡
-    'ITEM_true_name': { 
-        name: '???', 
-        desc: '【真名容器】未知的存在等待被揭示。', 
-        type: 'item', 
-        class: 'item-card true-name-card', 
-        consumable: false,
-        realName: '「深渊低语者」',
-        realDesc: '【旧日支配者碎片】\n\n这是一个来自深渊的古老存在的真名残片。\n\n——「在无尽的黑暗中，它凝视着你」'
-    },
-
-    // 真名场景卡（5槽位，探索掉落合成卡）
-    'SCENE_truename': {
-        name: '场景：真名共鸣仪',
-        desc: '【场景】古老的设计图——"真名共鸣仪"的构造方案。',
-        type: 'scene',
-        class: 'scene-card',
-        consumable: true
-    },
-
-    // 合成卡：五种感官聚合
-    'ITEM_sense_all': {
-        name: '感官聚合',
-        desc: '【合成卡】五感线索已全部收集，等待进一步激活。',
-        type: 'item',
-        class: 'item-card',
-        consumable: true
-    },
-
-    // 五感手电筒：手电筒 + 感官聚合
-    'ITEM_sense_all_light': {
-        name: '五感手电筒',
-        desc: '【合成卡】手电筒照亮的五感聚合体，可以揭示真名。',
-        type: 'item',
-        class: 'item-card',
-        consumable: true
-    },
-
-    // 真名线索卡：用于归因推演
-    'ITEM_truename_clue': {
-        name: '线索：被揭示的真名',
-        desc: '【线索卡】旧日支配者的真名已被揭示。用于归因推演的关键线索。',
-        type: 'clue',
-        class: 'clue-vision',
-        consumable: true
-    },
-    
-    // 新掉落物品
-    'ITEM_cdyg': { name: '惨白的月亮', desc: '【道具】散发着诡异光芒的装饰。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
-    'ITEM_mmd': { name: '木门', desc: '【道具】一扇古朴的木门。', type: 'item', class: 'item-card', consumable: false, allowDuplicate: true },
-    'ITEM_s_qhj': { name: '奇怪的痕迹', desc: '【资产】地板上神秘的擦痕。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
-    'ITEM_mk': { name: '门扣', desc: '【道具】沉重的金属门扣。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true },
-    'ITEM_s_eyes': { name: '眼睛', desc: '【装备】墙上窥视的眼睛。', type: 'item', class: 'equipment-card', consumable: false, allowDuplicate: true },
-    
-    'ITEM_mmd_eyes': { name: '带有眼睛的木门', desc: '【道具】门板上嵌着一只窥视的眼睛，似乎在等待什么。', type: 'item', class: 'item-card', consumable: false },
-    
-    // TEC 总部 + 植物学家的花园
+    'ITEM_recycle': { name: '⚡献祭', desc: '【功能】将多余卡牌献祭，获取因果律。将卡牌拖放到此卡上即可献祭。', type: 'logic', class: 'logic-card', consumable: false, recycleValue: 10, interactText: '将多余卡牌拖放到献祭台上，可将其转化为因果律。' },
+    'ITEM_coin': { name: '因果律', desc: '【因果货币】可用于改变事件概率或购买特殊物品。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true, value: 10, interactText: '因果律：可用于干预现实的力量。' },
+    'ITEM_true_name': { name: '???', desc: '【真名容器】未知的存在等待被揭示。', type: 'item', class: 'item-card true-name-card', consumable: false, realName: '「深渊低语者」', realDesc: '【旧日支配者碎片】\n\n这是一个来自深渊的古老存在的真名残片。\n\n——「在无尽的黑暗中，它凝视着你」' },
+    'SCENE_truename': { name: '场景：真名共鸣仪', desc: '【场景】古老的设计图——"真名共鸣仪"的构造方案。', type: 'scene', class: 'scene-card', consumable: true },
+    'ITEM_sense_all': { name: '感官聚合', desc: '【合成卡】五感线索已全部收集，等待进一步激活。', type: 'item', class: 'item-card', consumable: true },
+    'ITEM_sense_all_light': { name: '五感手电筒', desc: '【合成卡】手电筒照亮的五感聚合体，可以揭示真名。', type: 'item', class: 'item-card', consumable: true },
+    'ITEM_truename_clue': { name: '线索：被揭示的真名', desc: '【线索卡】旧日支配者的真名已被揭示。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
     'SCENE_tec': { name: '场景：TEC总部', desc: '【核心锚点】调查员联合机构的物理中枢。需与初级调查员叠加，揭开 TEC 的真实面目。', type: 'scene', class: 'scene-card', consumable: false },
     'CHAR_tec': { name: '人物：TEC', desc: '【NPC】自称"调查员联合机构"。将初级调查员送入 TEC 总部后显露的真身。', type: 'char', class: 'char-card', consumable: false },
     'SCENE_plant_hunter': { name: '场景：植物学家的花园', desc: '【二级场景】由 TEC 引导进入的异界花园。植物学家在此失踪。', type: 'scene', class: 'scene-card', consumable: false },
-    
-    // 植物学家的花园 - 探索掉落物
     'ITEM_black_curtain': { name: '物品：黑色帘幕', desc: '【道具】厚重的黑色帘幕，遮蔽着什么。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_plant': { name: '物品：植物', desc: '【道具】花园中随处可见的植物，触碰时有微妙感觉。', type: 'item', class: 'item-card', consumable: false },
     'SCENE_desk': { name: '地点：书桌', desc: '【场景】植物学家的工作台，上面散落着研究笔记。', type: 'scene', class: 'scene-card', consumable: false },
     'ITEM_phonograph': { name: '物品：唱机', desc: '【道具】老式留声机，唱片在无人触碰时自己转动。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_shadow_figure': { name: '物品：黑影', desc: '【道具】一团无法聚焦的黑色人形虚影，似乎有自我意识。', type: 'item', class: 'item-card', consumable: true, corruptionTime: 180000 },
     'ITEM_syringe': { name: '物品：注射器', desc: '【道具】锈迹斑斑的医用注射器，内含不明液体。', type: 'item', class: 'item-card', consumable: false },
-    
-    // 书桌调查 - 产出物
     'ITEM_handwritten_note': { name: '物品：手写笔记', desc: '【道具】植物学家留下的研究笔记，字迹潦草。', type: 'item', class: 'item-card', consumable: false },
     'SCENE_drawer': { name: '地点：抽屉', desc: '【场景】书桌的抽屉，藏有隐秘的物品。打开它需要仔细检查。', type: 'scene', class: 'scene-card', consumable: false },
     'ITEM_trash_can': { name: '物品：垃圾桶', desc: '【道具】角落里的垃圾桶，里面有揉皱的纸条。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_desk_lamp': { name: '物品：台灯', desc: '【道具】老式台灯，灯罩泛黄，光线昏黄。', type: 'item', class: 'item-card', consumable: false },
-    
-    // 抽屉调查 - 产出物
     'ITEM_scissors': { name: '物品：剪刀', desc: '【道具】一把老式剪刀，金属部分有锈迹。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_wooden_box': { name: '物品：精致的木盒', desc: '【道具】做工精细的小木盒，似乎装着重要的东西。', type: 'item', class: 'item-card', consumable: false },
-    
-    // 合成物：手电筒照亮黑影
     'ITEM_bandaged_corpse': { name: '物品：缠满绷带的尸体', desc: '【道具】一具被绷带层层缠绕的尸体，手电筒照亮后显出真实形态。', type: 'item', class: 'item-card', consumable: true },
-    
-    // 陆珩松相关
     'ITEM_corpse_lu': { name: '物品：陆珩松的尸体', desc: '【道具】绷带被剪开后，露出的是一张苍白的脸——植物学家本人。', type: 'item', class: 'item-card', consumable: false },
     'CHAR_lu': { name: '人物：陆珩松', desc: '【NPC】植物学家。他沉默地站着，仿佛从一场长眠中醒来，但灵魂还没有完全回来。', type: 'char', class: 'char-card', consumable: false },
     'ITEM_crumpled_paper': { name: '物品：皱巴巴的纸', desc: '【道具】从陆珩松身上找到的纸条，上面的字迹被汗渍浸得模糊——只能认出几个词："花园"、"别回来"、"它醒了"。', type: 'item', class: 'item-card', consumable: false },
     'ITEM_stylus': { name: '物品：唱针', desc: '【道具】一枚老式唱针，沾着暗红色的痕迹。将它装回唱机上，也许能播放出本不该被听到的声音。', type: 'item', class: 'item-card', consumable: false },
-    
-    // 观测卡（常驻功能卡）
     'LOGIC_observe': { name: '观测', desc: '【常驻功能卡】将此卡拖放到任意卡牌上，查看该卡牌的叙事信息。此卡不会被消耗。', type: 'item', class: 'item-card observe-card', consumable: false },
-
-    // 疲劳卡（负面卡）
     'DEBUFF_fatigue': { name: '疲劳', desc: '【负面状态】连续探索导致的疲劳积累。桌面疲劳卡达到 5 张时将无法进行探索、对话和归因。放入休息卡中可恢复。', type: 'item', class: 'item-card debuff-card', consumable: true, allowDuplicate: true },
-
-    // 疯狂窥视卡（疲劳>=5时概率掉落）
     'ITEM_peek_truth': { name: '疯狂窥视', desc: '【道具】疲劳极限时窥见的不可名状之物。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true, dropOnce: true },
-
-    // 休息卡（功能卡）
-    'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false }
+    'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false },
 };

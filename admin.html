@@ -12,20 +12,20 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    font-family: 'Courier New',Consolas,monospace;
+    font-family: 'Microsoft YaHei','PingFang SC','Noto Sans SC','Courier New',Consolas,sans-serif;
     background: var(--bg); color: var(--fg);
     height: 100vh; display: flex; flex-direction: column;
-    font-size: 14px; line-height: 1.6;
+    font-size: 15px; line-height: 1.7;
 }
 .hdr {
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 16px; background: var(--border); color: #fdfaf5;
     border-bottom: 2px double var(--cto); flex-shrink: 0; flex-wrap: wrap; gap: 6px;
 }
-.hdr h1 { font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+.hdr h1 { font-size: 17px; font-weight: bold; letter-spacing: 2px; }
 .hdr .g { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hb {
-    padding: 4px 10px; font-size: 11px; font-weight: bold; cursor: pointer;
+    padding: 5px 12px; font-size: 12px; font-weight: bold; cursor: pointer;
     border: 1px solid var(--cto); background: transparent; color: #fdfaf5;
     border-radius: 2px; font-family: inherit; white-space: nowrap;
 }
@@ -50,68 +50,79 @@ body {
 .left .list { flex: 1; overflow-y: auto; }
 .gr { margin-bottom: 2px; }
 .gr-hd {
-    padding: 4px 10px; font-size: 12px; font-weight: bold;
+    padding: 6px 12px; font-size: 14px; font-weight: bold;
     letter-spacing: 1px; color: var(--dim);
     display: flex; justify-content: space-between; align-items: center;
     background: var(--grid); position: sticky; top: 0; cursor: default;
 }
-.gr-hd .cnt { font-size: 11px; color: var(--dim); }
+.gr-hd .cnt { font-size: 12px; color: var(--dim); }
 .gr-hd .add {
     cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: var(--cs);
     font-weight: bold;
 }
 .gr-hd .add:hover { color: var(--fg); }
 .it {
-    padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-    border-bottom: 1px solid var(--grid); transition: background 0.1s; font-size: 13px;
+    padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--grid); transition: background 0.1s; font-size: 14px;
 }
 .it:hover { background: var(--grid); }
 .it.sel { background: #d8d0c0; }
 .it .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .it .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.it .id { font-size: 10px; color: var(--dim); flex-shrink: 0; }
-.it .sub { font-size: 11px; color: var(--dim); }
-.empty { padding: 20px; text-align: center; color: var(--dim); font-size: 13px; }
+.it .id { font-size: 11px; color: var(--dim); flex-shrink: 0; }
+.it .sub { font-size: 12px; color: var(--dim); }
+.empty { padding: 20px; text-align: center; color: var(--dim); font-size: 14px; }
 
 /* Center */
 .ctr { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 0; }
-.ctr .pl { text-align: center; color: var(--dim); margin-top: 60px; font-size: 14px; }
+.ctr .pl { text-align: center; color: var(--dim); margin-top: 60px; font-size: 15px; }
 .sec { margin-bottom: 16px; }
 .sec-hd {
-    font-size: 11px; font-weight: bold; color: var(--dim); text-transform: uppercase;
-    letter-spacing: 1px; padding: 4px 0; margin-bottom: 6px;
+    font-size: 13px; font-weight: bold; color: var(--dim);
+    letter-spacing: 0.5px; padding: 5px 0; margin-bottom: 8px;
     border-bottom: 1px solid var(--grid); display: flex; align-items: center; gap: 8px;
 }
 .fg { display: flex; flex-direction: column; gap: 3px; }
-.fg label { font-size: 10px; font-weight: bold; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.fg label { font-size: 12px; font-weight: bold; color: var(--dim); letter-spacing: 0.5px; }
 .fg input, .fg textarea, .fg select {
-    padding: 6px 8px; border: 1px solid var(--grid); background: var(--bg);
-    color: var(--fg); font-size: 13px; font-family: inherit; border-radius: 2px; outline: none;
+    padding: 7px 10px; border: 1px solid var(--grid); background: var(--bg);
+    color: var(--fg); font-size: 14px; font-family: inherit; border-radius: 3px; outline: none;
 }
 .fg input:focus, .fg textarea:focus, .fg select:focus { border-color: var(--ct); }
-.fg textarea { min-height: 50px; resize: vertical; }
+.fg textarea { min-height: 55px; resize: vertical; }
 .fg .ck { display: flex; gap: 14px; flex-wrap: wrap; }
 .fg .ck label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 12px; text-transform: none; }
 .fg .ck input[type="checkbox"] { width: auto; }
 .fr { display: flex; gap: 12px; }
 .fr .fg { flex: 1; }
 .btn {
-    padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer;
+    padding: 7px 16px; font-size: 13px; font-weight: bold; cursor: pointer;
     border: 1px solid var(--border); background: var(--panel);
-    color: var(--fg); border-radius: 2px; font-family: inherit; transition: all 0.15s;
+    color: var(--fg); border-radius: 3px; font-family: inherit; transition: all 0.15s;
 }
 .btn:hover { background: var(--border); color: #fdfaf5; }
 .btn-p { background: var(--border); color: #fdfaf5; }
+.scene-bar {
+    display: flex; gap: 2px; padding: 6px 12px 0; flex-shrink: 0;
+    border-bottom: 1px solid var(--grid); background: var(--panel); flex-wrap: wrap;
+}
+.st {
+    padding: 6px 16px; font-size: 14px; cursor: pointer; border: 1px solid var(--grid);
+    border-bottom: none; border-radius: 3px 3px 0 0; background: var(--bg);
+    color: var(--dim); font-family: inherit; white-space: nowrap;
+}
+.st:hover { background: var(--grid); }
+.st.sel { background: var(--panel); color: var(--fg); font-weight: bold; border-color: var(--border); }
 .btn-p:hover { background: var(--ct); border-color: var(--ct); }
 .btn-s { background: #3a7a5a; color: #fdfaf5; }
 .btn-d { background: #a84a3a; color: #fdfaf5; }
-.btn-sm { padding: 3px 10px; font-size: 11px; }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
 .fa { display: flex; flex-direction: column; gap: 3px; }
 .fa-r { display: flex; gap: 4px; align-items: center; }
 .fa-r input { flex: 1; }
 .fa-r .btn { white-space: nowrap; }
 .de .fa-r { margin-bottom: 2px; }
-.dl { margin: 4px 0; padding: 4px 6px; border: 1px solid #d0c8c0; border-radius: 3px; background: #faf8f5; }
+.dl { margin: 6px 0; padding: 6px 8px; border: 1px solid #d0c8c0; border-radius: 3px; background: #faf8f5; }
 .d-choices { margin: 4px 0 4px 20px; padding: 4px; border-left: 2px solid #c8b8a8; }
 .cb { background: #2a1a0a; color: #e8dcc8; padding: 10px; border-radius: 2px; font-size: 11px; white-space: pre-wrap; overflow-x: auto; max-height: 150px; border: 1px solid var(--border); margin-top: 6px; }
 
@@ -120,9 +131,11 @@ body {
     width: 280px; min-width: 220px; border-left: 1px solid var(--grid);
     display: flex; flex-direction: column; background: var(--panel); overflow-y: auto;
 }
-.right .sec { padding: 10px 12px; border-bottom: 1px solid var(--grid); margin-bottom: 0; }
-.right .sec-hd { font-size: 10px; margin-bottom: 4px; }
-.right .hint { color: var(--dim); font-size: 13px; font-style: italic; }
+.right .sec { padding: 12px 14px; border-bottom: 1px solid var(--grid); margin-bottom: 0; }
+.right .sec-hd { font-size: 12px; margin-bottom: 4px; }
+.right .hint { color: var(--dim); font-size: 14px; font-style: italic; }
+.rl { padding: 4px 0; font-size: 14px; border-bottom: 1px solid var(--grid); display: flex; align-items: center; gap: 5px; }
+.rt { padding: 2px 8px; font-size: 11px; border-radius: 2px; font-weight: bold; flex-shrink: 0; }
 .card-pv {
     width: 120px; height: 160px; border-radius: 3px; padding: 12px;
     display: flex; flex-direction: column; justify-content: space-between;
@@ -136,9 +149,7 @@ body {
 .pv-item { background: linear-gradient(135deg,#f0ecf0,#e5dde8); border-top:3px solid #7a5a8a; }
 .pv-logic { background: linear-gradient(135deg,#e8e8ec,#d5d5dd); border-top:3px solid #5a6a7a; }
 .pv-clue { background: linear-gradient(135deg,#fdfaf5,#f0e8e0); }
-.rl { padding: 3px 0; font-size: 13px; border-bottom: 1px solid var(--grid); display: flex; align-items: center; gap: 5px; }
 .rl:last-child { border-bottom: none; }
-.rt { padding: 2px 6px; font-size: 10px; border-radius: 2px; font-weight: bold; flex-shrink: 0; }
 .rt-c { background: #e8dcc8; color: #5a4a3a; }
 .rt-s { background: #dde5d5; color: #3a5a3a; }
 .rt-d { background: #ece0d5; color: #6a4a2a; }
@@ -160,12 +171,17 @@ body {
 }
 .modal .mh h3 { font-size: 14px; }
 .modal .mh .mc { cursor: pointer; color: var(--dim); font-size: 16px; padding: 2px 6px; }
+.et { border-collapse: collapse; font-size: 13px; }
+.et th { background: var(--grid); padding: 5px 8px; text-align: left; }
+.et td { padding: 4px 6px; border-bottom: 1px solid var(--grid); }
+.et select { width: 100%; font-size: 12px; }
+.et input[type=checkbox] { margin: 0; vertical-align: middle; width: 16px; height: 16px; }
 .modal .mh .mc:hover { color: var(--ct); }
 .modal .mb { padding: 12px 14px; overflow-y: auto; flex: 1; }
 .modal .mb textarea {
-    width: 100%; min-height: 300px; padding: 8px;
+    width: 100%; min-height: 300px; padding: 10px;
     border: 1px solid var(--grid); background: #2a1a0a; color: #e8dcc8;
-    font-size: 11px; font-family: 'Courier New',monospace; border-radius: 2px; resize: vertical;
+    font-size: 13px; font-family: 'Courier New',monospace; border-radius: 2px; resize: vertical;
 }
 .modal .mf { padding: 8px 14px; border-top: 1px solid var(--grid); display: flex; gap: 8px; justify-content: flex-end; }
 .modal .mf .ok { font-size: 11px; color: var(--cs); margin-right: auto; align-self: center; }
@@ -179,10 +195,11 @@ body {
 <div class="hdr">
     <h1>□ TEC3 编辑工具</h1>
     <div class="g">
-        <span id="status" style="font-size:11px;color:#c8b8a0;">未加载</span>
+        <span id="status" style="font-size:13px;color:#c8b8a0;">未加载</span>
         <button class="hb" id="loadBtn" onclick="document.getElementById('loadInput').click()">📂 加载</button>
         <button class="hb" id="exportBtn" onclick="doExport()" disabled>💾 导出</button>
         <button class="hb" id="svBtn" onclick="saveToServer()" disabled>💻 保存</button>
+        <button class="hb" onclick="cleanupData()">🧹 清理</button>
         <span id="fc" style="font-size:10px;color:#c8b8a0;"></span>
     </div>
     <input type="file" id="loadInput" multiple accept=".js" onchange="loadFiles(event)">
@@ -194,7 +211,10 @@ body {
         <div class="list" id="list"></div>
     </div>
     <div class="ctr" id="ctr">
-        <div class="pl">← 加载源文件后选择卡牌</div>
+        <div class="scene-bar" id="sceneBar"></div>
+        <div id="ctrContent">
+            <div class="pl">← 加载源文件后选择卡牌</div>
+        </div>
     </div>
     <div class="right">
         <div class="sec"><div class="sec-hd">预览</div><div id="pv"><div class="hint">选择后预览</div></div></div>
@@ -215,18 +235,70 @@ body {
     </div>
 </div>
 
+<div class="modal-overlay" id="startModal">
+    <div class="modal" style="max-width:700px;">
+        <div class="mh"><h3>初始布局</h3><span class="mc" onclick="closeModal('startModal')">✕</span></div>
+        <div class="mb">
+            <div class="sec"><div class="sec-hd">初始棋盘 <button class="btn btn-sm" onclick="addStartBoardEntry()">＋ 卡牌</button></div>
+            <div id="start-board-list"></div></div>
+            <div class="sec" style="margin-top:8px;"><div class="sec-hd">开场生成 <button class="btn btn-sm" onclick="addStartSpawnEntry()">＋ 卡牌</button></div>
+            <div id="start-spawn-list"></div></div>
+        </div>
+        <div class="mf">
+            <span class="ok" id="startStatus"></span>
+            <button class="btn" onclick="closeModal('startModal')">关闭</button>
+            <button class="btn btn-p" onclick="saveStartConfig()">💾 保存</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ═══ State ═══
 const D = {};
 let selId = null;
+let currentScene = '';
 let isSrv = false;
 let loadedFiles = {};
-const TYPES = ['char','scene','item','clue','logic'];
-const TN = { char:'人物', scene:'场景', item:'物品', clue:'线索', logic:'逻辑' };
-const TC = { char:'#8a5a3a', scene:'#3a7a5a', item:'#7a5a8a', clue:'#b99217', logic:'#5a6a7a' };
+const TYPES = ['char','item','clue','logic'];
+const TN = { char:'人物', item:'物品', clue:'线索', logic:'逻辑' };
+const TC = { char:'#8a5a3a', item:'#7a5a8a', clue:'#b99217', logic:'#5a6a7a' };
 function esc(s) { return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
 function escJs(s) { return s?String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,''):''; }
 function len(n) { return D[n]?Object.keys(D[n]).length:0; }
+
+// ═══ 起始编辑 ═══
+function openStartEditor() {
+    if (!D.INITIAL_BOARD) D.INITIAL_BOARD = [];
+    if (!D.INITIAL_SPAWN) D.INITIAL_SPAWN = [];
+    renderStartEditor();
+    document.getElementById('startModal').style.display = 'flex';
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function renderStartEditor() {
+    updateStartList('INITIAL_BOARD', 'start-board-list', false);
+    updateStartList('INITIAL_SPAWN', 'start-spawn-list', true);
+}
+function updateStartEntry(key, idx, field, val) {
+    const data = D[key]||[];
+    if (idx >= 0 && idx < data.length) data[idx][field] = val;
+}
+function removeStartEntry(key, idx) {
+    const data = D[key]||[];
+    if (idx >= 0 && idx < data.length) { data.splice(idx, 1); renderStartEditor(); }
+}
+function addStartBoardEntry() {
+    if (!D.INITIAL_BOARD) D.INITIAL_BOARD = [];
+    D.INITIAL_BOARD.push({ templateId: '', x: 0, y: 0, isCaptured: true });
+    renderStartEditor();
+}
+function addStartSpawnEntry() {
+    if (!D.INITIAL_SPAWN) D.INITIAL_SPAWN = [];
+    D.INITIAL_SPAWN.push({ templateId: '', x: 0, y: 0, unbound: false });
+    renderStartEditor();
+}
+function saveStartConfig() {
+    document.getElementById('startStatus').textContent = '✓ 已保存 (运行 deploy 生效)';
+}
 
 // ═══ Load ═══
 window.loadFiles = async function(e) {
@@ -238,7 +310,8 @@ function parseAll() {
     document.getElementById('fc').textContent = keys.length+' 文件';
     const map = { 'cards.js':'CARD_TEMPLATES', 'combinations.js':'CARD_COMBINATIONS',
         'scenes.js':'SCENE_EXPLORATION', 'dialogues.js':'DIALOGUE_DATA',
-        'observations.js':'OBSERVATION_TEXTS', 'endings.js':'REASONING_ENDINGS' };
+        'observations.js':'OBSERVATION_TEXTS', 'endings.js':'REASONING_ENDINGS',
+        'start.js':'START_CONFIG' };
     const scope = {};
     for (const [fn,vn] of Object.entries(map)) {
         const f = keys.find(k=>k.includes(fn));
@@ -253,11 +326,14 @@ function parseAll() {
     if (!scope.CARD_TEMPLATES) { setStatus('解析失败'); return; }
     Object.assign(D, scope);
     if (!D.REASONING_ENDINGS) D.REASONING_ENDINGS = {};
+    if (!D.START_CONFIG) D.START_CONFIG = { INITIAL_BOARD: [], INITIAL_SPAWN: [] };
     isSrv = false;
-    setStatus(`已加载: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合 ${len('SCENE_EXPLORATION')}场景 ${len('DIALOGUE_DATA')}对话 ${len('OBSERVATION_TEXTS')}观测`);
+    setStatus(`已加载: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合 ${len('SCENE_EXPLORATION')}场景 ${len('DIALOGUE_DATA')}对话 ${len('OBSERVATION_TEXTS')}观测${D.START_CONFIG?.INITIAL_BOARD?.length ? ` ${D.START_CONFIG.INITIAL_BOARD.length}起始` : ''}`);
     document.getElementById('exportBtn').disabled = false;
     document.getElementById('svBtn').disabled = true;
     selId = null;
+    currentScene = '';
+    renderSceneTabs();
     renderList();
     showEmpty();
 }
@@ -271,7 +347,7 @@ async function trySrv() {
         const files = [
             {u:'./js/config/cards.js',n:'CARD_TEMPLATES'},{u:'./js/config/combinations.js',n:'CARD_COMBINATIONS'},
             {u:'./js/config/scenes.js',n:'SCENE_EXPLORATION'},{u:'./js/config/dialogues.js',n:'DIALOGUE_DATA'},
-            {u:'./js/config/observations.js',n:'OBSERVATION_TEXTS'},{u:'./js/config/endings.js',n:'REASONING_ENDINGS'}
+            {u:'./js/config/observations.js',n:'OBSERVATION_TEXTS'},{u:'./js/config/endings.js',n:'REASONING_ENDINGS'},{u:'./js/config/start.js',n:'START_CONFIG'}
         ];
         const scope = {};
         for (const f of files) {
@@ -285,14 +361,195 @@ async function trySrv() {
         if (scope.CARD_TEMPLATES) {
             Object.assign(D, scope);
             if (!D.REASONING_ENDINGS) D.REASONING_ENDINGS = {};
-            setStatus(`服务器: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合`);
+            if (!D.INITIAL_BOARD) D.INITIAL_BOARD = [];
+            if (!D.INITIAL_SPAWN) D.INITIAL_SPAWN = [];
+            setStatus(`服务器: ${len('CARD_TEMPLATES')}卡 ${len('CARD_COMBINATIONS')}组合${D.INITIAL_BOARD?.length ? ` ${D.INITIAL_BOARD.length}起始` : ''}`);
             document.getElementById('exportBtn').disabled = false;
             document.getElementById('svBtn').disabled = false;
             selId = null;
+            currentScene = '';
+            renderSceneTabs();
             renderList();
             showEmpty();
         }
     } catch(e) {}
+}
+
+function templateOptions(selected) {
+    let opts = '<option value="">— 选择 —</option>';
+    for (const [id, t] of Object.entries(D.CARD_TEMPLATES||{})) {
+        const label = t.name ? `${t.name} (${id})` : id;
+        const sel = id === selected ? ' selected' : '';
+        opts += `<option value="${id}"${sel}>${esc(label)}</option>`;
+    }
+    return opts;
+}
+function renderSceneOptions(selected) {
+    let opts = '<option value="">— 全局 —</option>';
+    for (const sid of Object.keys(D.SCENE_EXPLORATION||{})) {
+        const sn = D.CARD_TEMPLATES?.[sid]?.name || sid;
+        const sel = sid === selected ? ' selected' : '';
+        opts += `<option value="${sid}"${sel}>${esc(sn)}</option>`;
+    }
+    return opts;
+}
+
+function getSceneCardIds(sceneId) {
+    const ids = new Set();
+    const s = D.SCENE_EXPLORATION?.[sceneId];
+    if (!s) return ids;
+    for (const r of (s.requiredCards||[])) if (r.templateId) ids.add(r.templateId);
+    for (const d of (s.drops||[])) if (d.templateId) ids.add(d.templateId);
+    for (const g of (s.dropGroups||[])) {
+        for (const d of (g.drops||[])) if (d.templateId) ids.add(d.templateId);
+    }
+    for (const e of (D.INITIAL_BOARD||[])) if (e.scene === sceneId && e.templateId) ids.add(e.templateId);
+    for (const e of (D.INITIAL_SPAWN||[])) if (e.scene === sceneId && e.templateId) ids.add(e.templateId);
+    ids.add(sceneId); // 场景自身始终显示
+    return ids;
+}
+
+function cleanupData() {
+    let removed = 0;
+    // 卡牌组合：移除指向不存在卡牌的配方
+    if (D.CARD_COMBINATIONS) {
+        for (const [key, v] of Object.entries(D.CARD_COMBINATIONS)) {
+            const parts = key.split('+');
+            if (parts.some(p => !D.CARD_TEMPLATES[p]) || !v.result?.length) {
+                delete D.CARD_COMBINATIONS[key]; removed++;
+            }
+        }
+    }
+    // 场景：移除空掉落、空条件
+    if (D.SCENE_EXPLORATION) {
+        for (const s of Object.values(D.SCENE_EXPLORATION)) {
+            if (s.drops) { const n = s.drops.length; s.drops = s.drops.filter(d => d.templateId); removed += n - s.drops.length; }
+            if (s.requiredCards) { const n = s.requiredCards.length; s.requiredCards = s.requiredCards.filter(r => r.templateId); removed += n - s.requiredCards.length; }
+            if (s.dropGroups) {
+                for (const g of s.dropGroups) {
+                    if (g.drops) { const n = g.drops.length; g.drops = g.drops.filter(d => d.templateId); removed += n - g.drops.length; }
+                    if (g.requiredCards) { const n = g.requiredCards.length; g.requiredCards = g.requiredCards.filter(r => r.templateId); removed += n - g.requiredCards.length; }
+                }
+                const gn = s.dropGroups.length; s.dropGroups = s.dropGroups.filter(g => g.id); removed += gn - s.dropGroups.length;
+            }
+        }
+    }
+    // 对话：移除空触发组、空行
+    if (D.DIALOGUE_DATA) {
+        for (const cfg of Object.values(D.DIALOGUE_DATA)) {
+            if (!cfg.dialogues) continue;
+            for (const [tid, lines] of Object.entries(cfg.dialogues)) {
+                if (!tid) { delete cfg.dialogues[tid]; removed++; continue; }
+                const n = lines.length; cfg.dialogues[tid] = lines.filter(l => l.text); removed += n - cfg.dialogues[tid].length;
+            }
+        }
+    }
+    // 起始配置：移除空模板
+    for (const key of ['INITIAL_BOARD','INITIAL_SPAWN']) {
+        if (D[key]) { const n = D[key].length; D[key] = D[key].filter(e => e.templateId); removed += n - D[key].length; }
+    }
+    setStatus(`🧹 清理完成，移除了 ${removed} 条空数据`);
+    renderSceneTabs();
+    renderList();
+    if (currentScene) showSceneConfig(currentScene);
+    else if (selId) showCard(selId);
+    else showGlobalConfig();
+}
+
+// ═══ 场景导航 ═══
+function renderSceneTabs() {
+    const bar = document.getElementById('sceneBar');
+    if (!D.SCENE_EXPLORATION) { bar.innerHTML = ''; return; }
+    const scenes = Object.keys(D.SCENE_EXPLORATION);
+    let h = `<button class="st${!currentScene?' sel':''}" onclick="selectScene('')">全部</button>`;
+    for (const sid of scenes) {
+        const sn = D.CARD_TEMPLATES?.[sid]?.name || D.SCENE_EXPLORATION[sid]?.name || sid;
+        h += `<button class="st${sid===currentScene?' sel':''}" onclick="selectScene('${sid}')">${esc(sn)}</button>`;
+    }
+    h += `<button class="st" onclick="event.stopPropagation();addCard('scene')" style="color:var(--cs);" title="新增场景">＋</button>`;
+    h += `<span style="font-size:12px;color:var(--dim);padding:5px 4px;align-self:center;">${Object.keys(D.CARD_TEMPLATES||{}).length}卡</span>`;
+    bar.innerHTML = h;
+}
+window.selectScene = function(sceneId) {
+    currentScene = sceneId;
+    selId = null;
+    renderSceneTabs();
+    renderList();
+    if (sceneId) {
+        showSceneConfig(sceneId);
+    } else {
+        showGlobalConfig();
+    }
+};
+function showSceneConfig(sceneId) {
+    const s = D.SCENE_EXPLORATION?.[sceneId];
+    if (!s) { showEmpty(); return; }
+    const ctr = document.getElementById('ctrContent');
+    const t = D.CARD_TEMPLATES?.[sceneId];
+    const sn = t?.name || s.name || sceneId;
+    let h = `<div class="sec" style="margin-bottom:8px;"><div class="sec-hd">${esc(sn)} <span style="font-weight:normal;font-size:12px;color:var(--dim);">${sceneId}</span></div>`;
+    h += `<div class="fg"><label>唯一标识 (ID)</label><input id="f_id" value="${esc(sceneId)}" style="font-weight:bold;"></div>`;
+    h += `<div class="fr"><div class="fg"><label>显示名称</label><input id="f_name" value="${esc(t?.name||'')}"></div>
+        <div class="fg"><label>卡牌描述</label><input id="f_desc" value="${esc(t?.desc||'')}"></div></div>`;
+    h += `<div class="fr"><div class="fg"><label>卡槽数量</label><input id="s_slots" type="number" value="${s.slots}" title="可同时容纳的卡牌数"></div>
+        <div class="fg"><label>探索耗时(秒)</label><input id="s_time" type="number" step="0.5" min="0.5" value="${(s.exploreTime||5000)/1000}" title="进入场景后多久完成一次探索"></div>
+        <div class="fg"><label>疲劳掉落率</label><input id="s_fatigueRate" type="number" step="0.05" min="0" max="1" value="${s.fatigueDropRate||0}" title="疲劳状态下的额外掉落概率"></div></div>
+        <div class="fg"><label>探索反馈文本</label><textarea id="s_msg" rows="2" title="探索时显示的消息">${esc(s.message||'')}</textarea></div>`;
+
+    h += `<div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">场景掉落 <span style="font-weight:normal;color:var(--dim);">(探索此场景时概率获得的卡牌)</span></span></div><div id="s_dr">`;
+    for (const d of (s.drops||[])) {
+        const dn = D.CARD_TEMPLATES?.[d.templateId]?.name || '';
+        h += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(dn)}</span><input class="sd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:60px" title="掉落概率 0~1"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="获得提示" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+    }
+    h += `<button class="btn btn-sm" onclick="addSDrop()">＋ 添加掉落</button></div>`;
+    h += `<div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">分支掉落组 <span style="font-weight:normal;color:var(--dim);">(根据玩家拥有的卡牌走不同掉落分支)</span></span></div><div id="s_dg">`;
+    for (const g of (s.dropGroups||[])) {
+        h += `<div class="de"><div class="fa-r"><input class="sg-id" value="${esc(g.id)}" placeholder="分支ID" style="flex:1"><input class="sg-lb" value="${esc(g.label)}" placeholder="显示标签" style="flex:1"><input class="sg-msg" value="${esc(g.message||'')}" placeholder="触发提示" style="flex:1"></div>`;
+        h += `<div style="font-size:9px;color:var(--dim);">触发条件（玩家须有）：</div>`;
+        for (const r of (g.requiredCards||[])) {
+            const rn = D.CARD_TEMPLATES?.[r.templateId]?.name || '';
+            h += `<div class="fa-r"><input class="sgr-id" value="${esc(r.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(rn)}</span><input class="sgr-min" type="number" value="${r.min||1}" style="width:40px" title="最少">~<input class="sgr-max" type="number" value="${r.max||1}" style="width:40px" title="最多"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+        }
+        h += `<div style="font-size:9px;color:var(--dim);">掉落物品：</div>`;
+        for (const d of (g.drops||[])) {
+            const dn = D.CARD_TEMPLATES?.[d.templateId]?.name || '';
+            h += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(dn)}</span><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:60px" title="概率 0~1"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="获得提示" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+        }
+        h += `<button class="btn btn-sm" onclick="addSGDrop(this)">＋ 分支掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">删除分支组</button></div>`;
+    }
+    h += `<button class="btn btn-sm" onclick="addSGroup()">＋ 新增分支组</button></div>`;
+
+    h += `<div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="btn btn-p" onclick="saveSceneConfig('${sceneId}')">💾 保存场景</button>
+        <span id="svStatus" style="font-size:11px;color:var(--cs);align-self:center;"></span>
+    </div></div>`;
+    ctr.innerHTML = h;
+}
+function updateStartList(key, containerId, isSpawn) {
+    const data = D[key]||[];
+    const optHtml = templateOptions();
+    let h = '<table class="et" style="width:100%"><tr><th style="width:30%">卡牌</th><th style="width:50px">X</th><th style="width:50px">Y</th>';
+    if (isSpawn) h += '<th style="width:50px">游离</th>';
+    else h += '<th style="width:50px">已捕获</th>';
+    h += '<th style="width:30px"></th></tr>';
+    for (let i = 0; i < data.length; i++) {
+        const e = data[i];
+        h += `<tr><td><select id="${containerId}_tpl_${i}" onchange="updateStartEntry('${key}',${i},'templateId',this.value)">${optHtml.replace(`value="${e.templateId}"`,`value="${e.templateId}" selected`)}</select></td>`;
+        h += `<td><input id="${containerId}_x_${i}" value="${e.x}" onchange="updateStartEntry('${key}',${i},'x',+this.value)" style="width:50px"></td>`;
+        h += `<td><input id="${containerId}_y_${i}" value="${e.y}" onchange="updateStartEntry('${key}',${i},'y',+this.value)" style="width:50px"></td>`;
+        if (isSpawn) {
+            h += `<td><input type="checkbox" ${e.unbound?'checked':''} onchange="updateStartEntry('${key}',${i},'unbound',this.checked)"></td>`;
+        } else {
+            h += `<td><input type="checkbox" ${e.isCaptured!==false?'checked':''} onchange="updateStartEntry('${key}',${i},'isCaptured',this.checked)"></td>`;
+        }
+        h += `<td><span class="ok" onclick="removeStartEntry('${key}',${i})">✕</span></td></tr>`;
+    }
+    h += '</table>';
+    document.getElementById(containerId).innerHTML = h;
+}
+function removeStartGlobalEntry(key, idx) {
+    const data = D[key]||[];
+    if (idx >= 0 && idx < data.length) { data.splice(idx, 1); renderStartEditor(); }
 }
 
 // ═══ List ═══
@@ -301,19 +558,31 @@ function renderList() {
     if (!D.CARD_TEMPLATES) { el.innerHTML = '<div class="empty">加载源文件</div>'; return; }
     const q = (document.getElementById('srch').value||'').toLowerCase();
     const gr = {};
+    const sceneCardIds = currentScene ? getSceneCardIds(currentScene) : null;
     for (const [id,t] of Object.entries(D.CARD_TEMPLATES)) {
         const ty = t.type||'item';
+        if (sceneCardIds && !sceneCardIds.has(id)) continue;
         if (q && !id.toLowerCase().includes(q) && !(t.name||'').toLowerCase().includes(q)) continue;
         if (!gr[ty]) gr[ty] = [];
         gr[ty].push({id,name:t.name||id});
     }
     if (!Object.keys(gr).length) { el.innerHTML = '<div class="empty">无匹配</div>'; return; }
     let h = '';
+    const seen = new Set(TYPES);
     for (const ty of TYPES) {
         if (!gr[ty]) continue;
         h += `<div class="gr"><div class="gr-hd"><span>${TN[ty]||ty}</span><span style="display:flex;align-items:center;gap:6px;"><span class="cnt">${gr[ty].length}</span><span class="add" onclick="event.stopPropagation();addCard('${ty}')">+</span></span></div>`;
         for (const c of gr[ty]) {
             h += `<div class="it${c.id===selId?' sel':''}" onclick="selectCard('${c.id}')"><span class="dot" style="background:${TC[ty]||'#4a3a2a'}"></span><span class="nm">${esc(c.name)}</span><span class="id">${c.id}</span></div>`;
+        }
+        h += '</div>';
+    }
+    // 未归类（如 scene）收到底部
+    for (const [ty, items] of Object.entries(gr)) {
+        if (seen.has(ty)) continue;
+        h += `<div class="gr"><div class="gr-hd"><span>${ty}</span><span class="cnt">${items.length}</span></div>`;
+        for (const c of items) {
+            h += `<div class="it${c.id===selId?' sel':''}" onclick="selectCard('${c.id}')"><span class="dot" style="background:#4a3a2a"></span><span class="nm">${esc(c.name)}</span><span class="id">${c.id}</span></div>`;
         }
         h += '</div>';
     }
@@ -330,56 +599,59 @@ window.selectCard = function(id) {
 function showCard(id) {
     const t = D.CARD_TEMPLATES[id];
     if (!t) { showEmpty(); return; }
-    let h = `<div class="sec"><div class="sec-hd">基础属性</div>
-        <div class="fg"><label>ID</label><input id="f_id" value="${esc(id)}" style="font-weight:bold;color:#2a1a0a"></div>
+    let h = `<div class="sec"><div class="sec-hd">基本信息</div>
+        <div class="fg"><label>唯一标识 (ID)</label><input id="f_id" value="${esc(id)}" style="font-weight:bold;color:#2a1a0a"></div>
         <div class="fr">
-            <div class="fg"><label>名称</label><input id="f_name" value="${esc(t.name)}"></div>
-            <div class="fg"><label>类型</label><select id="f_type" onchange="document.getElementById('charExtras').style.display=this.value==='char'?'':'none'">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
+            <div class="fg"><label>显示名称</label><input id="f_name" value="${esc(t.name)}"></div>
+            <div class="fg"><label>卡牌类型</label><select id="f_type" onchange="document.getElementById('charExtras').style.display=this.value==='char'?'':'none'">${TYPES.map(tv=>`<option value="${tv}" ${tv===t.type?'selected':''}>${TN[tv]||tv}</option>`).join('')}</select></div>
+            <div class="fg"><label>所属场景</label><select id="f_scene">${renderSceneOptions(t.scene||currentScene)}</select></div>
         </div>
-        <div class="fg"><label>描述</label><textarea id="f_desc">${esc(t.desc||'')}</textarea></div>
+        <div class="fg"><label>卡牌描述</label><textarea id="f_desc">${esc(t.desc||'')}</textarea></div>
         <div class="fr">
             <div class="fg"><div class="ck">
-                <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 消耗品</label>
-                <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 可重复</label>
+                <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 使用后消耗</label>
+                <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 允许多张并存</label>
                 <label><input type="checkbox" id="f_dropOnce" ${t.dropOnce?'checked':''}> 仅掉落一次</label>
-                <label><input type="checkbox" id="f_fatigueTrigger" ${t.fatigueTrigger?'checked':''} style="${t.type!=='char'?'display:none':''}"> 触发疲劳</label>
+                ${t.type === 'char' ? `<label><input type="checkbox" id="f_fatigueTrigger" ${t.fatigueTrigger?'checked':''}> 会触发疲劳</label>` : ''}
             </div></div>
         </div>
             <div class="fg" id="extraFields"></div>
     </div>`;
     
     // ═══ Corruption section ═══
-    let corruptionHtml = `<div class="sec"><div class="sec-hd">腐化</div>
+    let corruptionHtml = `<div class="sec"><div class="sec-hd">腐化 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(此卡在桌面上停留过久会腐化消失)</span></div>
         <div class="ck">
             <label><input type="checkbox" id="f_cpt_ck" ${t.corruptionTime!==undefined?'checked':''} onchange="document.getElementById('f_cpt_wrap').style.display=this.checked?'':'none'"> 启用腐化</label>
         </div>
         <div class="fg" id="f_cpt_wrap" style="${t.corruptionTime===undefined?'display:none':''}">
-            <label>腐化时间 (分钟)</label>
+            <label>腐化倒计时 (分钟)</label>
             <input type="number" id="f_cpt" value="${(t.corruptionTime||60000)/60000}" min="0.1" step="0.5">
         </div></div>`;
     let comboHtml = '';
     if (D.CARD_COMBINATIONS) {
         const combos = Object.entries(D.CARD_COMBINATIONS).filter(([k])=>k.split('+').includes(id));
         if (combos.length) {
-            comboHtml += `<div class="sec"><div class="sec-hd">组合配方 <span style="font-weight:normal;font-size:10px;color:var(--dim);">(${combos.length})</span></div>`;
+            comboHtml += `<div class="sec"><div class="sec-hd">合成配方 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(${combos.length}) — 将此卡与另一张卡组合</span></div>`;
             for (const [key, v] of combos) {
                 const parts = key.split('+');
                 const other = parts.find(p=>p!==id);
-                const res = (v.result||[]).join(', ');
+                const otherName = D.CARD_TEMPLATES?.[other]?.name || other;
+                const res = (v.result||[]).map(r=>D.CARD_TEMPLATES?.[r]?.name||r).join(', ');
                 const comboTypes = ['interaction','speech','consumeAll','direct'];
+                const typeLabels = {interaction:'交互触发',speech:'对话触发',consumeAll:'消耗全部',direct:'直接合成'};
                 comboHtml += `<div class="de">
-                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><select class="combo-type">${comboTypes.map(tv=>`<option value="${tv}" ${tv===v.type?'selected':''}>${tv}</option>`).join('')}</select></div>
-                    <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID"><input class="combo-res" value="${esc(res)}" placeholder="产出ID(逗号分隔)" style="flex:1.5"></div>
-                    <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="触发文本" style="flex:2"><input class="combo-delay" type="number" step="0.5" min="0" value="${(v.delay||2000)/1000}" placeholder="延迟(秒)" style="width:70px"></div>
+                    <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(D.CARD_TEMPLATES?.[id]?.name||id)} ＋ ${esc(otherName)}</span><select class="combo-type">${comboTypes.map(tv=>`<option value="${tv}" ${tv===v.type?'selected':''}>${typeLabels[tv]||tv}</option>`).join('')}</select></div>
+                    <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID" style="flex:1"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(otherName)}</span><input class="combo-res" value="${esc(res)}" placeholder="产出卡牌ID(逗号分隔)" style="flex:1.5"></div>
+                    <div class="fa-r"><input class="combo-msg" value="${esc(v.message||'')}" placeholder="合成时的提示文本" style="flex:2"><input class="combo-delay" type="number" step="0.5" min="0" value="${(v.delay||2000)/1000}" placeholder="延迟(秒)" style="width:60px"></div>
                     <div class="fa-r" style="gap:8px;">
-                        <label style="font-size:11px;">概率 <input type="number" step="0.01" class="combo-ch" value="${v.chance||''}" style="width:60px;padding:2px 4px;"></label>
+                        <label style="font-size:11px;">触发概率 <input type="number" step="0.01" class="combo-ch" value="${v.chance||''}" style="width:60px;padding:2px 4px;" placeholder="留空=100%"></label>
                         <button class="btn btn-sm btn-d" onclick="delCombo('${key}')">✕</button>
                     </div>
                 </div>`;
             }
-            comboHtml += `<button class="btn btn-sm" onclick="addCombo('${id}')">＋ 新增组合</button></div>`;
+            comboHtml += `<button class="btn btn-sm" onclick="addCombo('${id}')">＋ 添加合成配方</button></div>`;
         } else {
-            comboHtml += `<div class="sec"><div class="sec-hd">组合配方</div><button class="btn btn-sm" onclick="addCombo('${id}')">＋ 新增组合</button></div>`;
+            comboHtml += `<div class="sec"><div class="sec-hd">合成配方 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(此卡与另一张卡组合触发效果)</span></div><button class="btn btn-sm" onclick="addCombo('${id}')">＋ 添加合成配方</button></div>`;
         }
     }
     
@@ -387,39 +659,36 @@ function showCard(id) {
     let sceneHtml = '';
     if (D.SCENE_EXPLORATION && D.SCENE_EXPLORATION[id]) {
         const s = D.SCENE_EXPLORATION[id];
-        sceneHtml += `<div class="sec"><div class="sec-hd">场景配置</div>
-            <div class="fg"><label>场景名</label><input id="s_name" value="${esc(s.name||'')}"></div>
-            <div class="fr"><div class="fg"><label>槽位数</label><input id="s_slots" type="number" value="${s.slots}"></div>
-            <div class="fg"><label>探索时间(秒)</label><input id="s_time" type="number" step="0.5" min="0.5" value="${(s.exploreTime||5000)/1000}"></div>
-            <div class="fg"><label>疲劳掉落概率</label><input id="s_fatigueRate" type="number" step="0.05" min="0" max="1" value="${s.fatigueDropRate||0}"></div></div>
-            <div class="fg"><label>探索消息</label><textarea id="s_msg">${esc(s.message||'')}</textarea></div>
-            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">条件卡牌</span></div>
-            <div id="s_req">`;
-        for (const r of (s.requiredCards||[])) {
-            sceneHtml += `<div class="fa-r"><input class="sr-id" value="${esc(r.templateId)}" placeholder="ID" style="flex:1.5"><input class="sr-min" type="number" value="${r.min||1}" style="width:50px"><input class="sr-max" type="number" value="${r.max||1}" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
-        }
-        sceneHtml += `<button class="btn btn-sm" onclick="addSReq()">＋ 条件</button></div>
-            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">掉落</span></div>
+        sceneHtml += `<div class="sec"><div class="sec-hd">场景配置 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(此卡作为场景时的行为)</span></div>
+            <div class="fg"><label>场景名称</label><input id="s_name" value="${esc(s.name||'')}"></div>
+            <div class="fr"><div class="fg"><label>卡槽数量</label><input id="s_slots" type="number" value="${s.slots}" title="此场景可同时容纳的卡牌数"></div>
+            <div class="fg"><label>探索耗时(秒)</label><input id="s_time" type="number" step="0.5" min="0.5" value="${(s.exploreTime||5000)/1000}" title="进入后多久完成一次探索"></div>
+            <div class="fg"><label>疲劳掉落率</label><input id="s_fatigueRate" type="number" step="0.05" min="0" max="1" value="${s.fatigueDropRate||0}" title="疲劳状态下的额外掉落概率"></div></div>
+            <div class="fg"><label>探索反馈文本</label><textarea id="s_msg" rows="2">${esc(s.message||'')}</textarea></div>
+            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">场景掉落 <span style="font-weight:normal;color:var(--dim);">(探索时概率获得的卡牌)</span></span></div>
             <div id="s_dr">`;
         for (const d of (s.drops||[])) {
-            sceneHtml += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:70px"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+            const dn = D.CARD_TEMPLATES?.[d.templateId]?.name || '';
+            sceneHtml += `<div class="fa-r"><input class="sd-id" value="${esc(d.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(dn)}</span><input class="sd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:60px" title="0~1"><input class="sd-msg" value="${esc(d.message||'')}" placeholder="获得提示" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
         }
-        sceneHtml += `<button class="btn btn-sm" onclick="addSDrop()">＋ 掉落</button></div>
-            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">分支掉落组</span></div>
+        sceneHtml += `<button class="btn btn-sm" onclick="addSDrop()">＋ 添加掉落</button></div>
+            <div class="fg" style="margin-top:4px;"><span style="font-size:10px;font-weight:bold;color:var(--dim);">分支掉落组 <span style="font-weight:normal;color:var(--dim);">(根据拥卡牌走不同分支)</span></span></div>
             <div id="s_dg">`;
         for (const g of (s.dropGroups||[])) {
-            sceneHtml += `<div class="de"><div class="fa-r"><input class="sg-id" value="${esc(g.id)}" placeholder="组ID" style="flex:1"><input class="sg-lb" value="${esc(g.label)}" placeholder="标签" style="flex:1"><input class="sg-msg" value="${esc(g.message||'')}" placeholder="消息" style="flex:1"></div>`;
-            sceneHtml += `<div style="font-size:9px;color:var(--dim);">条件卡牌：</div>`;
+            sceneHtml += `<div class="de"><div class="fa-r"><input class="sg-id" value="${esc(g.id)}" placeholder="分支ID" style="flex:1"><input class="sg-lb" value="${esc(g.label)}" placeholder="显示标签" style="flex:1"><input class="sg-msg" value="${esc(g.message||'')}" placeholder="触发提示" style="flex:1"></div>`;
+            sceneHtml += `<div style="font-size:9px;color:var(--dim);">触发条件（玩家须有）：</div>`;
             for (const r of (g.requiredCards||[])) {
-                sceneHtml += `<div class="fa-r"><input class="sgr-id" value="${esc(r.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgr-min" type="number" value="${r.min||1}" style="width:50px"><input class="sgr-max" type="number" value="${r.max||1}" style="width:50px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+                const rn = D.CARD_TEMPLATES?.[r.templateId]?.name || '';
+                sceneHtml += `<div class="fa-r"><input class="sgr-id" value="${esc(r.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(rn)}</span><input class="sgr-min" type="number" value="${r.min||1}" style="width:40px" title="最少">~<input class="sgr-max" type="number" value="${r.max||1}" style="width:40px" title="最多"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
             }
-            sceneHtml += `<div style="font-size:9px;color:var(--dim);">掉落：</div>`;
+            sceneHtml += `<div style="font-size:9px;color:var(--dim);">掉落物品：</div>`;
             for (const d of (g.drops||[])) {
-                sceneHtml += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:70px"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+                const dn = D.CARD_TEMPLATES?.[d.templateId]?.name || '';
+                sceneHtml += `<div class="fa-r"><input class="sgd-id" value="${esc(d.templateId)}" placeholder="卡牌ID" style="flex:1.5"><span style="font-size:12px;color:var(--dim);width:80px;">${esc(dn)}</span><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="${d.chance}" placeholder="概率" style="width:60px" title="0~1"><input class="sgd-msg" value="${esc(d.message||'')}" placeholder="获得提示" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
             }
-            sceneHtml += `<button class="btn btn-sm" onclick="addSGDrop(this)">＋ 组掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">删除组</button></div>`;
+            sceneHtml += `<button class="btn btn-sm" onclick="addSGDrop(this)">＋ 分支掉落</button> <button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">删除分支组</button></div>`;
         }
-        sceneHtml += `<button class="btn btn-sm" onclick="addSGroup()">＋ 分支组</button></div></div>`;
+        sceneHtml += `<button class="btn btn-sm" onclick="addSGroup()">＋ 新增分支组</button></div></div>`;
     }
     
     // ═══ Dialogue section ═══
@@ -427,9 +696,9 @@ function showCard(id) {
     if (D.DIALOGUE_DATA && D.DIALOGUE_DATA[id]) {
         const cfg = D.DIALOGUE_DATA[id];
         const dialogues = cfg.dialogues || {};
-        diaHtml += `<div class="sec"><div class="sec-hd">对话</div>
+        diaHtml += `<div class="sec"><div class="sec-hd">对话脚本 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(此角色与其他卡牌交互时的台词)</span></div>
             <div class="fr"><div class="fg"><label>角色ID</label><input id="d_id" value="${esc(id)}"></div>
-            <div class="fg"><label>显示名</label><input id="d_name" value="${esc(cfg.name||'')}"></div></div>
+            <div class="fg"><label>显示名称</label><input id="d_name" value="${esc(cfg.name||'')}"></div></div>
             <div id="d_grps">`;
         for (const [tid, lines] of Object.entries(dialogues)) {
             const cname = D.CARD_TEMPLATES?.[tid]?.name||tid;
@@ -453,7 +722,7 @@ function showCard(id) {
     let obsHtml = '';
     if (D.OBSERVATION_TEXTS) {
         const obsText = D.OBSERVATION_TEXTS[id] || '';
-        obsHtml += `<div class="sec"><div class="sec-hd">观测文本</div>
+        obsHtml += `<div class="sec"><div class="sec-hd">观测文字 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(使用观测逻辑卡时显示的文本)</span></div>
             <div class="fg"><textarea id="f_obs" rows="3">${esc(obsText)}</textarea></div></div>`;
     }
     
@@ -465,15 +734,15 @@ function showCard(id) {
         <span id="svStatus" style="font-size:11px;color:var(--cs);align-self:center;"></span>
     </div>`;
     
-    document.getElementById('ctr').innerHTML = h;
+    document.getElementById('ctrContent').innerHTML = h;
     // Populate extraFields (must be after DOM creation)
     const cardType = t.type || 'item';
     const typeFieldMap = {
         clue: ['senseType'],
         item: ['recycleValue','value'],
     };
-    const sharedFields = ['realName','realDesc','interactText'];
-    const sfLabels = {'senseType':'感官类型','recycleValue':'献祭价值','value':'价值','realName':'真名','realDesc':'真名描述','interactText':'交互文本'};
+    const sharedFields = ['realName','realDesc'];
+    const sfLabels = {'senseType':'感知方式 (vision/hearing/taste/touch/smell)','recycleValue':'献祭回收价值','value':'出售价值','realName':'真实名称','realDesc':'真实描述'};
     let sfHtml = '';
     const shown = new Set([...(typeFieldMap[cardType]||[]), ...sharedFields]);
     for (const k of shown) {
@@ -490,8 +759,68 @@ function showCard(id) {
     showRelations(id);
 }
 
+function showGlobalConfig() {
+    const ctr = document.getElementById('ctrContent');
+    if (!ctr) return;
+    let h = '<div class="sec"><div class="sec-hd">全局初始布局 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(开局时直接出现在桌面上的卡牌位置，不归属具体场景)</span>';
+    h += ` <button class="btn btn-sm" onclick="addGlobalBoardEntry()">＋ 添加卡位</button></div>
+        <div id="global-board-list"></div></div>`;
+    h += '<div class="sec"><div class="sec-hd">全局开场生成 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(开局时自动生成的卡牌，不归属具体场景)</span>';
+    h += ` <button class="btn btn-sm" onclick="addGlobalSpawnEntry()">＋ 添加生成</button></div>
+        <div id="global-spawn-list"></div></div>`;
+    ctr.innerHTML = h;
+    updateGlobalStartList('INITIAL_BOARD', 'global-board-list', false);
+    updateGlobalStartList('INITIAL_SPAWN', 'global-spawn-list', true);
+    document.getElementById('pv').innerHTML = '<div class="hint">选择后预览</div>';
+    document.getElementById('rel').innerHTML = '<div class="hint">选择后显示</div>';
+}
+function updateGlobalStartList(key, containerId, isSpawn) {
+    const data = D[key]||[];
+    const global = data.filter(e => !e.scene);
+    const optHtml = templateOptions();
+    let h = '<table class="et" style="width:100%"><tr><th style="width:30%">卡牌</th><th style="width:50px">X</th><th style="width:50px">Y</th>';
+    if (isSpawn) h += '<th style="width:50px">游离</th><th style="width:120px">说明</th>';
+    else h += '<th style="width:50px">已捕获</th><th style="width:120px">说明</th>';
+    h += '<th style="width:30px"></th></tr>';
+    const allIdx = [];
+    for (let i = 0; i < data.length; i++) { if (!data[i].scene) allIdx.push(i); }
+    for (let fi = 0; fi < allIdx.length; fi++) {
+        const i = allIdx[fi];
+        const e = data[i];
+        h += `<tr><td><select onchange="D['${key}']['${i}'].templateId=this.value">${optHtml.replace(`value="${e.templateId}"`,`value="${e.templateId}" selected`)}</select></td>`;
+        h += `<td><input value="${e.x}" onchange="D['${key}']['${i}'].x=+this.value" style="width:50px"></td>`;
+        h += `<td><input value="${e.y}" onchange="D['${key}']['${i}'].y=+this.value" style="width:50px"></td>`;
+        if (isSpawn) {
+            h += `<td><input type="checkbox" ${e.unbound?'checked':''} onchange="D['${key}']['${i}'].unbound=this.checked"></td>`;
+            h += `<td style="font-size:11px;color:var(--dim);">${e.unbound?'需手动捕获':'自动捕获'}</td>`;
+        } else {
+            h += `<td><input type="checkbox" ${e.isCaptured!==false?'checked':''} onchange="D['${key}']['${i}'].isCaptured=this.checked"></td>`;
+            h += `<td style="font-size:11px;color:var(--dim);">${e.isCaptured!==false?'已在桌面':'需手动放置'}</td>`;
+        }
+        h += `<td><span class="ok" onclick="removeGlobalEntry('${key}',${i})">✕</span></td></tr>`;
+    }
+    h += '</table>';
+    if (!global.length) h += '<div style="color:var(--dim);font-size:12px;padding:6px 0;">无全局配置</div>';
+    document.getElementById(containerId).innerHTML = h;
+}
+function removeGlobalEntry(key, idx) {
+    const data = D[key]||[];
+    if (idx >= 0 && idx < data.length) { data.splice(idx, 1); showGlobalConfig(); }
+}
+function addGlobalBoardEntry() {
+    if (!D.INITIAL_BOARD) D.INITIAL_BOARD = [];
+    D.INITIAL_BOARD.push({ templateId: '', x: 0, y: 0, isCaptured: true });
+    showGlobalConfig();
+}
+function addGlobalSpawnEntry() {
+    if (!D.INITIAL_SPAWN) D.INITIAL_SPAWN = [];
+    D.INITIAL_SPAWN.push({ templateId: '', x: 0, y: 0, unbound: false });
+    showGlobalConfig();
+}
 function showEmpty() {
-    document.getElementById('ctr').innerHTML = '<div class="pl">← 选择卡牌编辑</div>';
+    const ctr = document.getElementById('ctrContent');
+    if (!ctr) return;
+    ctr.innerHTML = '';
     document.getElementById('pv').innerHTML = '<div class="hint">选择后预览</div>';
     document.getElementById('rel').innerHTML = '<div class="hint">选择后显示</div>';
 }
@@ -552,6 +881,47 @@ function showRelations(id) {
     el.innerHTML = h;
 }
 
+// ═══ Save scene config ═══
+window.saveSceneConfig = function(sceneId) {
+    const s = D.SCENE_EXPLORATION[sceneId];
+    if (!s) return;
+    // 保存卡牌基础属性
+    const newId = document.getElementById('f_id')?.value?.trim() || sceneId;
+    if (newId !== sceneId) {
+        if (D.CARD_TEMPLATES[newId]) { setStatus(`❌ ID「${newId}」已存在`); return; }
+        renameCardId(sceneId, newId);
+        sceneId = newId;
+    }
+    let t = D.CARD_TEMPLATES[sceneId];
+    if (!t) { D.CARD_TEMPLATES[sceneId] = { name: '', desc: '', type: 'scene', class: 'scene-card' }; t = D.CARD_TEMPLATES[sceneId]; }
+    t.name = document.getElementById('f_name')?.value || '';
+    t.desc = document.getElementById('f_desc')?.value || '';
+    s.name = t.name;
+    s.slots = parseInt(document.getElementById('s_slots')?.value)||2;
+    s.exploreTime = Math.round((parseFloat(document.getElementById('s_time')?.value)||5) * 1000);
+    s.fatigueDropRate = parseFloat(document.getElementById('s_fatigueRate')?.value)||0;
+    s.message = document.getElementById('s_msg')?.value||'';
+    s.drops = [];
+    document.querySelectorAll('#s_dr .fa-r:not(:last-child)').forEach(r => {
+        const ins = r.querySelectorAll('input');
+        if (ins[0]?.value) s.drops.push({templateId: ins[0].value, chance: parseFloat(ins[1]?.value)||0, message: ins[2]?.value||''});
+    });
+    s.dropGroups = [];
+    document.querySelectorAll('#s_dg .de').forEach(el => {
+        const g = { id: el.querySelector('.sg-id')?.value||'', label: el.querySelector('.sg-lb')?.value||'', message: el.querySelector('.sg-msg')?.value||'', requiredCards: [], drops: [] };
+        el.querySelectorAll('.fa-r').forEach(r => {
+            const sgid = r.querySelector('.sgr-id');
+            const sgdid = r.querySelector('.sgd-id');
+            if (sgid) g.requiredCards.push({templateId: sgid.value, min: parseInt(r.querySelector('.sgr-min')?.value)||1, max: parseInt(r.querySelector('.sgr-max')?.value)||1});
+            if (sgdid) g.drops.push({templateId: sgdid.value, chance: parseFloat(r.querySelector('.sgd-ch')?.value)||0, message: r.querySelector('.sgd-msg')?.value||''});
+        });
+        if (g.id) s.dropGroups.push(g);
+    });
+    setStatus(`已保存场景: ${sceneId}`);
+    document.getElementById('svStatus').textContent = '✓ 已保存';
+    selectScene(sceneId);
+};
+
 // ═══ Save card ═══
 
 window.saveCard = function(id) {
@@ -569,6 +939,7 @@ window.saveCard = function(id) {
     t.name = document.getElementById('f_name')?.value || t.name;
     t.type = document.getElementById('f_type')?.value || t.type;
     t.desc = document.getElementById('f_desc')?.value || '';
+    t.scene = document.getElementById('f_scene')?.value || '';
     t.consumable = document.getElementById('f_csm')?.checked || false;
     t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
     t.dropOnce = document.getElementById('f_dropOnce')?.checked || false;
@@ -591,7 +962,7 @@ window.saveCard = function(id) {
     // Save special fields from extraFields (type-appropriate)
     const cardType = t.type || 'item';
     const typeFieldMap = { clue: ['senseType'], item: ['recycleValue','value'] };
-    const sharedFields = ['realName','realDesc','interactText'];
+    const sharedFields = ['realName','realDesc'];
     const sfFields = [...(typeFieldMap[cardType]||[]), ...sharedFields];
     for (const k of sfFields) {
         const el = document.getElementById('f_' + k);
@@ -635,11 +1006,6 @@ window.saveCard = function(id) {
         s.exploreTime = Math.round((parseFloat(document.getElementById('s_time')?.value)||5) * 1000);
         s.fatigueDropRate = parseFloat(document.getElementById('s_fatigueRate')?.value)||0;
         s.message = document.getElementById('s_msg')?.value||'';
-        s.requiredCards = [];
-        document.querySelectorAll('#s_req .fa-r:not(:last-child)').forEach(r => {
-            const ins = r.querySelectorAll('input');
-            if (ins[0]?.value) s.requiredCards.push({templateId: ins[0].value, min: parseInt(ins[1]?.value)||1, max: parseInt(ins[2]?.value)||1});
-        });
         s.drops = [];
         document.querySelectorAll('#s_dr .fa-r:not(:last-child)').forEach(r => {
             const ins = r.querySelectorAll('input');
@@ -702,6 +1068,7 @@ window.saveCard = function(id) {
         setStatus(`已保存: ${id}`);
     }
     document.getElementById('svStatus').textContent = '✓ 已应用';
+    renderSceneTabs();
     renderList();
     showPreview(id);
     showRelations(id);
@@ -709,12 +1076,13 @@ window.saveCard = function(id) {
 
 window.addCard = function(type) {
     const id = `ITEM_new_${Date.now()}`;
-    D.CARD_TEMPLATES[id] = { name: `新${TN[type]||type}`, desc: '', type: type||'item', class: baseClass(type||'item'), consumable: false };
+    D.CARD_TEMPLATES[id] = { name: `新${TN[type]||type}`, desc: '', type: type||'item', class: baseClass(type||'item'), consumable: false, scene: currentScene };
     // If scene, add scene config
     if ((type||'') === 'scene' && D.SCENE_EXPLORATION) D.SCENE_EXPLORATION[id] = { name: `新${TN[type]||type}`, slots: 2, exploreTime: 5000, message: '', requiredCards: [], drops: [], dropGroups: [] };
     // If char, add dialogue config
     if ((type||'') === 'char' && D.DIALOGUE_DATA) D.DIALOGUE_DATA[id] = { name: `新${TN[type]||type}` };
     setStatus(`已创建: ${id}`);
+    renderSceneTabs();
     renderList();
     selectCard(id);
 };
@@ -725,7 +1093,9 @@ window.delCard = function(id) {
     if (D.SCENE_EXPLORATION) delete D.SCENE_EXPLORATION[id];
     if (D.DIALOGUE_DATA) delete D.DIALOGUE_DATA[id];
     if (D.OBSERVATION_TEXTS) delete D.OBSERVATION_TEXTS[id];
+    if (currentScene === id) currentScene = '';
     selId = null;
+    renderSceneTabs();
     renderList();
     showEmpty();
     setStatus(`已删除: ${id}`);
@@ -870,6 +1240,7 @@ const FCS = [
     {n:'dialogues.js',v:'DIALOGUE_DATA',gen:genDialogues},
     {n:'endings.js',v:'REASONING_ENDINGS',gen:genEndings},
     {n:'observations.js',v:'OBSERVATION_TEXTS',gen:genObs},
+    {n:'start.js',v:'INITIAL_BOARD',gen:genStart},
 ];
 
 function genCards() {
@@ -930,11 +1301,12 @@ function genDialogues() {
                 let sl = `            { text: '${escJs(l.text||'')}', index: ${l.index||0}`;
                 if (l.choices && l.choices.length) {
                     sl += `,\n                choices: [`;
-                    for (const c of l.choices) {
+                    for (let ci = 0; ci < l.choices.length; ci++) {
+                        const c = l.choices[ci];
                         let sc = `\n                    { text: '${escJs(c.text||'')}'`;
                         if (c.nextIndex != null) sc += `, nextIndex: ${c.nextIndex}`;
                         if (c.flag) sc += `, flag: '${escJs(c.flag)}'`;
-                        sc += ` }`;
+                        sc += ` }${ci < l.choices.length - 1 ? ',' : ''}`;
                         sl += sc;
                     }
                     sl += `\n                ]`;
@@ -952,6 +1324,26 @@ function genObs() {
     let s = '// 观测\nexport const OBSERVATION_TEXTS = {\n';
     for (const [id,t] of Object.entries(D.OBSERVATION_TEXTS||{})) s += `    '${id}': '${escJs(t)}',\n`;
     return s+'};\n';
+}
+function genStart() {
+    const board = D.INITIAL_BOARD || [];
+    const spawn = D.INITIAL_SPAWN || [];
+    let s = '//  初始桌面与开场配置\n// 编辑后运行 node deploy.js 或手动重启服务端\n\n';
+    s += 'export const INITIAL_BOARD = [\n';
+    for (const entry of board) {
+        s += `    { templateId: '${escJs(entry.templateId)}', x: ${entry.x}, y: ${entry.y}, isCaptured: ${entry.isCaptured !== false}`;
+        if (entry.scene) s += `, scene: '${escJs(entry.scene)}'`;
+        s += ` },\n`;
+    }
+    s += '];\n\n';
+    s += 'export const INITIAL_SPAWN = [\n';
+    for (const entry of spawn) {
+        s += `    { templateId: '${escJs(entry.templateId)}', x: ${entry.x}, y: ${entry.y}, unbound: ${entry.unbound === true}`;
+        if (entry.scene) s += `, scene: '${escJs(entry.scene)}'`;
+        s += ` },\n`;
+    }
+    s += '];\n';
+    return s;
 }
 function genEndings() {
     let s = '// 结局\nexport const REASONING_ENDINGS = {\n';

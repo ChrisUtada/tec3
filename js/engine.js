@@ -1,5 +1,5 @@
 //  渲染引擎与拖拽逻辑
-import { CARD_TEMPLATES } from './config.js';
+import { CARD_TEMPLATES, INITIAL_BOARD, INITIAL_SPAWN } from './config.js';
 import { gameState, updateState } from './state.js';
 import { log, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus } from './ui.js';
 import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding, getTaskProcessing, setTaskProcessing } from './logic.js';
@@ -312,12 +312,14 @@ export function renderAllCards() {
 }
 
 export function syncModalAssets() {
-    if (gameState.hasSanityPollution) {
-        directSpawnCard('ITEM_tz', 390, 420); 
-        log("✨ 异界物质激化：【五行贴纸】无限制落地！", "success");
-    } else {
-        spawnUnboundCard('CLUES_xhpb', 390, 420); 
-        log("✨ 常态信息投影：落地【线索：信号屏蔽】（需手动捕获）。", "success");
+    for (const entry of INITIAL_SPAWN) {
+        if (!CARD_TEMPLATES[entry.templateId]) {
+            log(`⚠ [初始生成] 卡牌模板 ${entry.templateId} 不存在，已跳过`, "normal");
+            continue;
+        }
+        const fn = entry.unbound ? spawnUnboundCard : directSpawnCard;
+        fn(entry.templateId, entry.x, entry.y);
+        log(`✨ 初始生成: ${entry.templateId}`, "success");
     }
     updateState('sceneSynced', true);
     updateModalContent("", "", "实体已完整导入桌面", true);
@@ -461,16 +463,25 @@ export function tidyCardsByScene() {
 }
 
 export function initBaseTable() {
-    cardsData = [
-        // 初始桌面只保留 5 张核心卡：献祭、捕获、逻辑归因、初级调查员、TEC总部
-        { instanceId: 'c_investigator', templateId: 'CHAR_investigator', x: 40, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 's_tec', templateId: 'SCENE_tec', x: 175, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'l_capture', templateId: 'LOGIC_capture', x: 310, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'l_reason', templateId: 'LOGIC_reason', x: 445, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'i_recycle', templateId: 'ITEM_recycle', x: 580, y: 50, next: null, parent: null, isCaptured: true },
-        { instanceId: 'l_observe', templateId: 'LOGIC_observe', x: 40, y: 180, next: null, parent: null, isCaptured: true },
-        { instanceId: 's_rest', templateId: 'SCENE_rest', x: 175, y: 180, next: null, parent: null, isCaptured: true }
-    ];
+    cardsData = [];
+    let idx = 0;
+    for (const entry of INITIAL_BOARD) {
+        if (!CARD_TEMPLATES[entry.templateId]) {
+            log(`⚠ [初始棋盘] 卡牌模板 ${entry.templateId} 不存在，已跳过`, "normal");
+            continue;
+        }
+        const instanceId = entry.instanceId || `init_${entry.templateId}_${idx}`;
+        cardsData.push({
+            instanceId,
+            templateId: entry.templateId,
+            x: entry.x,
+            y: entry.y,
+            next: null,
+            parent: null,
+            isCaptured: entry.isCaptured !== false
+        });
+        idx++;
+    }
     
     // 同步初始化 cardsMap
     cardsMap.clear();

@@ -7,3 +7,5 @@ export { CARD_COMBINATIONS } from './combinations.js';
 export { SCENE_EXPLORATION } from './scenes.js';
 export { DIALOGUE_DATA } from './dialogues.js';
 export { REASONING_ENDINGS } from './endings.js';
+export { OBSERVATION_TEXTS } from './observations.js';
+export { INITIAL_BOARD, INITIAL_SPAWN } from './start.js';
