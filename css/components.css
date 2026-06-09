@@ -556,11 +556,11 @@
     background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
     border: 1px solid #5a4a3a;
     color: #2a1a0a;
-    padding: 10px 22px;
+    padding: 12px 24px;
     font-weight: bold;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     font-family: inherit;
     transition: all 0.2s;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
@@ -573,6 +573,41 @@
     transform: translateY(-1px);
 }
 .dialogue-btn:active {
+    transform: translateY(0);
+    box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
+}
+
+.dialogue-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.dialogue-choice-btn {
+    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
+    border: 1px solid #5a4a3a;
+    color: #2a1a0a;
+    padding: 12px 20px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: left;
+    transition: all 0.2s;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+}
+
+.dialogue-choice-btn:hover {
+    background: linear-gradient(135deg, #5a4a3a, #4a3a2a);
+    border-color: #4a3a2a;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.dialogue-choice-btn:active {
     transform: translateY(0);
     box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
 }

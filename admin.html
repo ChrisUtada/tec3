@@ -338,6 +338,7 @@ function showCard(id) {
             <div class="fg"><div class="ck">
                 <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 消耗品</label>
                 <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 可重复</label>
+                <label><input type="checkbox" id="f_dropOnce" ${t.dropOnce?'checked':''}> 仅掉落一次</label>
             </div></div>
         </div>
         <div class="fg" id="charExtras" style="${t.type!=='char'?'display:none':''}">
@@ -380,7 +381,7 @@ function showCard(id) {
                 const parts = key.split('+');
                 const other = parts.find(p=>p!==id);
                 const res = (v.result||[]).join(', ');
-                const comboTypes = ['interaction','speech','peekReveal','direct'];
+                const comboTypes = ['interaction','speech','consumeAll','direct'];
                 comboHtml += `<div class="de">
                     <div class="fa-r"><span style="font-size:12px;font-weight:bold;flex:1;">${esc(id)} + ${esc(other)}</span><select class="combo-type">${comboTypes.map(tv=>`<option value="${tv}" ${tv===v.type?'selected':''}>${tv}</option>`).join('')}</select></div>
                     <div class="fa-r"><input class="combo-other" value="${esc(other||'')}" placeholder="另一卡牌ID"><input class="combo-res" value="${esc(res)}" placeholder="产出ID(逗号分隔)" style="flex:1.5"></div>
@@ -548,6 +549,7 @@ window.saveCard = function(id) {
     t.desc = document.getElementById('f_desc')?.value || '';
     t.consumable = document.getElementById('f_csm')?.checked || false;
     t.allowDuplicate = document.getElementById('f_dup')?.checked || false;
+    t.dropOnce = document.getElementById('f_dropOnce')?.checked || false;
     t.fatigueTrigger = document.getElementById('f_fatigueTrigger')?.checked || false;
     // corruption
     const cptCk = document.getElementById('f_cpt_ck');
@@ -735,7 +737,7 @@ const FCS = [
 ];
 
 function genCards() {
-    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed','fatigueTrigger'];
+    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed','fatigueTrigger','dropOnce'];
     let s = '// 卡牌模板\nexport const CARD_TEMPLATES = {\n';
     for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
         const f = [`name: '${escJs(t.name||'')}'`,`desc: '${escJs(t.desc||'')}'`,`type: '${t.type||'item'}'`,`class: '${t.class||baseClass(t.type)}'`];

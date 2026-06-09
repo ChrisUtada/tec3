@@ -373,6 +373,7 @@ function getSceneDropsProgress(sceneData) {
     for (const tid of unique) {
         const tmpl = CARD_TEMPLATES[tid];
         if (tmpl && tmpl.allowDuplicate) continue;
+        if (tmpl && tmpl.dropOnce && window.isDropOnceConsumed?.(tid)) continue;
         if (allCards.some(c => c.templateId === tid)) continue;
         count++;
     }
@@ -484,29 +485,16 @@ function completeExploration(sceneData) {
             return;
         }
 
-        // peek：只消耗槽位卡牌 + 生成窥视卡，无其他掉落
-        explorationSlots.forEach((cd, i) => {
-            if (!cd) return;
-            const tmpl = CARD_TEMPLATES[cd.templateId];
-            if (tmpl && tmpl.consumable) {
-                log(`🗑️ [探索系统] 【${tmpl.name}】在探索中被消耗`, "normal");
-                const el = document.getElementById(cd.instanceId);
-                if (el) el.remove();
-                explorationSlots[i] = null;
-            }
-        });
-
-        if (spawnCard) {
-            const peekData = spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
-            if (peekData) {
-                log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中窥见了不可名状之物——获得【疯狂窥视】！`, "success");
-            }
-        }
+        // peek：掉落疯狂窥视卡，不消耗槽位卡
         _fatigueEffect = null;
 
-        explorationInfo.innerText = `探索完成！疯狂窥视给予了你看穿真相的能力。`;
+        if (spawnCard) {
+            spawnCard('ITEM_peek_truth', centerX - 60, centerY + 80);
+        }
+
+        explorationInfo.innerText = `探索完成！疲劳极限中你窥见了不可名状之物。`;
         playSound('complete');
-        log(`👁️ [疯狂窥视] 探索完成，获得疯狂窥视卡`, "success");
+        log(`👁️ [疯狂窥视] 疲劳达到极限，你在恍惚中获得了洞察异常的力量`, "success");
         updateDropsInfo();
         resetExplorationState();
         return;

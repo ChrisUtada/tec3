@@ -3,6 +3,7 @@ import { DIALOGUE_DATA, CARD_TEMPLATES } from './config.js';
 import { log } from './ui.js';
 import { embedCardInSlot, restoreCardToBoard, setupCardDragOut, closeOtherPanels, closePanelForReopen } from './shared.js';
 import { playSound } from './sound.js';
+import { setDialogueFlag, resetDialogueFlags } from './state.js';
 
 let currentDialogue = null;  // 当前人物 templateId
 let currentCardType = null;  // 当前槽位中的卡牌类型
@@ -11,7 +12,7 @@ let currentDialogueList = []; // 当前对话列表
 let draggedCardData = null;  // 记录被拖入的卡牌数据
 
 // 延迟获取 DOM 元素，确保 DOM 已加载
-let dialoguePanel, dialogueTitle, dialogueSlot, dialogueText, nextBtn, endBtn, confirmBtn;
+let dialoguePanel, dialogueTitle, dialogueSlot, dialogueText, dialogueChoices, nextBtn, endBtn, confirmBtn;
 
 function initDialogueElements() {
     if (!dialoguePanel) {
@@ -19,6 +20,7 @@ function initDialogueElements() {
         dialogueTitle = document.getElementById('dialogue-title');
         dialogueSlot = document.getElementById('dialogue-slot');
         dialogueText = document.getElementById('dialogue-text');
+        dialogueChoices = document.getElementById('dialogue-choices');
         nextBtn = document.getElementById('dialogue-next-btn');
         endBtn = document.getElementById('dialogue-end-btn');
         confirmBtn = document.getElementById('dialogue-confirm-btn');
@@ -88,6 +90,8 @@ export function closeDialogueModal(skipHide = false) {
     currentCardType = null;
     dialogueIndex = 0;
     currentDialogueList = [];
+    resetDialogueFlags();
+    if (dialogueChoices) dialogueChoices.innerHTML = '';
     
     if (dialogueSlot) {
         dialogueSlot.innerHTML = '<div class="dialogue-slot-placeholder">将卡牌拖入此处</div>';
@@ -106,6 +110,8 @@ export function endDialogue() {
     currentCardType = null;
     dialogueIndex = 0;
     currentDialogueList = [];
+    resetDialogueFlags();
+    dialogueChoices.innerHTML = '';
     
     confirmBtn.style.display = 'inline-block';
     nextBtn.style.display = 'none';
@@ -204,6 +210,7 @@ export function confirmDialogueCard() {
     currentCardType = templateId;
     currentDialogueList = dialogueList;
     dialogueIndex = 0;
+    resetDialogueFlags();
     confirmBtn.style.display = 'none';
     showDialogue();
 }
@@ -211,6 +218,8 @@ export function confirmDialogueCard() {
 // 显示当前对话
 function showDialogue() {
     if (confirmBtn) confirmBtn.style.display = 'none';
+    dialogueChoices.innerHTML = '';
+
     if (dialogueIndex >= currentDialogueList.length) {
         dialogueText.innerText = '对话已结束。';
         nextBtn.style.display = 'none';
@@ -221,6 +230,21 @@ function showDialogue() {
     const dialogue = currentDialogueList[dialogueIndex];
     dialogueText.innerText = dialogue.text;
 
+    if (dialogue.choices && dialogue.choices.length > 0) {
+        // 分支选项：隐藏继续/结束按钮，显示选项按钮
+        nextBtn.style.display = 'none';
+        endBtn.style.display = 'none';
+        dialogue.choices.forEach((choice, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'dialogue-choice-btn';
+            btn.innerText = choice.text;
+            btn.addEventListener('click', () => selectDialogueChoice(i));
+            dialogueChoices.appendChild(btn);
+        });
+        return;
+    }
+
+    // 无分支：维持原有线性推进
     if (dialogueIndex < currentDialogueList.length - 1) {
         nextBtn.style.display = 'inline-block';
         endBtn.style.display = 'none';
@@ -228,6 +252,26 @@ function showDialogue() {
         nextBtn.style.display = 'none';
         endBtn.style.display = 'inline-block';
     }
+}
+
+// 选择对话分支
+function selectDialogueChoice(choiceIndex) {
+    const dialogue = currentDialogueList[dialogueIndex];
+    const choice = dialogue.choices[choiceIndex];
+    if (!choice) return;
+
+    if (choice.flag) setDialogueFlag(choice.flag);
+
+    if (choice.nextIndex == null) {
+        dialogueText.innerText = '对话已结束。';
+        dialogueChoices.innerHTML = '';
+        nextBtn.style.display = 'none';
+        endBtn.style.display = 'inline-block';
+        return;
+    }
+
+    dialogueIndex = choice.nextIndex;
+    showDialogue();
 }
 
 // 下一条对话

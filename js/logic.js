@@ -180,13 +180,11 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
         return true;
     }
 
-    // 疯狂窥视 + 真名卡 → 即刻揭露真名
-    if (rule.type === 'peekReveal') {
-        if (moved.templateId !== 'ITEM_peek_truth') return false;
-
+    // consumeAll 类组合：销毁两张源卡，生成结果卡
+    if (rule.type === 'consumeAll') {
         showStackProgressBar(target.instanceId, rule.delay);
         isAnyTaskProcessing = true;
-        log(`👁️ [疯狂窥视] ${rule.message}`, "success");
+        log(`🔥 [consumeAll] ${rule.message}`, "success");
 
         const timeoutId = setTimeout(() => {
             delete target.pendingTimeoutId;
@@ -197,22 +195,30 @@ export function checkReaction(moved, target, destroyCard, spawnUnboundCard, dire
                 return;
             }
 
-            // 销毁疯狂窥视卡
-            if (CARD_TEMPLATES[moved.templateId].consumable) {
-                destroyCard(moved.instanceId);
+            // 计算掉落位置
+            const targetEl = document.getElementById(target.instanceId);
+            let positionX, positionY;
+            if (targetEl) {
+                const targetLeft = parseInt(targetEl.style.left) || target.x;
+                const targetTop = parseInt(targetEl.style.top) || target.y;
+                positionX = targetLeft + CARD.WIDTH / 2;
+                positionY = targetTop + CARD.DROP_OFFSET_Y;
+            } else {
+                positionX = target.x + CARD.WIDTH / 2;
+                positionY = target.y + CARD.DROP_OFFSET_Y;
             }
 
-            // 销毁旧真名卡，生成揭露版
-            const targetTemplate = CARD_TEMPLATES[target.templateId];
-            const newCard = directSpawnCard(target.templateId, target.x, target.y);
-            if (newCard) {
-                newCard.isRevealed = true;
-                newCard.collectedSenses = [...(targetTemplate.targetSenses || [])];
-                log(`🔮 [真名揭露] 真名【${targetTemplate.realName || '???'}】已被疯狂窥视揭开！`, "success");
-            }
+            // 销毁两张源卡（无条件，无视 consumable 标志）
+            destroyCard(moved.instanceId);
             destroyCard(target.instanceId);
 
-            setSystemStatus('● 真名揭露 // 数据金库解冻', 'gold');
+            // 生成结果卡
+            rule.result.forEach((resultTemplateId, index) => {
+                const offsetX = (index - (rule.result.length - 1) / 2) * 140;
+                directSpawnCard(resultTemplateId, positionX + offsetX, positionY);
+            });
+
+            log(`✅ [consumeAll] 组合完成，源卡已销毁`, "success");
             isAnyTaskProcessing = false;
         }, rule.delay);
 

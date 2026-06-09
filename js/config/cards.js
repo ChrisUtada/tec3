@@ -58,15 +58,48 @@ export const CARD_TEMPLATES = {
     // 真名卡
     'ITEM_true_name': { 
         name: '???', 
-        desc: '【真名容器】未知的存在等待被揭示。将五感线索拖放到此卡上进行揭示。', 
+        desc: '【真名容器】未知的存在等待被揭示。', 
         type: 'item', 
         class: 'item-card true-name-card', 
         consumable: false,
-        isRevealed: false,
         realName: '「深渊低语者」',
-        realDesc: '【旧日支配者碎片】\n\n这是一个来自深渊的古老存在的真名残片。\n\n当五个感官线索全部收集完毕，\n它的真实形态将被揭示。\n\n——「在无尽的黑暗中，它凝视着你」',
-        targetSenses: ['vision', 'hearing', 'taste', 'touch', 'smell'],
-        collectedSenses: []
+        realDesc: '【旧日支配者碎片】\n\n这是一个来自深渊的古老存在的真名残片。\n\n——「在无尽的黑暗中，它凝视着你」'
+    },
+
+    // 真名场景卡（5槽位，探索掉落合成卡）
+    'SCENE_truename': {
+        name: '场景：真名共鸣仪',
+        desc: '【场景】古老的设计图——"真名共鸣仪"的构造方案。',
+        type: 'scene',
+        class: 'scene-card',
+        consumable: true
+    },
+
+    // 合成卡：五种感官聚合
+    'ITEM_sense_all': {
+        name: '感官聚合',
+        desc: '【合成卡】五感线索已全部收集，等待进一步激活。',
+        type: 'item',
+        class: 'item-card',
+        consumable: true
+    },
+
+    // 五感手电筒：手电筒 + 感官聚合
+    'ITEM_sense_all_light': {
+        name: '五感手电筒',
+        desc: '【合成卡】手电筒照亮的五感聚合体，可以揭示真名。',
+        type: 'item',
+        class: 'item-card',
+        consumable: true
+    },
+
+    // 真名线索卡：用于归因推演
+    'ITEM_truename_clue': {
+        name: '线索：被揭示的真名',
+        desc: '【线索卡】旧日支配者的真名已被揭示。用于归因推演的关键线索。',
+        type: 'clue',
+        class: 'clue-vision',
+        consumable: true
     },
     
     // 新掉落物品
@@ -116,8 +149,8 @@ export const CARD_TEMPLATES = {
     // 疲劳卡（负面卡）
     'DEBUFF_fatigue': { name: '疲劳', desc: '【负面状态】连续探索导致的疲劳积累。桌面疲劳卡达到 5 张时将无法进行探索、对话和归因。放入休息卡中可恢复。', type: 'item', class: 'item-card debuff-card', consumable: true, allowDuplicate: true },
 
-    // 疯狂窥视卡（特殊）
-    'ITEM_peek_truth': { name: '疯狂窥视', desc: '【特殊】将其叠放到真名卡上时，立刻揭露真名。', type: 'item', class: 'item-card peek-truth-card', consumable: true, allowDuplicate: true },
+    // 疯狂窥视卡（疲劳>=5时概率掉落）
+    'ITEM_peek_truth': { name: '疯狂窥视', desc: '【道具】疲劳极限时窥见的不可名状之物。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true, dropOnce: true },
 
     // 休息卡（功能卡）
     'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false }

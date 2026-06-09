@@ -114,9 +114,26 @@ export const CARD_COMBINATIONS = {
         delay: 3000
     },
 
-    // 疯狂窥视 + 真名卡 → 即刻揭露真名
+    // 手电筒 + 感官聚合 → 五感手电筒
+    'ITEM_sdt+ITEM_sense_all': {
+        type: 'consumeAll',
+        result: ['ITEM_sense_all_light'],
+        message: '手电筒照亮了感官聚合体，五种感官在光中融为一体！',
+        delay: 2000
+    },
+
+    // 五感手电筒 + 真名卡 → 真名线索
+    'ITEM_sense_all_light+ITEM_true_name': {
+        type: 'consumeAll',
+        result: ['ITEM_truename_clue'],
+        message: '五感之光映照出真名——旧日支配者的名字被揭示！',
+        delay: 2500
+    },
+
+    // 疯狂窥视 + 真名卡 → 真名线索（快速揭示）
     'ITEM_peek_truth+ITEM_true_name': {
-        type: 'peekReveal',
+        type: 'consumeAll',
+        result: ['ITEM_truename_clue'],
         message: '疯狂窥视撕开了真名的伪装——真相显露！',
         delay: 2000
     }

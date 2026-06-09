@@ -90,9 +90,21 @@ export const DIALOGUE_DATA = {
                 { text: '初级调查员认真地说："朱穗前辈说，真相往往藏在最不起眼的细节里。"', index: 2 }
             ],
             'CHAR_tec': [
-                { text: '初级调查员压低声音："TEC...我真的不知道她到底是什么。"', index: 0 },
-                { text: '初级调查员犹豫道："入职合同上写的是「联合调查机构」，但她给我的感觉...不像机构。"', index: 1 },
-                { text: '初级调查员小声说："我怀疑TEC根本不是一个组织。她是一个...人？或者别的什么。"', index: 2 }
+                { text: '初级调查员压低声音："TEC...我真的不知道她到底是什么。"', index: 0,
+                  choices: [
+                    { text: '[追问] "你觉得她是什么？"', nextIndex: 1 },
+                    { text: '[安抚] "别想太多，做好工作就好。"', nextIndex: 3, flag: 'inv_tec_dismiss' }
+                  ]
+                },
+                { text: '初级调查员犹豫道："入职合同上写的是「联合调查机构」，但她给我的感觉...不像机构。"', index: 1,
+                  choices: [
+                    { text: '[深入] "继续说下去。"', nextIndex: 2 },
+                    { text: '[警告] "这些话别再说了。"', nextIndex: 4, flag: 'inv_tec_warned' }
+                  ]
+                },
+                { text: '初级调查员小声说："我怀疑TEC根本不是一个组织。她是一个...人？或者别的什么。"', index: 2 },
+                { text: '初级调查员勉强笑了笑："你说得对...我只是有点多疑了。"', index: 3 },
+                { text: '初级调查员缩了缩脖子："好...好的。我不说了。"', index: 4 }
             ]
         }
     },
@@ -181,9 +193,21 @@ export const DIALOGUE_DATA = {
                 { text: 'TEC："等她发现得太多的时候，T.E.C 会接管她。"', index: 2 }
             ],
             'CHAR_investigator': [
-                { text: 'TEC："初级调查员？他是被你送进来的。"', index: 0 },
-                { text: 'TEC："从那扇门进来的人，都已经不是他们自己。"', index: 1 },
-                { text: 'TEC："T.E.C 接收的是躯壳。名字会换一个。"', index: 2 }
+                { text: 'TEC："初级调查员？他是被你送进来的。"', index: 0,
+                  choices: [
+                    { text: '[追问] "送进来是什么意思？"', nextIndex: 1 },
+                    { text: '[质疑] "你在监视我们？"', nextIndex: 3, flag: 'tec_accused' }
+                  ]
+                },
+                { text: 'TEC："从那扇门进来的人，都已经不是他们自己。"', index: 1,
+                  choices: [
+                    { text: '[震惊] "他不是原来的他？"', nextIndex: 2 },
+                    { text: '[冷静] "那他现在是谁？"', nextIndex: 4, flag: 'inv_asked_who' }
+                  ]
+                },
+                { text: 'TEC："T.E.C 接收的是躯壳。名字会换一个。"', index: 2 },
+                { text: 'TEC沉默了一会儿："监视？不。我在「维护」。"', index: 3 },
+                { text: 'TEC："一个编号。和之前七个一样。"', index: 4 }
             ],
             'ITEM_sdt': [
                 { text: 'TEC："手电筒。古典的光学工具。我们已经不再使用。"', index: 0 },

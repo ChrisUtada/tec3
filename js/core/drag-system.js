@@ -189,7 +189,7 @@ export class DragSystem {
         // ===== 3. 检查是否拖拽到探索窗口槽位 =====
         if (this._checkExplorationSlot(e, mainCard)) return;
 
-        // ===== 4. 检查特殊系统：献祭 + 真名揭示 =====
+        // ===== 4. 检查特殊系统：献祭 =====
         if (this._checkSpecialSystems(mainCard)) return;
 
         // ===== 5. 原有堆叠逻辑 =====
@@ -389,13 +389,6 @@ export class DragSystem {
                 // 献祭系统
                 if (d.sacrificeSystem.canProcess(mainCard, target)) {
                     d.sacrificeSystem.processSacrifice(mainCard, target);
-                    this._activeDragId = null;
-                    return true;
-                }
-
-                // 真名揭示系统
-                if (d.trueNameSystem.canProcess(mainCard, target)) {
-                    d.trueNameSystem.processReveal(mainCard, target);
                     this._activeDragId = null;
                     return true;
                 }

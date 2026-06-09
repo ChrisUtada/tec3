@@ -111,41 +111,18 @@ export function hideStackProgressBar(cardId) {
 /**
  * 创建卡牌 DOM 元素
  */
-export function createCardElement(card, { startDrag, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard, openTrueNameModal }) {
+export function createCardElement(card, { startDrag, openDialogue, openReasoningModal, openExploration, tryOpenComboLock, tryCapture, destroyCard, spawnUnboundCard }) {
     const cardEl = document.createElement('div');
     cardEl.id = card.instanceId;
     const t = CARD_TEMPLATES[card.templateId];
     
     cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}`;
     
-    // 真名卡特殊处理
-    if (t.class.includes('true-name-card')) {
-        const isRevealed = card.isRevealed || t.isRevealed || false;
-        const collectedSenses = card.collectedSenses || t.collectedSenses || [];
-        
-        if (isRevealed) {
-            cardEl.classList.add('revealed');
-        }
-        
-        const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
-            const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
-            const isCollected = collectedSenses.includes(sense);
-            return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
-        }).join('');
-        
-        cardEl.innerHTML = `
-            <div class="true-name-senses">${senseIcons}</div>
-            <div class="card-name">${isRevealed ? t.realName : t.name}</div>
-            ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-            <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
-        `;
-    } else {
-        cardEl.innerHTML = `
-            <div class="card-name">${t.name}</div>
-            ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-            <div class="card-type-tag">${t.type}</div>
-        `;
-    }
+    cardEl.innerHTML = `
+        <div class="card-name">${t.name}</div>
+        ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+        <div class="card-type-tag">${t.type}</div>
+    `;
     
     cardEl.addEventListener('mousedown', (e) => {
         if (!card.isCaptured) { 
@@ -178,8 +155,6 @@ export function createCardElement(card, { startDrag, openDialogue, openReasoning
             openReasoningModal();
         } else if (cardType === 'scene') {
             openExploration(card.templateId);
-        } else if (t.class.includes('true-name-card') && (card.isRevealed || t.isRevealed)) {
-            openTrueNameModal(card, t);
         } else {
             tryOpenComboLock(card, destroyCard, spawnUnboundCard);
         }

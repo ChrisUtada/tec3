@@ -1,7 +1,7 @@
 //  渲染引擎与拖拽逻辑
 import { CARD_TEMPLATES } from './config.js';
 import { gameState, updateState } from './state.js';
-import { log, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus, openTrueNameModal } from './ui.js';
+import { log, toggleSceneModal, updateModalContent, hideEndingReport, showEndingReport, setSystemStatus } from './ui.js';
 import { tryCapture, tryOpenComboLock, checkReaction, triggerEnding, getTaskProcessing, setTaskProcessing } from './logic.js';
 import { showStackProgressBar, hideStackProgressBar, updateProgressBarPosition, hideSpeechBubble } from './renderer.js';
 import { openDialogue, placeCardInSlot } from './dialogue.js';
@@ -11,7 +11,6 @@ import { openRestPanel, initRestModule, placeCardInRestSlot, startRest } from '.
 import { restoreCardToBoard } from './shared.js';
 import { CARD } from './consts.js';
 import { sacrificeSystem } from './systems/sacrifice.js';
-import { trueNameSystem } from './systems/truename.js';
 import { corruptionSystem } from './systems/corruption.js';
 import { taskManager } from './core/task-manager.js';
 import { stackSystem } from './core/stack-system.js';
@@ -23,6 +22,10 @@ let cardsMap = new Map(); // 性能优化：O(1) 查找
 
 //  暴露获取 cardsData 的函数，供 renderer.js 使用
 window.getCardsData = () => cardsData;
+
+// dropOnce 记录集：标记整局游戏中已掉落过一次的卡牌
+const _dropOnceSet = new Set();
+window.isDropOnceConsumed = (tid) => _dropOnceSet.has(tid);
 
 // 卡牌类型固定层级（数值越大越上层）
 const Z_INDEX = {
@@ -56,6 +59,12 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicateOverride = null
         ? allowDuplicateOverride
         : (template?.allowDuplicate === true);
 
+    // dropOnce 检查：整局游戏只能掉落一次
+    if (template?.dropOnce && _dropOnceSet.has(templateId)) {
+        log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已掉落过一次，无法重复生成！`, "normal");
+        return null;
+    }
+
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
         // 使用 Map 检查更快
@@ -71,6 +80,10 @@ export function spawnUnboundCard(templateId, x, y, allowDuplicateOverride = null
     const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
     cardsData.push(newCard);
     cardsMap.set(newId, newCard); // 同步添加到 Map
+
+    // 记录 dropOnce
+    if (template?.dropOnce) _dropOnceSet.add(templateId);
+
     log(`📡 发现线索：【${CARD_TEMPLATES[templateId].name}】已刷出。`, "capture");
 
     // 自动启动腐化倒计时
@@ -90,6 +103,12 @@ export function directSpawnCard(templateId, x, y, allowDuplicateOverride = null)
         ? allowDuplicateOverride
         : (template?.allowDuplicate === true);
 
+    // dropOnce 检查：整局游戏只能掉落一次
+    if (template?.dropOnce && _dropOnceSet.has(templateId)) {
+        log(`❌ [掉落失败] 【${CARD_TEMPLATES[templateId].name}】已掉落过一次，无法重复生成！`, "normal");
+        return;
+    }
+
     // 检查该 templateId 是否已经存在（防重复掉落）
     if (!allowDuplicate) {
         for (const card of cardsMap.values()) {
@@ -104,6 +123,10 @@ export function directSpawnCard(templateId, x, y, allowDuplicateOverride = null)
     const newCard = { instanceId: newId, templateId: templateId, x: x, y: y, next: null, parent: null, isCaptured: true };
     cardsData.push(newCard);
     cardsMap.set(newId, newCard); // 同步添加到 Map
+
+    // 记录 dropOnce
+    if (template?.dropOnce) _dropOnceSet.add(templateId);
+
     log(`✨ 因果固化：实体资产【${CARD_TEMPLATES[templateId].name}】已成功存盘。`, "success");
 
     if (template?.corruptionTime) {
@@ -219,34 +242,11 @@ export function renderAllCards() {
             
             cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}`;
             
-            // 真名卡特殊处理
-            if (t.class.includes('true-name-card')) {
-                const isRevealed = card.isRevealed || t.isRevealed || false;
-                const collectedSenses = card.collectedSenses || t.collectedSenses || [];
-                
-                if (isRevealed) {
-                    cardEl.classList.add('revealed');
-                }
-                
-                const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
-                    const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
-                    const isCollected = collectedSenses.includes(sense);
-                    return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
-                }).join('');
-                
-                cardEl.innerHTML = `
-                    <div class="true-name-senses">${senseIcons}</div>
-                    <div class="card-name">${isRevealed ? t.realName : t.name}</div>
-                    ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-                    <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
-                `;
-            } else {
-                cardEl.innerHTML = `
+            cardEl.innerHTML = `
                     <div class="card-name">${t.name}</div>
                     ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
                     <div class="card-type-tag">${t.type}</div>
                 `;
-            }
             
             cardEl.addEventListener('mousedown', (e) => {
                 // 检查卡牌是否在槽位中，如果是则不触发全局拖拽系统
@@ -288,41 +288,12 @@ export function renderAllCards() {
                 } else if (cardType === 'scene') {
                     // 场景卡牌：打开探索窗口
                     openExploration(card.templateId);
-                } else if (t.class.includes('true-name-card') && (card.isRevealed || t.isRevealed)) {
-                    // 真名卡：打开真名信息窗口
-                    openTrueNameModal(card, t);
                 } else {
                     // 其他卡牌：密码盒等
                     tryOpenComboLock(card, destroyCard, spawnUnboundCard);
                 }
             });
             boardCanvas.appendChild(cardEl);
-        } else {
-            // 更新真名卡的显示
-            const t = CARD_TEMPLATES[card.templateId];
-            if (t.class.includes('true-name-card')) {
-                const isRevealed = card.isRevealed || t.isRevealed || false;
-                const collectedSenses = card.collectedSenses || t.collectedSenses || [];
-                
-                if (isRevealed) {
-                    cardEl.classList.add('revealed');
-                } else {
-                    cardEl.classList.remove('revealed');
-                }
-                
-                const senseIcons = ['vision', 'hearing', 'taste', 'touch', 'smell'].map(sense => {
-                    const icons = { vision: '👁️', hearing: '👂', taste: '👅', touch: '🤚', smell: '👃' };
-                    const isCollected = collectedSenses.includes(sense);
-                    return `<span class="sense-icon ${sense} ${isCollected ? 'collected' : ''}">${icons[sense]}</span>`;
-                }).join('');
-                
-                cardEl.innerHTML = `
-                    <div class="true-name-senses">${senseIcons}</div>
-                    <div class="card-name">${isRevealed ? t.realName : t.name}</div>
-                    ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-                    <div class="card-type-tag">${isRevealed ? 'revealed' : t.type}</div>
-                `;
-            }
         }
 
         // 结局触发时的卡牌高亮修饰
@@ -410,7 +381,6 @@ function _initSystems() {
         placeCardInRestSlot,
         cardsData,
         sacrificeSystem,
-        trueNameSystem,
         stackSystem,
         checkReaction,
         destroyCard,
@@ -438,7 +408,6 @@ function _initSystems() {
     };
 
     sacrificeSystem.init(api);
-    trueNameSystem.init(api);
     corruptionSystem.init(api);
 }
 

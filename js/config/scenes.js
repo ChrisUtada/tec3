@@ -59,7 +59,8 @@ export const SCENE_EXPLORATION = {
                     { templateId: 'CHAR_tec', min: 1, max: 1 }
                 ],
                 drops: [
-                    { templateId: 'ITEM_true_name', chance: 1.0, message: '植物学家的花园向 TEC 倾吐了最后的秘密——一颗"真名"破土而出。' }
+                    { templateId: 'ITEM_true_name', chance: 1.0, message: '植物学家的花园向 TEC 倾吐了最后的秘密——一颗"真名"破土而出。' },
+                    { templateId: 'SCENE_truename', chance: 1.0, message: '同时你发现了一张古老的设计图——"真名共鸣仪"的构造方案。' }
                 ]
             }
         ]
@@ -81,6 +82,25 @@ export const SCENE_EXPLORATION = {
         ]
     },
     
+    // 真名共鸣仪探索（5槽位，需要全部5种感官线索）
+    'SCENE_truename': {
+        name: '真名共鸣仪',
+        slots: 5,
+        exploreTime: 6000,
+        message: '将五种感官线索放入槽位，激活真名共鸣仪...',
+        fatigueDropRate: 0,
+        requiredCards: [
+            { templateId: 'CLUE_vision_eye', min: 1, max: 1 },
+            { templateId: 'CLUE_hearing_echo', min: 1, max: 1 },
+            { templateId: 'CLUE_taste_metal', min: 1, max: 1 },
+            { templateId: 'CLUE_touch_ice', min: 1, max: 1 },
+            { templateId: 'CLUE_smell_rot', min: 1, max: 1 }
+        ],
+        drops: [
+            { templateId: 'ITEM_sense_all', chance: 1.0, message: '五种感官数据已聚合！' }
+        ]
+    },
+
     // 书桌探索
     'SCENE_desk': {
         name: '书桌',
