@@ -348,23 +348,6 @@ function showCard(id) {
             <div class="fg" id="extraFields"></div>
     </div>`;
     
-    // Populate extraFields with all special fields
-    const sfFields = ['senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
-    const sfLabels = {'senseType':'感官类型','recycleValue':'献祭价值','value':'价值','realName':'真名','realDesc':'真名描述','targetSenses':'目标感官(JSON)','collectedSenses':'已收集感官(JSON)','interactText':'交互文本','isRevealed':'已揭示'};
-    let sfHtml = '';
-    for (const k of sfFields) {
-        const val = t[k] !== undefined ? (Array.isArray(t[k]) ? JSON.stringify(t[k]) : String(t[k])) : '';
-        if (typeof t[k] === 'boolean') {
-            sfHtml += `<div class="ck"><label><input type="checkbox" id="f_${k}" ${t[k]?'checked':''}> ${sfLabels[k]||k}</label></div>`;
-        } else {
-            sfHtml += `<div class="fg"><label>${sfLabels[k]||k}</label><input id="f_${k}" value="${esc(val)}"></div>`;
-        }
-    }
-    if (t.class && t.class !== baseClass(t.type) && t.class !== `${baseClass(t.type)} ${t.type}-card`) {
-        sfHtml += `<div class="fg"><label>额外CSS类</label><input id="f_class_extra" value="${esc(t.class)}"></div>`;
-    }
-    document.getElementById('extraFields').innerHTML = sfHtml;
-    
     // ═══ Corruption section ═══
     let corruptionHtml = `<div class="sec"><div class="sec-hd">腐化</div>
         <div class="ck">
@@ -500,6 +483,24 @@ function showCard(id) {
     </div>`;
     
     document.getElementById('ctr').innerHTML = h;
+    // Populate extraFields (must be after DOM creation)
+    const sfFields = ['senseType','recycleValue','value','realName','realDesc','targetSenses','collectedSenses','interactText','isRevealed'];
+    const sfLabels = {'senseType':'感官类型','recycleValue':'献祭价值','value':'价值','realName':'真名','realDesc':'真名描述','targetSenses':'目标感官(JSON)','collectedSenses':'已收集感官(JSON)','interactText':'交互文本','isRevealed':'已揭示'};
+    let sfHtml = '';
+    for (const k of sfFields) {
+        const val = t[k] !== undefined ? (Array.isArray(t[k]) ? JSON.stringify(t[k]) : String(t[k])) : '';
+        if (typeof t[k] === 'boolean') {
+            sfHtml += `<div class="ck"><label><input type="checkbox" id="f_${k}" ${t[k]?'checked':''}> ${sfLabels[k]||k}</label></div>`;
+        } else {
+            sfHtml += `<div class="fg"><label>${sfLabels[k]||k}</label><input id="f_${k}" value="${esc(val)}"></div>`;
+        }
+    }
+    if (t.class && t.class !== baseClass(t.type) && t.class !== `${baseClass(t.type)} ${t.type}-card`) {
+        sfHtml += `<div class="fg"><label>额外CSS类</label><input id="f_class_extra" value="${esc(t.class)}"></div>`;
+    }
+    const ef = document.getElementById('extraFields');
+    if (ef) ef.innerHTML = sfHtml;
+    
     showPreview(id);
     showRelations(id);
 }
