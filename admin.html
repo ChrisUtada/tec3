@@ -109,8 +109,10 @@ body {
 .fa { display: flex; flex-direction: column; gap: 3px; }
 .fa-r { display: flex; gap: 4px; align-items: center; }
 .fa-r input { flex: 1; }
-.de { border: 1px solid var(--grid); padding: 6px; border-radius: 2px; margin-bottom: 4px; }
+.fa-r .btn { white-space: nowrap; }
 .de .fa-r { margin-bottom: 2px; }
+.dl { margin: 4px 0; padding: 4px 6px; border: 1px solid #d0c8c0; border-radius: 3px; background: #faf8f5; }
+.d-choices { margin: 4px 0 4px 20px; padding: 4px; border-left: 2px solid #c8b8a8; }
 .cb { background: #2a1a0a; color: #e8dcc8; padding: 10px; border-radius: 2px; font-size: 11px; white-space: pre-wrap; overflow-x: auto; max-height: 150px; border: 1px solid var(--border); margin-top: 6px; }
 
 /* Right */
@@ -451,7 +453,13 @@ function showCard(id) {
             diaHtml += `<div class="de">
                 <div class="fa-r"><input class="d-trg" value="${esc(tid)}" placeholder="触发卡ID" style="flex:1"><span style="font-size:11px;color:var(--dim);flex:1">${esc(cname)}</span><button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">✕</button></div>`;
             for (const l of lines) {
-                diaHtml += `<div class="fa-r"><input class="d-txt" value="${esc(l.text||'')}" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="${l.index||0}" style="width:40px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+                diaHtml += `<div class="dl"><div class="fa-r"><input class="d-txt" value="${esc(l.text||'')}" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="${l.index||0}" style="width:40px"><button class="btn btn-sm" onclick="addDChoice(this)" title="添加分支选项">选项</button><button class="btn btn-sm btn-d" onclick="this.closest('.dl').remove()">✕</button></div><div class="d-choices">`;
+                if (l.choices && l.choices.length) {
+                    for (const c of l.choices) {
+                        diaHtml += `<div class="fa-r"><input class="d-ch-txt" value="${esc(c.text||'')}" placeholder="选项文字" style="flex:2"><input class="d-ch-next" type="number" value="${c.nextIndex??''}" placeholder="跳转行" style="width:55px"><input class="d-ch-flag" value="${esc(c.flag||'')}" placeholder="flag" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button></div>`;
+                    }
+                }
+                diaHtml += `</div></div>`;
             }
             diaHtml += `<button class="btn btn-sm" onclick="addDLine(this)">＋ 行</button></div>`;
         }
@@ -624,9 +632,25 @@ window.saveCard = function(id) {
             const tid = el.querySelector('.d-trg')?.value;
             if (!tid) return;
             const lines = [];
-            el.querySelectorAll('.d-txt').forEach((txt, i) => {
-                const idxs = el.querySelectorAll('.d-idx');
-                if (txt.value) lines.push({text: txt.value, index: parseInt(idxs[i]?.value)||i});
+            el.querySelectorAll('.dl').forEach(dl => {
+                const txt = dl.querySelector('.d-txt');
+                const idx = dl.querySelector('.d-idx');
+                if (!txt?.value) return;
+                const line = {text: txt.value, index: parseInt(idx?.value)||0};
+                const choices = [];
+                dl.querySelectorAll('.d-choices > .fa-r').forEach(r => {
+                    const ct = r.querySelector('.d-ch-txt');
+                    const cn = r.querySelector('.d-ch-next');
+                    const cf = r.querySelector('.d-ch-flag');
+                    if (!ct?.value) return;
+                    const choice = {text: ct.value};
+                    const nv = parseInt(cn?.value);
+                    choice.nextIndex = isNaN(nv) ? null : nv;
+                    if (cf?.value) choice.flag = cf.value;
+                    choices.push(choice);
+                });
+                if (choices.length) line.choices = choices;
+                lines.push(line);
             });
             if (lines.length) dialogues[tid] = lines;
         });
@@ -716,9 +740,15 @@ window.addSGDrop = function(btn) {
 
 // ═══ Dialogue helpers ═══
 window.addDLine = function(btn) {
-    const d = document.createElement('div'); d.className='fa-r';
-    d.innerHTML='<input class="d-txt" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="0" style="width:40px"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    const d = document.createElement('div'); d.className='dl';
+    d.innerHTML='<div class="fa-r"><input class="d-txt" placeholder="对话文本" style="flex:3"><input class="d-idx" type="number" value="0" style="width:40px"><button class="btn btn-sm" onclick="addDChoice(this)" title="添加分支选项">选项</button><button class="btn btn-sm btn-d" onclick="this.closest(\'.dl\').remove()">✕</button></div><div class="d-choices"></div>';
     btn.parentElement.insertBefore(d, btn);
+};
+window.addDChoice = function(btn) {
+    const container = btn.closest('.dl').querySelector('.d-choices');
+    const d = document.createElement('div'); d.className='fa-r';
+    d.innerHTML='<input class="d-ch-txt" placeholder="选项文字" style="flex:2"><input class="d-ch-next" type="number" placeholder="跳转行" style="width:55px"><input class="d-ch-flag" placeholder="flag" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
+    container.appendChild(d);
 };
 window.addDGroup = function() {
     const c = document.getElementById('d_grps');
@@ -790,7 +820,22 @@ function genDialogues() {
         const dlg = cfg.dialogues || {};
         for (const [tid,lines] of Object.entries(dlg)) {
             s += `,\n        '${tid}': [`;
-            for (const l of lines) s += `\n            { text: '${escJs(l.text||'')}', index: ${l.index||0} },`;
+            for (const l of lines) {
+                let sl = `            { text: '${escJs(l.text||'')}', index: ${l.index||0}`;
+                if (l.choices && l.choices.length) {
+                    sl += `,\n                choices: [`;
+                    for (const c of l.choices) {
+                        let sc = `\n                    { text: '${escJs(c.text||'')}'`;
+                        if (c.nextIndex != null) sc += `, nextIndex: ${c.nextIndex}`;
+                        if (c.flag) sc += `, flag: '${escJs(c.flag)}'`;
+                        sc += ` }`;
+                        sl += sc;
+                    }
+                    sl += `\n                ]`;
+                }
+                sl += ` },`;
+                s += '\n' + sl;
+            }
             s += `\n        ]`;
         }
         s += `\n    },\n`;
