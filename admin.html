@@ -726,8 +726,22 @@ function showCard(id) {
             <div class="fg"><textarea id="f_obs" rows="3">${esc(obsText)}</textarea></div></div>`;
     }
     
+    // ═══ Endings section (仅逻辑归因卡) ═══
+    let endingHtml = '';
+    if (id === 'LOGIC_reason' && D.REASONING_ENDINGS) {
+        endingHtml += `<div class="sec"><div class="sec-hd">归因结局 <span style="font-weight:normal;font-size:12px;color:var(--dim);">(投入特定线索卡时触发的结局剧情)</span></div>
+            <div id="ending-list">`;
+        for (const [key, v] of Object.entries(D.REASONING_ENDINGS)) {
+            endingHtml += `<div class="de">
+                <div class="fa-r"><input class="eg-key" value="${esc(key)}" placeholder="条件 (最多5个ID, 用+连接, 如 CLUE_a+CLUE_b+CLUE_c)" style="flex:1"><input class="eg-title" value="${esc(v.title||'')}" placeholder="结局标题" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.closest('.de').remove()">✕</button></div>
+                <div class="fg"><textarea class="eg-story" rows="3" placeholder="结局故事" style="width:100%">${esc(v.story||'')}</textarea></div>
+            </div>`;
+        }
+        endingHtml += `</div><button class="btn btn-sm" onclick="addEndingRow()">＋ 结局</button></div>`;
+    }
+    
     // ═══ Save button ═══
-    h += corruptionHtml + comboHtml + sceneHtml + diaHtml + obsHtml;
+    h += corruptionHtml + comboHtml + sceneHtml + diaHtml + obsHtml + endingHtml;
     h += `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-p" onclick="saveCard('${id}')">💾 应用修改</button>
         <button class="btn btn-d" onclick="delCard('${id}')">🗑 删除卡牌</button>
@@ -1061,6 +1075,22 @@ window.saveCard = function(id) {
         D.OBSERVATION_TEXTS[id] = document.getElementById('f_obs')?.value || '';
     }
     
+    // Save endings (from LOGIC_reason card)
+    if (id === 'LOGIC_reason' && D.REASONING_ENDINGS) {
+        const newEndings = {};
+        document.querySelectorAll('#ending-list .de').forEach(el => {
+            const key = el.querySelector('.eg-key')?.value?.trim();
+            const title = el.querySelector('.eg-title')?.value?.trim();
+            const story = el.querySelector('.eg-story')?.value?.trim();
+            if (key) newEndings[key] = { title: title || '', story: story || '' };
+        });
+        // Preserve entries not in the editor (e.g. 'default' if hidden)
+        for (const [k, v] of Object.entries(D.REASONING_ENDINGS)) {
+            if (!newEndings[k]) newEndings[k] = v;
+        }
+        D.REASONING_ENDINGS = newEndings;
+    }
+    
     D.CARD_TEMPLATES[id] = t;
     if (renamed) {
         setStatus(`已重命名 ${id}，同步所有配置数据。${HARDCODED_FILES.length} 个运行时文件中的硬编码引用需手动修改`);
@@ -1143,6 +1173,15 @@ window.addSGDrop = function(btn) {
     const d = document.createElement('div'); d.className='fa-r';
     d.innerHTML='<input class="sgd-id" placeholder="ID" style="flex:1.5"><input class="sgd-ch" type="number" step="0.1" min="0" max="1" value="0.3" placeholder="概率" style="width:70px"><input class="sgd-msg" placeholder="消息" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.parentElement.remove()">✕</button>';
     btn.parentElement.insertBefore(d, btn);
+};
+
+// ═══ Ending helpers ═══
+window.addEndingRow = function() {
+    const c = document.getElementById('ending-list');
+    if (!c) return;
+    const d = document.createElement('div'); d.className='de';
+    d.innerHTML='<div class="fa-r"><input class="eg-key" placeholder="条件 (最多5个ID, 用+连接, 如 CLUE_a+CLUE_b+CLUE_c)" style="flex:1"><input class="eg-title" placeholder="结局标题" style="flex:1"><button class="btn btn-sm btn-d" onclick="this.closest(\'.de\').remove()">✕</button></div><div class="fg"><textarea class="eg-story" rows="3" placeholder="结局故事" style="width:100%"></textarea></div>';
+    c.appendChild(d);
 };
 
 // ═══ Dialogue helpers ═══
