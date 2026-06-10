@@ -29,12 +29,12 @@
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
 
 /*  右侧面板通用 */
-.panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #4a3a2a; padding: 12px 16px; min-height: 44px; flex-shrink: 0; }
-.panel-title { font-size: 13px; font-weight: bold; color: #1a0a0a; text-transform: uppercase; letter-spacing: 1px; }
-.panel-close { color: #4a3a2a; cursor: pointer; font-size: 11px; padding: 2px 6px; background: rgba(0,0,0,0.08); }
-.panel-close:hover { color: #fff; background: #4a3a2a; }
-.panel-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; color: #2a1a0a; }
-.panel-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid #8b7a6a; flex-shrink: 0; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #4A3A2A; padding: 14px 18px; min-height: 48px; flex-shrink: 0; background: linear-gradient(180deg, rgba(61, 42, 26, 0.05) 0%, transparent 100%); }
+.panel-title { font-size: 13px; font-weight: bold; color: #1A0A0A; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Georgia', serif; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7); }
+.panel-close { color: #4A3A2A; cursor: pointer; font-size: 11px; padding: 3px 8px; background: rgba(61, 42, 26, 0.08); border-radius: 3px; transition: all 0.2s; }
+.panel-close:hover { color: #FFF; background: #4A3A2A; }
+.panel-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 18px; color: #2A1A0A; font-family: 'Georgia', serif; }
+.panel-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 14px 18px; border-top: 1px solid rgba(61, 42, 26, 0.15); flex-shrink: 0; background: linear-gradient(0deg, rgba(61, 42, 26, 0.05) 0%, transparent 100%); }
 
 /*  右侧面板基类 */
 .right-panel {
@@ -44,14 +44,15 @@
     top: 0;
     width: 420px;
     height: 100vh;
-    background: #fdfaf5;
-    box-shadow: -10px 0 40px rgba(0,0,0,0.2);
+    background: linear-gradient(180deg, #F5E6D3 0%, #E8DCC8 100%);
+    box-shadow: -10px 0 40px rgba(61, 42, 26, 0.2);
     z-index: 100000;
     flex-direction: column;
     opacity: 0;
     transform: translateX(20px);
     pointer-events: none;
     transition: opacity 0.25s ease, transform 0.25s ease;
+    border-left: 2px solid #6B4423;
 }
 
 .right-panel.show {
@@ -60,39 +61,134 @@
     pointer-events: auto;
 }
 
-.sync-btn { background: var(--color-vision); border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 11px; color: #fff; }
-.sync-btn:disabled { background: #c8c0b0; color: #5a4a3a; cursor: not-allowed; }
-
-/* 卡牌基础样式 */
-.card {
-    width: var(--card-width); height: var(--card-height); border-radius: 3px; padding: 10px; box-sizing: border-box;
-    position: absolute; cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1); 
-    border: 1px solid #4a3a2a;
-    background: linear-gradient(135deg, #fdfaf5 0%, #f5f0e8 100%);
+.sync-btn { 
+    background: linear-gradient(135deg, #2E8B57 0%, #228B22 50%, #1A6B1A 100%); 
+    border: 1px solid #1A5A1A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    padding: 11px 20px; 
+    font-weight: bold; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-size: 11px; 
+    color: #FFF;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    box-shadow: 
+        0 3px 8px rgba(46, 139, 87, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-.card:active { cursor: grabbing; }
+.sync-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #228B22 0%, #1A6B1A 50%, #155A15 100%);
+    box-shadow: 
+        0 5px 14px rgba(46, 139, 87, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+.sync-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 6px rgba(46, 139, 87, 0.3),
+        inset 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+.sync-btn:disabled { 
+    background: linear-gradient(135deg, #C8C0B0 0%, #B8B0A0 100%); 
+    color: #7A6A5A; 
+    cursor: not-allowed;
+    border-color: #A8A090;
+    box-shadow: none;
+    transform: none;
+}
 
-/* 卡牌类型配色 - 不同底色 + 顶部 3px 色条 */
+/* 卡牌基础样式 - 精致设计 */
+.card {
+    width: var(--card-width); 
+    height: var(--card-height); 
+    border-radius: 6px; 
+    padding: 12px; 
+    box-sizing: border-box;
+    position: absolute; 
+    cursor: grab; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between;
+    /* 精致的多层阴影 */
+    box-shadow: 
+        0 4px 14px rgba(61, 42, 26, 0.22),
+        0 1px 3px rgba(61, 42, 26, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 0 rgba(139, 115, 85, 0.15),
+        inset 0 0 20px rgba(139, 115, 85, 0.04);
+    border: 1px solid #6B5A4A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    /* 复古纸张质感背景 */
+    background: linear-gradient(135deg, #FDF8EF 0%, #F5E6D3 30%, #E8DCC8 70%, #DFD0C0 100%);
+    background-image: 
+        radial-gradient(ellipse at 30% 20%, rgba(139, 115, 85, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(139, 115, 85, 0.08) 0%, transparent 50%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 3px,
+            rgba(139, 115, 85, 0.025) 3px,
+            rgba(139, 115, 85, 0.025) 4px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 3px,
+            rgba(139, 115, 85, 0.02) 3px,
+            rgba(139, 115, 85, 0.02) 4px
+        ),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='cardPaper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='3'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%238B7355' surfaceScale='1.5'%3E%3CfeDistantLight azimuth='30' elevation='50'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23cardPaper)'/%3E%3C/svg%3E"),
+        linear-gradient(135deg, #FDF8EF 0%, #F5E6D3 30%, #E8DCC8 70%, #DFD0C0 100%);
+    background-size: 120px 120px, 120px 120px, 100% 100%, 100% 100%, 40px 40px, 100% 100%;
+    background-blend-mode: normal, normal, overlay, overlay, soft-light, normal;
+    /* 过渡效果 */
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(61, 42, 26, 0.28),
+        0 2px 6px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 0 rgba(139, 119, 101, 0.12),
+        inset 0 0 30px rgba(139, 119, 101, 0.05);
+}
+
+.card:active { 
+    cursor: grabbing; 
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 8px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* 卡牌类型配色 - 19世纪博物学风格 */
 .card.char-card {
-    background: linear-gradient(135deg, #f5ece8 0%, #ece0d5 100%);
-    border-top: 3px solid #8a5a3a;
+    background: linear-gradient(135deg, #F8E6E0 0%, #E8D0C8 100%);
+    border-top: 3px solid var(--color-char);
 }
 
 .card.scene-card {
-    background: linear-gradient(135deg, #edf0e8 0%, #dde5d5 100%);
-    border-top: 3px solid #3a7a5a;
+    background: linear-gradient(135deg, #E8E8E0 0%, #D8D8D0 100%);
+    border-top: 3px solid var(--color-scene);
 }
 
 .card.item-card {
-    background: linear-gradient(135deg, #f0ecf0 0%, #e5dde8 100%);
-    border-top: 3px solid #7a5a8a;
+    background: linear-gradient(135deg, #F5E6D3 0%, #DEB887 100%);
+    border-top: 3px solid var(--color-item);
 }
 
 .card.logic-card {
-    background: linear-gradient(135deg, #e8e8ec 0%, #d5d5dd 100%);
-    border-top: 3px solid #5a6a7a;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5);
+    background: linear-gradient(135deg, #E8E0D8 0%, #D0C8BC 100%);
+    border-top: 3px solid var(--color-function);
+    box-shadow: 2px 2px 8px rgba(61, 42, 26, 0.15), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 .card.logic-card::before {
     content: '⚡';
@@ -100,16 +196,16 @@
     top: 2px;
     right: 4px;
     font-size: 10px;
-    color: #5a6a7a;
+    color: #4A3A2A;
 }
 
-/* 线索卡 - 基础奶油色，按五感区分顶部色条 */
+/* 线索卡 - 复古纸张色，按五感区分顶部色条 */
 .card.clue-vision,
 .card.clue-taste,
 .card.clue-hearing,
 .card.clue-touch,
 .card.clue-smell {
-    background: linear-gradient(135deg, #fdfaf5 0%, #f0e8e0 100%);
+    background: linear-gradient(135deg, #F5E6D3 0%, #E8DCC8 100%);
 }
 .card.clue-vision { border-top: 3px solid var(--color-vision); }
 .card.clue-hearing { border-top: 3px solid var(--color-hearing); }
@@ -118,8 +214,8 @@
 .card.clue-smell { border-top: 3px solid var(--color-smell); }
 
 .card.lock-card {
-    border-top: 3px solid #b99217;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 0 6px rgba(185, 146, 23, 0.4);
+    border-top: 3px solid #8B7355;
+    box-shadow: 2px 2px 8px rgba(61, 42, 26, 0.15), 0 0 6px rgba(139, 115, 85, 0.4);
 }
 
 .card.equipment-card {
@@ -408,43 +504,53 @@
 
 .card-name { 
     font-weight: bold; 
-    color: #1a0a0a; 
+    color: #1A0A0A; 
     font-size: 13px; 
     text-align: center; 
-    border-bottom: 1px solid rgba(74, 58, 42, 0.3); 
-    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(61, 42, 26, 0.18); 
+    padding-bottom: 5px;
     margin-bottom: auto;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1.2px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 .card-desc { 
     font-size: 10px; 
-    color: #4a3a2a; 
+    color: #4A3A2A; 
     flex: 1; 
-    margin-top: 4px; 
-    line-height: 1.4; 
+    margin-top: 5px; 
+    line-height: 1.5; 
     overflow: hidden; 
+    font-style: italic;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    opacity: 0.9;
 }
 .card-status-tag { 
     font-size: 8px; 
     text-align: center; 
-    background: rgba(168, 74, 58, 0.15); 
-    border: 1px solid #a84a3a; 
-    border-radius: 2px; 
-    color: #883a2a; 
-    padding: 1px 0; 
-    margin-bottom: 2px; 
+    background: rgba(139, 69, 69, 0.12); 
+    border: 1px solid #8B4513; 
+    border-radius: 3px; 
+    color: #6B3A2A; 
+    padding: 2px 4px; 
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .card-type-tag { 
     font-size: 9px; 
     text-align: center; 
-    opacity: 0.8; 
-    color: #3a2a1a;
+    opacity: 0.85; 
+    color: #3A2A1A;
     text-transform: uppercase;
-    padding: 2px 4px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 2px;
+    letter-spacing: 1px;
+    padding: 3px 6px;
+    background: rgba(61, 42, 26, 0.08);
+    border-radius: 3px;
+    border: 1px solid rgba(61, 42, 26, 0.12);
     margin-top: auto;
+    font-weight: 500;
 }
 
 /* 🏆 右下角悬浮结局面板 */
@@ -553,28 +659,39 @@
 }
 
 .dialogue-btn {
-    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
-    border: 1px solid #5a4a3a;
-    color: #2a1a0a;
+    background: linear-gradient(135deg, #E8E0D8 0%, #D8D0C8 50%, #C8C0B8 100%);
+    border: 1px solid #5A4A3A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    color: #2A1A0A;
     padding: 12px 24px;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    font-family: inherit;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.2s;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 
+        0 3px 8px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(61, 42, 26, 0.1);
 }
 .dialogue-btn:hover {
-    background: linear-gradient(135deg, #5a4a3a, #4a3a2a);
-    border-color: #4a3a2a;
-    color: #fff;
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #5A4A3A 0%, #4A3A2A 50%, #3A2A1A 100%);
+    border-color: #3A2A1A;
+    color: #FFF;
+    box-shadow: 
+        0 5px 14px rgba(61, 42, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 .dialogue-btn:active {
     transform: translateY(0);
-    box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
+    box-shadow: 
+        0 2px 6px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dialogue-choices {
@@ -586,30 +703,40 @@
 }
 
 .dialogue-choice-btn {
-    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
-    border: 1px solid #5a4a3a;
-    color: #2a1a0a;
-    padding: 12px 20px;
+    background: linear-gradient(135deg, #E8E0D8 0%, #D8D0C8 50%, #C8C0B8 100%);
+    border: 1px solid #5A4A3A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    color: #2A1A0A;
+    padding: 12px 22px;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    font-family: inherit;
+    font-size: 13px;
+    font-family: 'Georgia', serif;
     text-align: left;
     transition: all 0.2s;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 
+        0 3px 8px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(61, 42, 26, 0.1);
 }
 
 .dialogue-choice-btn:hover {
-    background: linear-gradient(135deg, #5a4a3a, #4a3a2a);
-    border-color: #4a3a2a;
-    color: #fff;
+    background: linear-gradient(135deg, #5A4A3A 0%, #4A3A2A 50%, #3A2A1A 100%);
+    border-color: #3A2A1A;
+    color: #FFF;
     transform: translateY(-1px);
+    box-shadow: 
+        0 5px 14px rgba(61, 42, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .dialogue-choice-btn:active {
     transform: translateY(0);
-    box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
+    box-shadow: 
+        0 2px 6px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* 卡牌槽位错误震动 */
@@ -743,38 +870,51 @@
 }
 
 .exploration-btn {
-    padding: 10px 22px;
-    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
-    border: 1px solid #5a4a3a;
-    color: #2a1a0a;
-    border-radius: 4px;
+    padding: 11px 24px;
+    background: linear-gradient(135deg, #E8E0D8 0%, #D8D0C8 50%, #C8C0B8 100%);
+    border: 1px solid #5A4A3A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    color: #2A1A0A;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 13px;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.2s;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 
+        0 3px 8px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(61, 42, 26, 0.1);
+    font-family: 'Georgia', serif;
 }
 
 .exploration-btn:hover {
-    background: linear-gradient(135deg, #5a4a3a, #4a3a2a);
-    border-color: #4a3a2a;
-    color: #fff;
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #5A4A3A 0%, #4A3A2A 50%, #3A2A1A 100%);
+    border-color: #3A2A1A;
+    color: #FFF;
+    box-shadow: 
+        0 5px 14px rgba(61, 42, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 
 .exploration-btn:active {
     transform: translateY(0);
-    box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
+    box-shadow: 
+        0 2px 6px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .exploration-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
     cursor: not-allowed;
-    background: #e8e0d8;
-    color: #8a7a6a;
-    border-color: #9a8a7a;
+    background: #E8E0D8;
+    color: #7A6A5A;
+    border-color: #8A7A6A;
     box-shadow: none;
+    transform: none;
 }
 
 /*  归因推演面板 */
@@ -919,36 +1059,48 @@
 }
 
 .reasoning-btn {
-    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
-    border: 1px solid #5a4a3a;
-    color: #2a1a0a;
-    padding: 10px 22px;
+    background: linear-gradient(135deg, #E8E0D8 0%, #D8D0C8 50%, #C8C0B8 100%);
+    border: 1px solid #5A4A3A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    color: #2A1A0A;
+    padding: 11px 24px;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 12px;
-    font-family: inherit;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.2s;
     flex: 1;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 
+        0 3px 8px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(61, 42, 26, 0.1);
 }
 .reasoning-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #5a4a3a, #4a3a2a);
-    border-color: #4a3a2a;
-    color: #fff;
-    box-shadow: 3px 3px 12px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #5A4A3A 0%, #4A3A2A 50%, #3A2A1A 100%);
+    border-color: #3A2A1A;
+    color: #FFF;
+    box-shadow: 
+        0 5px 14px rgba(61, 42, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 .reasoning-btn:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 1px 1px 6px rgba(0,0,0,0.2);
+    box-shadow: 
+        0 2px 6px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 .reasoning-btn:disabled {
-    background: #e8e0d8;
-    color: #8a7a6a;
+    background: #E8E0D8;
+    color: #7A6A5A;
     cursor: not-allowed;
-    border-color: #9a8a7a;
+    border-color: #8A7A6A;
     box-shadow: none;
+    transform: none;
 }
 
 /* 真名揭示窗口 */
@@ -1081,20 +1233,39 @@
 .observation-close-btn {
     display: block;
     margin: 20px auto 4px;
-    background: linear-gradient(135deg, #e8e0d8, #d8d0c8);
-    border: 1px solid #5a4a3a;
-    color: #2a1a0a;
-    padding: 8px 24px;
+    background: linear-gradient(135deg, #E8E0D8 0%, #D8D0C8 50%, #C8C0B8 100%);
+    border: 1px solid #5A4A3A;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    color: #2A1A0A;
+    padding: 9px 26px;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 12px;
-    font-family: inherit;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.2s;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 
+        0 3px 8px rgba(61, 42, 26, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(61, 42, 26, 0.1);
 }
 .observation-close-btn:hover {
-    background: linear-gradient(135deg, #d8d0c8, #c8c0b8);
+    background: linear-gradient(135deg, #5A4A3A 0%, #4A3A2A 50%, #3A2A1A 100%);
+    border-color: #3A2A1A;
+    color: #FFF;
+    box-shadow: 
+        0 5px 14px rgba(61, 42, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+.observation-close-btn:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 6px rgba(61, 42, 26, 0.2),
+        inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .observation-drop-info {
