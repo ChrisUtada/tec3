@@ -152,8 +152,21 @@
 }
 
 .card.has-art {
-    background: none !important;
     border-color: rgba(0,0,0,0.3);
+    padding: 0 !important;
+}
+.card.has-art::before,
+.card.has-art::after {
+    display: none;  /* 隐藏装饰角落，因为图片已经是主要视觉元素 */
+}
+.card.has-art .card-name,
+.card.has-art .card-type-tag,
+.card.has-art .card-status-tag {
+    position: absolute;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    top: auto;
 }
 .card.has-art:hover {
     transform: translateY(-2px);
@@ -179,22 +192,22 @@
 }
 
 /* 卡牌类型配色 - 19世纪博物学风格 */
-.card.char-card {
+.card.char-card:not(.has-art) {
     background: linear-gradient(135deg, #F8E6E0 0%, #E8D0C8 100%);
     border-top: 3px solid var(--color-char);
 }
 
-.card.scene-card {
+.card.scene-card:not(.has-art) {
     background: linear-gradient(135deg, #E8E8E0 0%, #D8D8D0 100%);
     border-top: 3px solid var(--color-scene);
 }
 
-.card.item-card {
+.card.item-card:not(.has-art) {
     background: linear-gradient(135deg, #F5E6D3 0%, #DEB887 100%);
     border-top: 3px solid var(--color-item);
 }
 
-.card.logic-card {
+.card.logic-card:not(.has-art) {
     background: linear-gradient(135deg, #E8E0D8 0%, #D0C8BC 100%);
     border-top: 3px solid var(--color-function);
     box-shadow: 2px 2px 8px rgba(61, 42, 26, 0.15), inset 0 1px 0 rgba(255,255,255,0.5);
@@ -227,10 +240,10 @@
     box-shadow: 2px 2px 8px rgba(61, 42, 26, 0.15), 0 0 6px rgba(139, 115, 85, 0.4);
 }
 
-.card.equipment-card {
+.card.equipment-card:not(.has-art) {
     background: linear-gradient(135deg, #ede5dd 0%, #e0d5cc 100%);
     border-top: 3px solid #985a4a;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.15), 0 0 8px rgba(152, 90, 74, 0.4);
+    box-shadow: 2px 2px 8px rgba(61, 42, 26, 0.15), 0 0 8px rgba(152, 90, 74, 0.4);
 }
 .card.equipment-card::before {
     content: '⚙';
@@ -395,7 +408,7 @@
 /* 腐化倒计时条 */
 .corruption-container {
     position: absolute;
-    width: 107px;
+    width: var(--card-width);
     pointer-events: none;
     z-index: 9999;
     display: flex;
@@ -597,8 +610,8 @@
 }
 
 .dialogue-slot {
-    width: 125px;
-    height: 160px;
+    width: 150px;
+    height: 195px;
     border: 2px dashed #6a5a4a;
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.05);
@@ -772,8 +785,8 @@
 }
 
 .exploration-slot {
-    width: 125px;
-    height: 160px;
+    width: 150px;
+    height: 195px;
     border: 2px dashed #9b8c7a;
     border-radius: 6px;
     display: flex;
@@ -935,8 +948,8 @@
 }
 
 .reasoning-slot {
-    width: 125px;
-    height: 160px;
+    width: 150px;
+    height: 195px;
     border: 2px dashed #9b8c7a;
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.08);
@@ -1341,8 +1354,8 @@
 }
 
 .rest-slot {
-    width: 125px;
-    height: 160px;
+    width: 150px;
+    height: 195px;
     border: 2px dashed #6b8e6b;
     border-radius: 6px;
     display: flex;

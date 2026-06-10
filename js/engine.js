@@ -246,10 +246,7 @@ export function renderAllCards() {
                 cardEl.style.backgroundImage = `url(img/cards/${t.art})`;
                 cardEl.style.backgroundSize = 'cover';
                 cardEl.style.backgroundPosition = 'center';
-                cardEl.innerHTML = `
-                    <div class="card-name" style="background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:3px;position:absolute;bottom:28px;left:4px;right:4px;font-size:11px;text-align:center;">${t.name}</div>
-                    <div class="card-type-tag" style="position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.4);padding:1px 6px;border-radius:2px;">${t.type}</div>
-                `;
+                cardEl.innerHTML = ``;  // 不显示任何文字，只显示图片
             } else {
                 cardEl.innerHTML = `
                     <div class="card-name">${t.name}</div>

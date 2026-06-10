@@ -34,9 +34,9 @@
     --color-function: #3A2A1A;     /* 深棕 - 复古油墨色 */
     
     /* 卡牌尺寸变量 - 与 consts.js 同步 */
-    --card-width: 115px;
-    --card-height: 150px;
-    --card-stack-offset: 24px;
+    --card-width: 140px;
+    --card-height: 185px;
+    --card-stack-offset: 30px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }

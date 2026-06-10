@@ -1,5 +1,6 @@
 // ⏳ 腐化倒计时系统
 import { CARD_TEMPLATES } from '../config/cards.js';
+import { CARD } from '../consts.js';
 
 class CorruptionSystem {
     constructor() {
@@ -126,7 +127,7 @@ class CorruptionSystem {
         const left = parseInt(cardEl.style.left) || 0;
         const top = parseInt(cardEl.style.top) || 0;
         bar.style.left = `${left}px`;
-        bar.style.top = `${top + 152}px`;
+        bar.style.top = `${top + CARD.HEIGHT + 2}px`;
 
         cardEl.classList.toggle('corruption-critical', seconds <= 30);
     }

@@ -1,6 +1,7 @@
 // 🎨 渲染层模块 - 集中管理所有 DOM 操作
 import { CARD_TEMPLATES } from './config/cards.js';
 import { gameState } from './state.js';
+import { CARD } from './consts.js';
 
 // 存储当前显示的进度条
 const activeProgressBars = {};
@@ -18,8 +19,8 @@ export function updateProgressBarPosition(cardId) {
     // 使用 DOM 元素的实际位置
     const cardLeft = parseInt(cardEl.style.left) || 0;
     const cardTop = parseInt(cardEl.style.top) || 0;
-    const cardWidth = 115;
-    const cardHeight = 150;
+    const cardWidth = CARD.WIDTH;
+    const cardHeight = CARD.HEIGHT;
     
     // 更新进度条位置
     progressContainer.style.left = cardLeft + 'px';
@@ -54,9 +55,9 @@ export function showStackProgressBar(cardId, delay) {
     const cardLeft = parseInt(cardEl.style.left) || 0;
     const cardTop = parseInt(cardEl.style.top) || 0;
 
-    // 卡牌尺寸
-    const cardWidth = 115;
-    const cardHeight = 150;
+    // 卡牌尺寸（从常量导入，保持同步）
+    const cardWidth = CARD.WIDTH;
+    const cardHeight = CARD.HEIGHT;
     
     // 创建进度条容器
     const progressContainer = document.createElement('div');
@@ -116,13 +117,20 @@ export function createCardElement(card, { startDrag, openDialogue, openReasoning
     cardEl.id = card.instanceId;
     const t = CARD_TEMPLATES[card.templateId];
     
-    cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}`;
+    cardEl.className = `card ${t.class} ${card.isCaptured ? '' : 'unbound'}${t.art ? ' has-art' : ''}`;
     
-    cardEl.innerHTML = `
-        <div class="card-name">${t.name}</div>
-        ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
-        <div class="card-type-tag">${t.type}</div>
-    `;
+    if (t.art) {
+        cardEl.style.backgroundImage = `url(img/cards/${t.art})`;
+        cardEl.style.backgroundSize = 'cover';
+        cardEl.style.backgroundPosition = 'center';
+        cardEl.innerHTML = ``;  // 不显示任何文字，只显示图片
+    } else {
+        cardEl.innerHTML = `
+            <div class="card-name">${t.name}</div>
+            ${card.isCaptured ? '' : '<div class="card-status-tag">Datanodes 离线 [点选]</div>'}
+            <div class="card-type-tag">${t.type}</div>
+        `;
+    }
     
     cardEl.addEventListener('mousedown', (e) => {
         if (!card.isCaptured) { 

@@ -15,7 +15,7 @@ export const CARD_TEMPLATES = {
     'ITEM_sense_all': { name: '感官聚合', desc: '【合成卡】五感线索已全部收集，等待进一步激活。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_sense_all_light': { name: '五感手电筒', desc: '【合成卡】手电筒照亮的五感聚合体，可以揭示真名。', type: 'item', class: 'item-card', consumable: true },
     'ITEM_truename_clue': { name: '线索：被揭示的真名', desc: '【线索卡】旧日支配者的真名已被揭示。用于归因推演的关键线索。', type: 'clue', class: 'clue-vision', consumable: true },
-    'SCENE_tec': { name: '场景：TEC总部', desc: '【核心锚点】调查员联合机构的物理中枢。需与初级调查员叠加，揭开 TEC 的真实面目。', type: 'scene', class: 'scene-card', consumable: false },
+    'SCENE_tec': { name: '场景：TEC总部', desc: '【核心锚点】调查员联合机构的物理中枢。需与初级调查员叠加，揭开 TEC 的真实面目。', type: 'scene', class: 'scene-card', consumable: false, art: 'teczb.png' },
     'CHAR_tec': { name: '人物：TEC', desc: '【NPC】自称"调查员联合机构"。将初级调查员送入 TEC 总部后显露的真身。', type: 'char', class: 'char-card', consumable: false },
     'SCENE_plant_hunter': { name: '场景：植物学家的花园', desc: '【二级场景】由 TEC 引导进入的异界花园。植物学家在此失踪。', type: 'scene', class: 'scene-card', consumable: false },
     'ITEM_black_curtain': { name: '物品：黑色帘幕', desc: '【道具】厚重的黑色帘幕，遮蔽着什么。', type: 'item', class: 'item-card', consumable: false },

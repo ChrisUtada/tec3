@@ -5,13 +5,13 @@
  * 卡牌尺寸常量
  */
 export const CARD = {
-    WIDTH: 115,          // 卡牌宽度（px）
-    HEIGHT: 150,         // 卡牌高度（px）
-    HALF_WIDTH: 57.5,    // 卡牌半宽（用于居中计算）
-    STACK_OFFSET_Y: 24,  // 堆叠时的 Y 偏移
-    DROP_OFFSET_Y: 160,  // 进度条显示位置（卡牌高度 + 间距10）
-    SNAP_DISTANCE: 90,   // 水平吸附距离（已修复渲染坐标偏差，无需过大阈值）
-    SNAP_DISTANCE_Y: 120, // 垂直吸附距离（Y轴有24px堆叠偏移，稍宽）
+    WIDTH: 140,          // 卡牌宽度（px）
+    HEIGHT: 185,         // 卡牌高度（px）
+    HALF_WIDTH: 70,      // 卡牌半宽（用于居中计算）
+    STACK_OFFSET_Y: 30,  // 堆叠时的 Y 偏移
+    DROP_OFFSET_Y: 195,  // 进度条显示位置（卡牌高度 + 间距10）
+    SNAP_DISTANCE: 110,  // 水平吸附距离
+    SNAP_DISTANCE_Y: 140, // 垂直吸附距离
 };
 
 /**
