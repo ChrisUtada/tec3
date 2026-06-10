@@ -39,5 +39,5 @@ export const CARD_TEMPLATES = {
     'DEBUFF_fatigue': { name: '疲劳', desc: '【负面状态】连续探索导致的疲劳积累。桌面疲劳卡达到 5 张时将无法进行探索、对话和归因。放入休息卡中可恢复。', type: 'item', class: 'item-card debuff-card', consumable: true, allowDuplicate: true },
     'ITEM_peek_truth': { name: '疯狂窥视', desc: '【道具】疲劳极限时窥见的不可名状之物。', type: 'item', class: 'item-card', consumable: true, allowDuplicate: true, dropOnce: true },
     'SCENE_rest': { name: '休息处', desc: '【功能卡】将初级调查员和疲劳卡同时放入休息面板，消耗疲劳恢复状态。', type: 'scene', class: 'scene-card', consumable: false },
-    'CHAR_dcy': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false, fatigueTrigger: true, dropOnce: false },
+    'CHAR_dcy': { name: '人物：初级调查员', desc: '【NPC】新人调查员。负责协助搜索和记录证据。', type: 'char', class: 'char-card', consumable: false, fatigueTrigger: true, dropOnce: false, art: 'dcy.png' },
 };
