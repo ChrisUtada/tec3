@@ -608,6 +608,10 @@ function showCard(id) {
         </div>
         <div class="fg"><label>卡牌描述</label><textarea id="f_desc">${esc(t.desc||'')}</textarea></div>
         <div class="fr">
+            <div class="fg"><label>卡面图片</label><input id="f_art" value="${esc(t.art||'')}" placeholder="img/cards/ 下的文件名, 留空使用CSS风格"></div>
+            <div class="fg" style="flex:0.5;"><label>&nbsp;</label><button class="btn btn-sm" onclick="document.getElementById('pv').innerHTML='<div class=\\'card-pv\\' style=\\'background:url(img/cards/'+document.getElementById('f_art').value+') center/cover;width:120px;height:160px;border:1px solid #4a3a2a;border-radius:3px;margin:0 auto;\\'><\\/div>'">预览卡面</button></div>
+        </div>
+        <div class="fr">
             <div class="fg"><div class="ck">
                 <label><input type="checkbox" id="f_csm" ${t.consumable?'checked':''}> 使用后消耗</label>
                 <label><input type="checkbox" id="f_dup" ${t.allowDuplicate?'checked':''}> 允许多张并存</label>
@@ -846,6 +850,10 @@ function showPreview(id) {
     const t = D.CARD_TEMPLATES?.[id];
     if (!t) { document.getElementById('pv').innerHTML = '<div class="hint">选择后预览</div>'; return; }
     const ty = t.type||'item';
+    if (t.art) {
+        document.getElementById('pv').innerHTML = `<div class="card-pv" style="background:url(img/cards/${esc(t.art)}) center/cover;width:120px;height:160px;border:1px solid #4a3a2a;border-radius:3px;margin:0 auto;position:relative;"><div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;text-align:center;">${esc(t.name)}</div></div>`;
+        return;
+    }
     let ex = '';
     if (ty==='clue') { const sm={vision:'var(--cv)',hearing:'var(--ch)',taste:'var(--ct)',touch:'var(--cto)',smell:'var(--cs)'}; ex=`border-top:3px solid ${sm[t.senseType]||'var(--cv)'};`; }
     else if (ty==='char') ex='border-top:3px solid #8a5a3a;';
@@ -972,6 +980,11 @@ window.saveCard = function(id) {
     const base = baseClass(t.type);
     const extras = (t.class || base).split(/\s+/).filter(c => c && c !== base);
     t.class = extras.length ? base + ' ' + extras.join(' ') : base;
+    
+    // Art
+    const artVal = document.getElementById('f_art')?.value?.trim();
+    if (artVal) t.art = artVal;
+    else delete t.art;
     
     // Save special fields from extraFields (type-appropriate)
     const cardType = t.type || 'item';
@@ -1291,7 +1304,7 @@ const FCS = [
 ];
 
 function genCards() {
-    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','interactText','fatigueTrigger','dropOnce'];
+    const sf = ['corruptionTime','senseType','recycleValue','value','realName','realDesc','interactText','fatigueTrigger','dropOnce','art'];
     let s = '// 卡牌模板\nexport const CARD_TEMPLATES = {\n';
     for (const [id,t] of Object.entries(D.CARD_TEMPLATES||{})) {
         const f = [`name: '${escJs(t.name||'')}'`,`desc: '${escJs(t.desc||'')}'`,`type: '${t.type||'item'}'`,`class: '${t.class||baseClass(t.type)}'`];
